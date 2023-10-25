@@ -1,0 +1,4 @@
+accelerate
+sentencepiece
+transformers
+datasets
