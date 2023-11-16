@@ -3,6 +3,9 @@ from transformers import (
     T5ForSequenceClassification, Trainer,
     TrainingArguments
 )
+
+from transformers.optimization import Adafactor, AdafactorSchedule
+
 import datasets
 
 dataset_mapping = {
@@ -114,11 +117,14 @@ class ModelTrainer:
     def train_and_evaluate(self, train_dataset, eval_dataset, test_dataset):
         training_args = TrainingArguments(**self.training_params)
         model = self.initialize_model()
+        optimizer = Adafactor(model.parameters(), scale_parameter=True, relative_step=True, warmup_init=True, lr=None)
+        lr_scheduler = AdafactorSchedule(optimizer)
         trainer = Trainer(
             model=model,
             args=training_args,
             train_dataset=train_dataset,
-            eval_dataset=eval_dataset,
+            eval_dataset=eval_dataset, 
+            optimizers=(optimizer, lr_scheduler)
         )
         trainer.train()
         results = trainer.evaluate(test_dataset)
