@@ -1,7 +1,7 @@
 from transformers import (
-    T5Tokenizer, T5ForConditionalGeneration,
-    T5ForSequenceClassification, Trainer,
-    TrainingArguments
+    PreTrainedTokenizerFast, T5ForConditionalGeneration,
+    # T5ForSequenceClassification, 
+    Trainer, TrainingArguments
 )
 
 from transformers.optimization import Adafactor, AdafactorSchedule
@@ -37,7 +37,7 @@ class DatasetProcessor:
         self.dataset_name = dataset_name
         self.task = task
         self.task_format = task_format
-        self.tokenizer = T5Tokenizer.from_pretrained(tokenizer_name)
+        self.tokenizer = PreTrainedTokenizerFast.from_pretrained(tokenizer_name)
 
     def load_and_preprocess_data(self, split='train'):
         dataset = datasets.load_dataset(dataset_mapping[self.dataset_name], split=split) #.select(range(100))
