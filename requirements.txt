@@ -1,4 +1,6 @@
 accelerate
-sentencepiece
-transformers
 datasets
+safetensors
+sentencepiece
+tokenizers
+transformers==4.35
