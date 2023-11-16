@@ -7,6 +7,7 @@ from transformers import (
 from transformers.optimization import Adafactor, AdafactorSchedule
 
 import datasets
+import argparse
 
 dataset_mapping = {
     "offensive": "Toygar/turkish-offensive-language-detection",
@@ -143,21 +144,35 @@ def main(model_name, dataset_name, task, task_format, training_params): # , mode
 
     # model.save_pretrained(model_save_path)
     # dataset_processor.tokenizer.save_pretrained(model_save_path)
+if __name__ == "__main__":
+    # Initialize parser
+    parser = argparse.ArgumentParser(description='Train a model on a dataset for a specific task.')
 
-# Example usage:
-training_params = {
-    'per_device_train_batch_size': 8,
-    'per_device_eval_batch_size': 8,
-    'num_train_epochs': 3,
-    'evaluation_strategy': "epoch",
-    'save_strategy': "epoch",
-    'logging_dir': './logs',
-    'logging_steps': 100,
-    'save_total_limit': 3,
-    'remove_unused_columns': False,
-    'push_to_hub': False,
-    'output_dir': './t5_finetuned_test', 
-}
+    # Adding arguments
+    parser.add_argument('--model_name', type=str, required=True, help='Name of the model to be trained')
+    parser.add_argument('--dataset_name', type=str, required=True, help='Name of the dataset to be used')
+    parser.add_argument('--task', type=str, required=True, help='Task for which the model is being trained')
+    parser.add_argument('--task_format', type=str, required=True, help='Format of the task')
+
+    # Parse arguments
+    args = parser.parse_args()
+
+    # Example training parameters 
+    training_params = {
+        'per_device_train_batch_size': 8,
+        'per_device_eval_batch_size': 8,
+        'num_train_epochs': 3,
+        'evaluation_strategy': "epoch",
+        'save_strategy': "epoch",
+        'logging_dir': './logs',
+        'logging_steps': 100,
+        'save_total_limit': 3,
+        'remove_unused_columns': False,
+        'push_to_hub': False,
+        'output_dir': './t5_finetuned_test', 
+    }
+    
+    main(args.model_name, args.dataset_name, args.task, args.task_format, training_params)
 
 # main('t5-small', 'offensive', 'classification', 'classification', training_params) 
 # main('t5-small', 'ted', 'paraphrasing', 'conditional_generation', training_params)
