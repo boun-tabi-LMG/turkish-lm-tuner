@@ -1,5 +1,6 @@
 accelerate
 datasets
+hydra-core
 safetensors
 sentencepiece
 tokenizers

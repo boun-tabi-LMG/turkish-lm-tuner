@@ -1,6 +1,6 @@
 from transformers import (
     PreTrainedTokenizerFast, T5ForConditionalGeneration,
-    # T5ForSequenceClassification, 
+    T5ForSequenceClassification, 
     Trainer, TrainingArguments
 )
 
@@ -8,6 +8,8 @@ from transformers.optimization import Adafactor, AdafactorSchedule
 
 import datasets
 import argparse
+import hydra
+from omegaconf import DictConfig
 
 dataset_mapping = {
     "offensive": "Toygar/turkish-offensive-language-detection",
@@ -34,7 +36,7 @@ dataset_mapping = {
 }
 
 class DatasetProcessor:
-    def __init__(self, dataset_name, task, task_format, tokenizer_name):
+    def __init__(self, dataset_name, task, task_format, tokenizer_name, max_input_length=128, max_target_length=128):
         self.dataset_name = dataset_name
         self.task = task
         self.task_format = task_format
@@ -135,8 +137,16 @@ class ModelTrainer:
         print(results)
         return trainer, model
 
-def main(model_name, dataset_name, task, task_format, training_params): # , model_save_path):
-    dataset_processor = DatasetProcessor(dataset_name, task, task_format, model_name)
+@hydra.main(config_path="conf", config_name="default")
+def main(cfg: DictConfig):
+    model_name = cfg.model_name
+    dataset_name = cfg.dataset_name
+    task = cfg.task
+    task_format = cfg.task_format
+    max_input_length = cfg.max_input_length
+    max_target_length = cfg.max_target_length
+    training_params = cfg.training_params
+    dataset_processor = DatasetProcessor(dataset_name, task, task_format, model_name, max_input_length, max_target_length)
     train_set = dataset_processor.load_and_preprocess_data()
     train_set = train_set.train_test_split(test_size=0.1)
     train_dataset, eval_dataset = train_set["train"], train_set["test"]
@@ -147,33 +157,6 @@ def main(model_name, dataset_name, task, task_format, training_params): # , mode
 
     # model.save_pretrained(model_save_path)
     # dataset_processor.tokenizer.save_pretrained(model_save_path)
-    
+
 if __name__ == "__main__":
-    # Initialize parser
-    parser = argparse.ArgumentParser(description='Train a model on a dataset for a specific task.')
-
-    # Adding arguments
-    parser.add_argument('--model_name', type=str, required=True, help='Name of the model to be trained')
-    parser.add_argument('--dataset_name', type=str, required=True, help='Name of the dataset to be used')
-    parser.add_argument('--task', type=str, required=True, help='Task for which the model is being trained')
-    parser.add_argument('--task_format', type=str, required=True, help='Format of the task')
-
-    # Parse arguments
-    args = parser.parse_args()
-
-    # Example training parameters 
-    training_params = {
-        'per_device_train_batch_size': 8,
-        'per_device_eval_batch_size': 8,
-        'num_train_epochs': 3,
-        'evaluation_strategy': "epoch",
-        'save_strategy': "epoch",
-        'logging_dir': './logs',
-        'logging_steps': 100,
-        'save_total_limit': 3,
-        'remove_unused_columns': False,
-        'push_to_hub': False,
-        'output_dir': './t5_finetuned_test', 
-    }
-    
-    main(args.model_name, args.dataset_name, args.task, args.task_format, training_params)
+    main()
