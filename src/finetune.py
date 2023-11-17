@@ -51,8 +51,8 @@ class DatasetProcessor:
     def get_preprocess_function(self):
         # Mapping of dataset_name and task to corresponding preprocess functions
         preprocess_functions = {
-            ('trnews', 'summarization'): self.preprocess_trnews_summarization,
-            ('trnews', 'title_generation'): self.preprocess_trnews_title_generation,
+            ('tr_news', 'summarization'): self.preprocess_trnews_summarization,
+            ('tr_news', 'title_generation'): self.preprocess_trnews_title_generation,
             ('opensubtitles', 'paraphrasing'): self.preprocess_paraphrasing,
             ('ted', 'paraphrasing'): self.preprocess_paraphrasing,
             ('tatoeba', 'paraphrasing'): self.preprocess_paraphrasing,
@@ -84,12 +84,14 @@ class DatasetProcessor:
                         padding="max_length",
                         truncation=True,
                         max_length=128,
+                        return_token_type_ids=False,
                    )
             targets_tokenized = self.tokenizer(
                         examples["target_text"],
                         padding="max_length",
                         truncation=True,
                         max_length=128,
+                        return_token_type_ids=False,
                    )
             return {'labels': targets_tokenized['input_ids'], **inputs_tokenized}
 
@@ -98,6 +100,7 @@ class DatasetProcessor:
             padding="max_length",
             truncation=True,
             max_length=128,
+            return_token_type_ids=False,
         )
 
 
@@ -144,6 +147,7 @@ def main(model_name, dataset_name, task, task_format, training_params): # , mode
 
     # model.save_pretrained(model_save_path)
     # dataset_processor.tokenizer.save_pretrained(model_save_path)
+    
 if __name__ == "__main__":
     # Initialize parser
     parser = argparse.ArgumentParser(description='Train a model on a dataset for a specific task.')
@@ -173,6 +177,3 @@ if __name__ == "__main__":
     }
     
     main(args.model_name, args.dataset_name, args.task, args.task_format, training_params)
-
-# main('t5-small', 'offensive', 'classification', 'classification', training_params) 
-# main('t5-small', 'ted', 'paraphrasing', 'conditional_generation', training_params)
