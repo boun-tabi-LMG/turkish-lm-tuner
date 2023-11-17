@@ -1,0 +1,15 @@
+defaults:
+  - default
+
+dataset_name: tr_news
+task: summarization
+max_input_length: 768
+max_target_length: 128
+training_params:
+  num_train_epochs: 10
+  early_stopping_patience: 2
+  per_device_train_batch_size: 8
+  per_device_eval_batch_size: 8
+  output_dir: ./t5_tr_news_summarization
+
+

@@ -15,7 +15,7 @@ pip install -r requirements.txt
 ### Fine-tuning
 To fine-tune a model on a specific task, ... 
 ```
-python train.py --model_name <model-name> --dataset_name <dataset-name> --task <task> --task_format <task-format> 
+python src/finetune.py --config-name <task>
 ```
 ### Inference
 To run inference with a fine-tuned model, ...

@@ -1,0 +1,10 @@
+model_name: t5-small
+task_format: conditional_generation
+training_params:
+  evaluation_strategy: epoch
+  save_strategy: epoch
+  logging_dir: ./logs
+  logging_steps: 100
+  save_total_limit: 3
+  remove_unused_columns: False
+  push_to_hub: False
