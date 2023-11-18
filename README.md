@@ -7,6 +7,9 @@ This repository provides scripts for fine-tuning T5 models on various Turkish NL
 Clone the repository and install the required dependencies:
 
 ```bash
+conda create -n t5-tuner python=3.9
+conda activate t5-tuner
+pip install torch==1.10.0+cu102 -f https://download.pytorch.org/whl/torch_stable.html
 git clone https://github.com/boun-llm/t5-tuner.git
 cd t5-tuner
 pip install -r requirements.txt
