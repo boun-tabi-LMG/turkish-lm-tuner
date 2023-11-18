@@ -137,7 +137,7 @@ class ModelTrainer:
         print(results)
         return trainer, model
 
-@hydra.main(config_path="conf", config_name="default")
+@hydra.main(config_path="../conf", config_name="default")
 def main(cfg: DictConfig):
     model_name = cfg.model_name
     dataset_name = cfg.dataset_name
