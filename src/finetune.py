@@ -41,6 +41,8 @@ class DatasetProcessor:
         self.task = task
         self.task_format = task_format
         self.tokenizer = PreTrainedTokenizerFast.from_pretrained(tokenizer_name)
+        self.max_input_length = max_input_length
+        self.max_target_length = max_target_length
 
     def load_and_preprocess_data(self, split='train'):
         dataset = datasets.load_dataset(dataset_mapping[self.dataset_name], split=split) #.select(range(100))
@@ -85,14 +87,14 @@ class DatasetProcessor:
                         examples["input_text"],
                         padding="max_length",
                         truncation=True,
-                        max_length=128,
+                        max_length=self.max_input_length,
                         return_token_type_ids=False,
                    )
             targets_tokenized = self.tokenizer(
                         examples["target_text"],
                         padding="max_length",
                         truncation=True,
-                        max_length=128,
+                        max_length=self.max_target_length,
                         return_token_type_ids=False,
                    )
             return {'labels': targets_tokenized['input_ids'], **inputs_tokenized}
@@ -101,7 +103,7 @@ class DatasetProcessor:
             examples["input_text"],
             padding="max_length",
             truncation=True,
-            max_length=128,
+            max_length=self.max_input_length,
             return_token_type_ids=False,
         )
 
@@ -123,8 +125,21 @@ class ModelTrainer:
     def train_and_evaluate(self, train_dataset, eval_dataset, test_dataset):
         training_args = TrainingArguments(**self.training_params)
         model = self.initialize_model()
-        optimizer = Adafactor(model.parameters(), scale_parameter=True, relative_step=True, warmup_init=True, lr=None)
-        lr_scheduler = AdafactorSchedule(optimizer)
+        #optimizer = Adafactor(model.parameters(), scale_parameter=True, relative_step=True, warmup_init=True, lr=None)
+        #lr_scheduler = AdafactorSchedule(optimizer)
+        optimizer = Adafactor(
+	    model.parameters(),
+	    lr=1e-3,
+	    eps=(1e-30, 1e-3),
+	    clip_threshold=1.0,
+	    decay_rate=-0.8,
+	    beta1=None,
+	    weight_decay=0.0,
+	    relative_step=False,
+	    scale_parameter=False,
+	    warmup_init=False,
+	)
+        lr_scheduler = None
         trainer = Trainer(
             model=model,
             args=training_args,
