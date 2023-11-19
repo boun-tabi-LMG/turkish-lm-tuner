@@ -1,5 +1,6 @@
 model_name: t5-small
 task_format: conditional_generation
+adafactor_scheduler: True
 training_params:
   evaluation_strategy: epoch
   save_strategy: epoch

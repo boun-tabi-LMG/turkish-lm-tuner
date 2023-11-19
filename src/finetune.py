@@ -109,9 +109,10 @@ class DatasetProcessor:
 
 
 class ModelTrainer:
-    def __init__(self, model_name, task_format, training_params):
+    def __init__(self, model_name, task_format, adafactor_scheduler, training_params):
         self.model_name = model_name
-        self.task_format = task_format
+        self.task_format = task_format        
+        self.adafactor_scheduler = adafactor_scheduler
         self.training_params = training_params
 
     def initialize_model(self):
@@ -125,21 +126,26 @@ class ModelTrainer:
     def train_and_evaluate(self, train_dataset, eval_dataset, test_dataset):
         training_args = TrainingArguments(**self.training_params)
         model = self.initialize_model()
-        #optimizer = Adafactor(model.parameters(), scale_parameter=True, relative_step=True, warmup_init=True, lr=None)
-        #lr_scheduler = AdafactorSchedule(optimizer)
-        optimizer = Adafactor(
-	    model.parameters(),
-	    lr=1e-3,
-	    eps=(1e-30, 1e-3),
-	    clip_threshold=1.0,
-	    decay_rate=-0.8,
-	    beta1=None,
-	    weight_decay=0.0,
-	    relative_step=False,
-	    scale_parameter=False,
-	    warmup_init=False,
-	)
-        lr_scheduler = None
+        
+        if self.adafactor_scheduler == True:
+            optimizer = Adafactor(model.parameters(), scale_parameter=True, relative_step=True, warmup_init=True, lr=None)
+            lr_scheduler = AdafactorSchedule(optimizer)
+        else:
+            optimizer = Adafactor(
+                model.parameters(),
+                lr=1e-3,
+                eps=(1e-30, 1e-3),
+                clip_threshold=1.0,
+                decay_rate=-0.8,
+                beta1=None,
+                weight_decay=0.0,
+                relative_step=False,
+                scale_parameter=False,
+                warmup_init=False,
+            )
+            lr_scheduler = None
+        
+
         trainer = Trainer(
             model=model,
             args=training_args,
@@ -160,6 +166,7 @@ def main(cfg: DictConfig):
     task_format = cfg.task_format
     max_input_length = cfg.max_input_length
     max_target_length = cfg.max_target_length
+    adafactor_scheduler = cfg.adafactor_scheduler
     training_params = cfg.training_params
     dataset_processor = DatasetProcessor(dataset_name, task, task_format, model_name, max_input_length, max_target_length)
     train_set = dataset_processor.load_and_preprocess_data()
@@ -167,7 +174,7 @@ def main(cfg: DictConfig):
     train_dataset, eval_dataset = train_set["train"], train_set["test"]
     test_dataset = dataset_processor.load_and_preprocess_data(split="test")
 
-    model_trainer = ModelTrainer(model_name, task_format, training_params)
+    model_trainer = ModelTrainer(model_name, task_format, adafactor_scheduler, training_params)
     trainer, model = model_trainer.train_and_evaluate(train_dataset, eval_dataset, test_dataset)
 
     # model.save_pretrained(model_save_path)
