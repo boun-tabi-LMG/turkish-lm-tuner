@@ -90,7 +90,7 @@ class DatasetProcessor:
         return {"input_text": examples["src"], "target_text": examples["tgt"]}
 
     def preprocess_nli(self, examples):
-        return {"input_text": f"hipotez: {examples["hypothesis"]} önerme: {examples["premise"]}"}
+        return {"input_text": f"hipotez: {examples['hypothesis']} önerme: {examples['premise']}"}
 
     def tokenize_function(self, examples):
         if self.task_format == 'conditional_generation':
