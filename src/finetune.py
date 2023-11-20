@@ -38,10 +38,11 @@ dataset_mapping = {
 
 
 class DatasetProcessor:
-    def __init__(self, dataset_name, task, task_format, tokenizer_name, max_input_length=128, max_target_length=128):
+    def __init__(self, dataset_name, task, task_format, task_mode, tokenizer_name, max_input_length=128, max_target_length=128):
         self.dataset_name = dataset_name
         self.task = task
         self.task_format = task_format
+        self.task_mode = task_mode
         self.tokenizer = PreTrainedTokenizerFast.from_pretrained(tokenizer_name)
         self.max_input_length = max_input_length
         self.max_target_length = max_target_length
@@ -66,7 +67,10 @@ class DatasetProcessor:
             # ... add mappings for other dataset and task type combinations
         }
         return preprocess_functions.get((self.dataset_name, self.task), self.default_preprocess_function)
-
+    
+    def prepend_prefix(self, examples):
+        return [f'{self.task_mode}: {ex}' for ex in examples]
+    
     def append_eos(self, examples):
         def append_eos_text(text):
             if text.endswith(self.tokenizer.eos_token):
@@ -95,7 +99,7 @@ class DatasetProcessor:
     def tokenize_function(self, examples):
         if self.task_format == 'conditional_generation':
             inputs_tokenized = self.tokenizer(
-                        examples["input_text"],
+                        self.prepend_prefix(examples["input_text"]),
                         padding="max_length",
                         truncation=True,
                         max_length=self.max_input_length,
@@ -111,7 +115,7 @@ class DatasetProcessor:
             return {'labels': targets_tokenized['input_ids'], **inputs_tokenized}
 
         return self.tokenizer(
-            examples["input_text"],
+            self.prepend_prefix(examples["input_text"]),
             padding="max_length",
             truncation=True,
             max_length=self.max_input_length,
@@ -175,14 +179,21 @@ def main(cfg: DictConfig):
     dataset_name = cfg.dataset_name
     task = cfg.task
     task_format = cfg.task_format
+    task_mode = cfg.task_mode
     max_input_length = cfg.max_input_length
     max_target_length = cfg.max_target_length
     adafactor_scheduler = cfg.adafactor_scheduler
     training_params = cfg.training_params
-    dataset_processor = DatasetProcessor(dataset_name, task, task_format, model_name, max_input_length, max_target_length)
+    dataset_processor = DatasetProcessor(dataset_name, task, task_format, task_mode, model_name, max_input_length, max_target_length)
     train_set = dataset_processor.load_and_preprocess_data()
-    train_set = train_set.train_test_split(test_size=0.1)
-    train_dataset, eval_dataset = train_set["train"], train_set["test"]
+    
+    try: 
+        eval_dataset = dataset_processor.load_and_preprocess_data(split='validation')
+        train_dataset = train_set["train"]
+    except:
+        train_set = train_set.train_test_split(test_size=0.1)
+        train_dataset, eval_dataset = train_set["train"], train_set["test"]
+    
     test_dataset = dataset_processor.load_and_preprocess_data(split="test")
 
     model_trainer = ModelTrainer(model_name, task_format, adafactor_scheduler, training_params)
