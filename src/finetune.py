@@ -35,6 +35,8 @@ dataset_mapping = {
     # text classification
 }
 
+
+
 class DatasetProcessor:
     def __init__(self, dataset_name, task, task_format, tokenizer_name, max_input_length=128, max_target_length=128):
         self.dataset_name = dataset_name
@@ -65,6 +67,15 @@ class DatasetProcessor:
         }
         return preprocess_functions.get((self.dataset_name, self.task), self.default_preprocess_function)
 
+    def append_eos(self, examples):
+        def append_eos_text(text):
+            if text.endswith(self.tokenizer.eos_token):
+                return text
+            else:
+                return f'{text} {self.tokenizer.eos_token}'
+
+        return [append_eos_text(ex) for ex in examples]
+
     def default_preprocess_function(self, examples):
         # Default preprocessing if specific preprocess function is not found
         return {"input_text": examples["text"], "labels": examples["label"]}
@@ -79,7 +90,7 @@ class DatasetProcessor:
         return {"input_text": examples["src"], "target_text": examples["tgt"]}
 
     def preprocess_nli(self, examples):
-        return {"input_text": examples["premise"] + ' [SEP]' + examples["hypothesis"]}
+        return {"input_text": f"hipotez: {examples["hypothesis"]} önerme: {examples["premise"]}"}
 
     def tokenize_function(self, examples):
         if self.task_format == 'conditional_generation':
@@ -91,7 +102,7 @@ class DatasetProcessor:
                         return_token_type_ids=False,
                    )
             targets_tokenized = self.tokenizer(
-                        examples["target_text"],
+                        self.append_eos(examples["target_text"]),
                         padding="max_length",
                         truncation=True,
                         max_length=self.max_target_length,
