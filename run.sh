@@ -4,6 +4,7 @@
 #SBATCH --output=%j.log
 #SBATCH --mail-user=gokceuludogan@gmail.com
 #SBATCH --container-image ghcr.io\#bouncmpe/cuda-python3
+#SBATCH --time=7-00:00:00
 #SBATCH --gpus=1
 #SBATCH --cpus-per-gpu=8
 #SBATCH --mem-per-gpu=40G
