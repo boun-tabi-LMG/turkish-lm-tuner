@@ -7,9 +7,11 @@ from transformers import (
 from transformers.optimization import Adafactor, AdafactorSchedule
 
 import datasets
-import argparse
 import hydra
 from omegaconf import DictConfig
+
+import os
+local_rank = int(os.environ["LOCAL_RANK"])
 
 dataset_mapping = {
     "offensive": "Toygar/turkish-offensive-language-detection",
