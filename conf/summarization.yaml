@@ -10,5 +10,6 @@ training_params:
   per_device_train_batch_size: 4 # 4 for ultramarine
   per_device_eval_batch_size: 4 # 4 for ultramarine
   output_dir: ./t5_tr_news_summarization
+  bf16: true
 
 
