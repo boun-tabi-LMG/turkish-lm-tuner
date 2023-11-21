@@ -15,5 +15,7 @@ pip install torch --index-url https://download.pytorch.org/whl/cu118
 cd ~/t5-tuner
 pip install -r requirements.txt
 pip install wandb
-python src/finetune.py --config-name title_generation
-#python src/finetune.py --config-name summarization
+# For Single-GPU Training
+python src/finetune.py --config-name summarization
+# For Multi-GPU Training
+# python -m torch.distributed.launch --nproc_per_node 3 --use_env src/finetune.py --config-name summarization
