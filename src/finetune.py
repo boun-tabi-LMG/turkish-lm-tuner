@@ -30,7 +30,10 @@ dataset_mapping = {
     "xquad": "furkanakkurt1618/qa_dataset-xquad-boun-llm",
     "xtreme/xquad": "furkanakkurt1618/qa_dataset-xtreme-xquad-boun-llm",
     # question generation
-
+    "exams-qg": "furkanakkurt1618/qg_dataset-exams-boun-llm",
+    "turkish-nlp-qa-dataset-qg": "furkanakkurt1618/qg_dataset-turkish-nlp-qa-dataset-boun-llm",
+    "xquad-qg": "furkanakkurt1618/qg_dataset-xquad-boun-llm",
+    "xtreme/xquad-qg": "furkanakkurt1618/qg_dataset-xtreme-xquad-boun-llm",
     # nli
     "nli_tr": "nli_tr",
     # semantic textual similarity
