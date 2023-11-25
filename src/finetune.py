@@ -22,18 +22,27 @@ dataset_mapping = {
     "tatoeba": "mrbesher/tr-paraphrase-tatoeba",
     "ted": "mrbesher/tr-paraphrase-ted2013",
     # translation
-
-    # question answering/generation?
+    "xtreme/tatoeba": "furkanakkurt1618/mt_dataset-xtreme-tatoeba-boun-llm",
+    # question answering
+    "exams": "furkanakkurt1618/qa_dataset-exams-boun-llm",
+    "mkqa": "furkanakkurt1618/qa_dataset-mkqa-boun-llm",
+    "turkish-nlp-qa-dataset": "furkanakkurt1618/qa_dataset-turkish-nlp-qa-dataset-boun-llm",
+    "xquad": "furkanakkurt1618/qa_dataset-xquad-boun-llm",
+    "xtreme/xquad": "furkanakkurt1618/qa_dataset-xtreme-xquad-boun-llm",
+    # question generation
 
     # nli
     "nli_tr": "nli_tr",
     # semantic textual similarity
 
     # ner
-
+    "milliyet": "furkanakkurt1618/ner_dataset-milliyet-boun-llm",
+    "wikiann": "furkanakkurt1618/ner_dataset-wikiann-boun-llm",
+    "xtreme/pan-x": "furkanakkurt1618/ner_dataset-xtreme-PAN-X-boun-llm",
     # pos tagging
-
-
+    "boun": "furkanakkurt1618/pos_dataset-UD_Turkish-BOUN-v2.13-boun-llm",
+    "imst": "furkanakkurt1618/pos_dataset-UD_Turkish-IMST-v2.13-boun-llm",
+    # "imst": "furkanakkurt1618/pos_dataset-xtreme-udpos-v2.5-boun-llm", # 2.5 is old
     # text classification
 }
 
