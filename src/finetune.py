@@ -13,7 +13,7 @@ from omegaconf import DictConfig
 import os
 local_rank = int(os.environ["LOCAL_RANK"])
 
-from utils import preprocess_exams, preprocess_exams_qg
+from utils import preprocess_exams, preprocess_exams_qg, preprocess_xquad, preprocess_xquad_qg
 
 dataset_mapping = {
     "offensive": "Toygar/turkish-offensive-language-detection",
@@ -90,6 +90,8 @@ class DatasetProcessor:
             ('tatoeba', 'paraphrasing'): self.preprocess_paraphrasing,
             ('exams', 'qa'): preprocess_exams,
             ('exams-qg', 'qg'): preprocess_exams_qg,
+            ("xquad", "xquad.tr"): preprocess_xquad,
+            ("xquad-qg", "xquad.tr.qg"): preprocess_xquad_qg,
             # ... add mappings for other dataset and task type combinations
         }
         return preprocess_functions.get((self.dataset_name, self.task), self.default_preprocess_function)
