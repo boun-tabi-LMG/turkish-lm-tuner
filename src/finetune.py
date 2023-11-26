@@ -13,39 +13,46 @@ from omegaconf import DictConfig
 import os
 local_rank = int(os.environ["LOCAL_RANK"])
 
+from utils import preprocess_exams, preprocess_exams_qg
+
 dataset_mapping = {
     "offensive": "Toygar/turkish-offensive-language-detection",
+
     # summarization/title generation
     "tr_news": "batubayk/TR-News",
+
     # paraphrasing
     "opensubtitles": "mrbesher/tr-paraphrase-opensubtitles2018",
     "tatoeba": "mrbesher/tr-paraphrase-tatoeba",
     "ted": "mrbesher/tr-paraphrase-ted2013",
+
     # translation
-    "xtreme/tatoeba": "furkanakkurt1618/mt_dataset-xtreme-tatoeba-boun-llm",
+
     # question answering
-    "exams": "furkanakkurt1618/qa_dataset-exams-boun-llm",
-    "mkqa": "furkanakkurt1618/qa_dataset-mkqa-boun-llm",
+    "exams": ("exams", "crosslingual_tr"),
+    "mkqa": "furkanakkurt1618/qa_dataset-mkqa-boun-llm", # change to use hf
     "turkish-nlp-qa-dataset": "furkanakkurt1618/qa_dataset-turkish-nlp-qa-dataset-boun-llm",
-    "xquad": "furkanakkurt1618/qa_dataset-xquad-boun-llm",
-    "xtreme/xquad": "furkanakkurt1618/qa_dataset-xtreme-xquad-boun-llm",
+    "xquad": "furkanakkurt1618/qa_dataset-xquad-boun-llm", # change to use hf
+
     # question generation
-    "exams-qg": "furkanakkurt1618/qg_dataset-exams-boun-llm",
-    "turkish-nlp-qa-dataset-qg": "furkanakkurt1618/qg_dataset-turkish-nlp-qa-dataset-boun-llm",
-    "xquad-qg": "furkanakkurt1618/qg_dataset-xquad-boun-llm",
-    "xtreme/xquad-qg": "furkanakkurt1618/qg_dataset-xtreme-xquad-boun-llm",
+    "exams-qg": ("exams", "crosslingual_tr"),
+    "turkish-nlp-qa-dataset-qg": "furkanakkurt1618/qg_dataset-turkish-nlp-qa-dataset-boun-llm", # wasn't on hf
+    "xquad-qg": "furkanakkurt1618/qg_dataset-xquad-boun-llm", # change to use hf
+
     # nli
     "nli_tr": "nli_tr",
+
     # semantic textual similarity
 
     # ner
-    "milliyet": "furkanakkurt1618/ner_dataset-milliyet-boun-llm",
-    "wikiann": "furkanakkurt1618/ner_dataset-wikiann-boun-llm",
-    "xtreme/pan-x": "furkanakkurt1618/ner_dataset-xtreme-PAN-X-boun-llm",
+    "milliyet": "furkanakkurt1618/ner_dataset-milliyet-boun-llm", # wasn't on hf
+    "wikiann": "furkanakkurt1618/ner_dataset-wikiann-boun-llm", # change to use hf
+    "xtreme/pan-x": "furkanakkurt1618/ner_dataset-xtreme-PAN-X-boun-llm", # change to use hf
+
     # pos tagging
-    "boun": "furkanakkurt1618/pos_dataset-UD_Turkish-BOUN-v2.13-boun-llm",
-    "imst": "furkanakkurt1618/pos_dataset-UD_Turkish-IMST-v2.13-boun-llm",
-    # "imst": "furkanakkurt1618/pos_dataset-xtreme-udpos-v2.5-boun-llm", # 2.5 is old
+    "boun": "furkanakkurt1618/pos_dataset-UD_Turkish-BOUN-v2.13-boun-llm", # wasn't on hf
+    "imst": "furkanakkurt1618/pos_dataset-UD_Turkish-IMST-v2.13-boun-llm", # wasn't on hf
+
     # text classification
 }
 
@@ -62,7 +69,11 @@ class DatasetProcessor:
         self.max_target_length = max_target_length
 
     def load_and_preprocess_data(self, split='train'):
-        dataset = datasets.load_dataset(dataset_mapping[self.dataset_name], split=split) #.select(range(100))
+        mapped_dataset = dataset_mapping[self.dataset_name]
+        if type(mapped_dataset) == tuple:
+            dataset = datasets.load_dataset(mapped_dataset[0], mapped_dataset[1], split=split)
+        else:
+            dataset = datasets.load_dataset(mapped_dataset, split=split) #.select(range(100))
         preprocess_function = self.get_preprocess_function()
         column_names = dataset.column_names
         processed_dataset = dataset.map(preprocess_function, remove_columns=column_names, batched=True)
@@ -77,7 +88,8 @@ class DatasetProcessor:
             ('opensubtitles', 'paraphrasing'): self.preprocess_paraphrasing,
             ('ted', 'paraphrasing'): self.preprocess_paraphrasing,
             ('tatoeba', 'paraphrasing'): self.preprocess_paraphrasing,
-
+            ('exams', 'qa'): preprocess_exams,
+            ('exams-qg', 'qg'): preprocess_exams_qg,
             # ... add mappings for other dataset and task type combinations
         }
         return preprocess_functions.get((self.dataset_name, self.task), self.default_preprocess_function)
