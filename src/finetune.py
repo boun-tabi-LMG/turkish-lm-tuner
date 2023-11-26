@@ -13,7 +13,7 @@ from omegaconf import DictConfig
 import os
 local_rank = int(os.environ["LOCAL_RANK"])
 
-from utils import preprocess_exams, preprocess_exams_qg, preprocess_xquad, preprocess_xquad_qg
+from utils import preprocess_exams_qa, preprocess_exams_qg, preprocess_xquad_qa, preprocess_xquad_qg, preprocess_mkqa_qa, preprocess_mkqa_qg, preprocess_wikiann_ner, preprocess_xtreme_ner
 
 dataset_mapping = {
     "offensive": "Toygar/turkish-offensive-language-detection",
@@ -30,14 +30,14 @@ dataset_mapping = {
 
     # question answering
     "exams": ("exams", "crosslingual_tr"),
-    "mkqa": "furkanakkurt1618/qa_dataset-mkqa-boun-llm", # change to use hf
+    "mkqa": "mkqa",
     "turkish-nlp-qa-dataset": "furkanakkurt1618/qa_dataset-turkish-nlp-qa-dataset-boun-llm",
-    "xquad": "furkanakkurt1618/qa_dataset-xquad-boun-llm", # change to use hf
+    "xquad": ("xquad", "xquad.tr"),
 
     # question generation
     "exams-qg": ("exams", "crosslingual_tr"),
     "turkish-nlp-qa-dataset-qg": "furkanakkurt1618/qg_dataset-turkish-nlp-qa-dataset-boun-llm", # wasn't on hf
-    "xquad-qg": "furkanakkurt1618/qg_dataset-xquad-boun-llm", # change to use hf
+    "xquad-qg": ("xquad", "xquad.tr"),
 
     # nli
     "nli_tr": "nli_tr",
@@ -46,8 +46,8 @@ dataset_mapping = {
 
     # ner
     "milliyet": "furkanakkurt1618/ner_dataset-milliyet-boun-llm", # wasn't on hf
-    "wikiann": "furkanakkurt1618/ner_dataset-wikiann-boun-llm", # change to use hf
-    "xtreme/pan-x": "furkanakkurt1618/ner_dataset-xtreme-PAN-X-boun-llm", # change to use hf
+    "wikiann": ("wikiann", "tr"),
+    "xtreme": ("xtreme", "PAN-X.tr"),
 
     # pos tagging
     "boun": "furkanakkurt1618/pos_dataset-UD_Turkish-BOUN-v2.13-boun-llm", # wasn't on hf
@@ -88,10 +88,14 @@ class DatasetProcessor:
             ('opensubtitles', 'paraphrasing'): self.preprocess_paraphrasing,
             ('ted', 'paraphrasing'): self.preprocess_paraphrasing,
             ('tatoeba', 'paraphrasing'): self.preprocess_paraphrasing,
-            ('exams', 'qa'): preprocess_exams,
+            ('exams', 'qa'): preprocess_exams_qa,
             ('exams-qg', 'qg'): preprocess_exams_qg,
-            ("xquad", "xquad.tr"): preprocess_xquad,
-            ("xquad-qg", "xquad.tr.qg"): preprocess_xquad_qg,
+            ("xquad", "qa"): preprocess_xquad_qa,
+            ("xquad-qg", "qg"): preprocess_xquad_qg,
+            ("mkqa", "qa"): preprocess_mkqa_qa,
+            ("mkqa-qg", "qg"): preprocess_mkqa_qg,
+            ("wikiann", "ner"): preprocess_wikiann_ner,
+            ("xtreme", "ner"): preprocess_xtreme_ner,
             # ... add mappings for other dataset and task type combinations
         }
         return preprocess_functions.get((self.dataset_name, self.task), self.default_preprocess_function)
