@@ -1,6 +1,6 @@
 model_name: /stratch/bounllm/ckpt-500K
 task_format: conditional_generation
-task_tag: '' # '[S2S] ', '[NLU] ', '[NLG] '
+task_mode: '' # '[S2S] ', '[NLU] ', '[NLG] '
 adafactor_scheduler: True
 training_params:
   evaluation_strategy: epoch
