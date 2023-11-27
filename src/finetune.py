@@ -91,9 +91,20 @@ class DatasetProcessor:
         preprocess_function = self.get_preprocess_function()
         column_names = dataset.column_names
         processed_dataset = dataset.map(preprocess_function, remove_columns=column_names, batched=True)
+        max_input_length, max_target_length = self.calculate_max_input_length(processed_dataset)
+        print(f"Max input length: {max_input_length} Max target length: {max_target_length}")
         tokenized_dataset = processed_dataset.map(self.tokenize_function, batched=True)
         return tokenized_dataset
 
+    def calculate_max_input_length(self, dataset):
+
+        def get_max_length(examples, field='input_text'):
+            return max(len(ex) for ex in self.tokenizer(examples[field]))
+
+        max_input_length = dataset.map(get_max_length, batched=True, batch_size=1000)
+        max_target_length = dataset.map(get_max_length, batched=True, batch_size=1000, field='target_text')
+        return max_input_length, max_target_length
+    
     def get_preprocess_function(self):
         # Mapping of dataset_name and task to corresponding preprocess functions
         preprocess_functions = {
