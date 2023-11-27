@@ -42,16 +42,12 @@ dataset_mapping = {
 
     # translation
 
-    # question answering
+    # question answering & generation
     "exams": ("exams", "crosslingual_tr"),
     "mkqa": "mkqa",
-    "turkish-nlp-qa-dataset": "furkanakkurt1618/qa_dataset-turkish-nlp-qa-dataset-boun-llm",
     "xquad": ("xquad", "xquad.tr"),
-
-    # question generation
-    "exams-qg": ("exams", "crosslingual_tr"),
+    "turkish-nlp-qa-dataset": "furkanakkurt1618/qa_dataset-turkish-nlp-qa-dataset-boun-llm",
     "turkish-nlp-qa-dataset-qg": "furkanakkurt1618/qg_dataset-turkish-nlp-qa-dataset-boun-llm", # wasn't on hf
-    "xquad-qg": ("xquad", "xquad.tr"),
 
     # nli
     "nli_tr": "nli_tr",
@@ -113,12 +109,12 @@ class DatasetProcessor:
             ('opensubtitles', 'paraphrasing'): preprocess_paraphrasing,
             ('ted', 'paraphrasing'): preprocess_paraphrasing,
             ('tatoeba', 'paraphrasing'): preprocess_paraphrasing,
-            ('exams', 'qa'): preprocess_exams_qa,
-            ('exams-qg', 'qg'): preprocess_exams_qg,
-            ("xquad", "qa"): preprocess_xquad_qa,
-            ("xquad-qg", "qg"): preprocess_xquad_qg,
-            ("mkqa", "qa"): preprocess_mkqa_qa,
-            ("mkqa-qg", "qg"): preprocess_mkqa_qg,
+            ('exams', 'question_answering'): preprocess_exams_qa,
+            ('exams', 'question_generation'): preprocess_exams_qg,
+            ("xquad", "question_answering"): preprocess_xquad_qa,
+            ("xquad", "question_generation"): preprocess_xquad_qg,
+            ("mkqa", "question_answering"): preprocess_mkqa_qa,
+            ("mkqa", "question_generation"): preprocess_mkqa_qg,
             ("wikiann", "ner"): preprocess_wikiann_ner,
             ("xtreme", "ner"): preprocess_xtreme_ner,
             # ... add mappings for other dataset and task type combinations
