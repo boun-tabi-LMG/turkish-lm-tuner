@@ -1,3 +1,18 @@
+def default_preprocess_function(examples):
+    # Default preprocessing if specific preprocess function is not found
+    return {"input_text": examples["text"], "labels": examples["label"]}
+
+def preprocess_trnews_summarization(examples):
+    return {"input_text": examples["content"], "target_text": examples["abstract"]}
+
+def preprocess_trnews_title_generation(examples):
+    return {"input_text": examples["content"], "target_text": examples["title"]}
+
+def preprocess_paraphrasing(examples):
+    return {"input_text": examples["src"], "target_text": examples["tgt"]}
+
+def preprocess_nli(examples):
+    return {"input_text": f"hipotez: {examples['hypothesis']} önerme: {examples['premise']}"}
 
 def preprocess_exams_qa(examples):
     question = examples["question"]
