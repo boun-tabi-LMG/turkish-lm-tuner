@@ -13,7 +13,21 @@ from omegaconf import DictConfig
 import os
 local_rank = int(os.environ["LOCAL_RANK"])
 
-from utils import preprocess_exams_qa, preprocess_exams_qg, preprocess_xquad_qa, preprocess_xquad_qg, preprocess_mkqa_qa, preprocess_mkqa_qg, preprocess_wikiann_ner, preprocess_xtreme_ner
+from utils import (
+    default_preprocess_function,
+    preprocess_trnews_summarization,
+    preprocess_trnews_title_generation,
+    preprocess_paraphrasing,
+    preprocess_nli,
+    preprocess_exams_qa, 
+    preprocess_exams_qg, 
+    preprocess_xquad_qa, 
+    preprocess_xquad_qg, 
+    preprocess_mkqa_qa, 
+    preprocess_mkqa_qg, 
+    preprocess_wikiann_ner, 
+    preprocess_xtreme_ner
+)
 
 dataset_mapping = {
     "offensive": "Toygar/turkish-offensive-language-detection",
@@ -83,11 +97,11 @@ class DatasetProcessor:
     def get_preprocess_function(self):
         # Mapping of dataset_name and task to corresponding preprocess functions
         preprocess_functions = {
-            ('tr_news', 'summarization'): self.preprocess_trnews_summarization,
-            ('tr_news', 'title_generation'): self.preprocess_trnews_title_generation,
-            ('opensubtitles', 'paraphrasing'): self.preprocess_paraphrasing,
-            ('ted', 'paraphrasing'): self.preprocess_paraphrasing,
-            ('tatoeba', 'paraphrasing'): self.preprocess_paraphrasing,
+            ('tr_news', 'summarization'): preprocess_trnews_summarization,
+            ('tr_news', 'title_generation'): preprocess_trnews_title_generation,
+            ('opensubtitles', 'paraphrasing'): preprocess_paraphrasing,
+            ('ted', 'paraphrasing'): preprocess_paraphrasing,
+            ('tatoeba', 'paraphrasing'): preprocess_paraphrasing,
             ('exams', 'qa'): preprocess_exams_qa,
             ('exams-qg', 'qg'): preprocess_exams_qg,
             ("xquad", "qa"): preprocess_xquad_qa,
@@ -98,7 +112,7 @@ class DatasetProcessor:
             ("xtreme", "ner"): preprocess_xtreme_ner,
             # ... add mappings for other dataset and task type combinations
         }
-        return preprocess_functions.get((self.dataset_name, self.task), self.default_preprocess_function)
+        return preprocess_functions.get((self.dataset_name, self.task), default_preprocess_function)
     
     def prepend_prefix(self, examples):
         return [f'{self.task_mode}: {ex}' for ex in examples]
@@ -111,22 +125,6 @@ class DatasetProcessor:
                 return f'{text} {self.tokenizer.eos_token}'
 
         return [append_eos_text(ex) for ex in examples]
-
-    def default_preprocess_function(self, examples):
-        # Default preprocessing if specific preprocess function is not found
-        return {"input_text": examples["text"], "labels": examples["label"]}
-
-    def preprocess_trnews_summarization(self, examples):
-        return {"input_text": examples["content"], "target_text": examples["abstract"]}
-
-    def preprocess_trnews_title_generation(self, examples):
-        return {"input_text": examples["content"], "target_text": examples["title"]}
-
-    def preprocess_paraphrasing(self, examples):
-        return {"input_text": examples["src"], "target_text": examples["tgt"]}
-
-    def preprocess_nli(self, examples):
-        return {"input_text": f"hipotez: {examples['hypothesis']} önerme: {examples['premise']}"}
 
     def tokenize_function(self, examples):
         if self.task_format == 'conditional_generation':
