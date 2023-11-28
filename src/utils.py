@@ -149,3 +149,10 @@ def preprocess_xtreme_ner(examples):
     if not target_text:
         target_text = 'Bulunamadı.'
     return {'input_text': input_text, 'target_text': target_text}
+
+
+def postprocess_text(preds, labels):
+    preds = [pred.strip() for pred in preds]
+    labels = [[label.strip()] for label in labels]
+    return preds, labels
+
