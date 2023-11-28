@@ -37,7 +37,7 @@ List of fine-tuned models available for inference:
 
 Start container with GPUs. 
 
-`srun --container-image=ghcr.io\#bouncmpe/cuda-python3 --cpus-per-task=10 --gpus=1 --time=365-0 --pty bash`
+`srun --container-image=ghcr.io\#bouncmpe/cuda-python3 --container-mounts=/stratch/bounllm/:/stratch/bounllm/ --cpus-per-task=10 --gpus=1 --time=365-0 --pty bash`
 
 
 Install torch compatible with GPU 
