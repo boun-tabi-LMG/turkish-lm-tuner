@@ -1,6 +1,10 @@
+absl-py
 accelerate
 datasets
+evaluate
 hydra-core
+nltk
+rouge-score
 safetensors
 sentencepiece
 tokenizers
