@@ -45,7 +45,6 @@ class ModelTrainer:
             metric_for_best_model='eval_loss',
             load_best_model_at_end=True,
             greater_is_better=False,
-            callbacks = [EarlyStoppingCallback(early_stopping_patience=3)],
             **self.training_params)
         
         model = self.initialize_model()
@@ -75,7 +74,9 @@ class ModelTrainer:
             train_dataset=train_dataset,
             eval_dataset=eval_dataset, 
             compute_metrics = self.compute_metrics,
-            optimizers=(optimizer, lr_scheduler)
+            optimizers=(optimizer, lr_scheduler),
+            callbacks = [EarlyStoppingCallback(early_stopping_patience=3)],
+
         )
 
         trainer.train()
