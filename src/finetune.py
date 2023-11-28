@@ -1,7 +1,8 @@
 from transformers import (
     PreTrainedTokenizerFast, T5ForConditionalGeneration,
     T5ForSequenceClassification, 
-    Trainer, TrainingArguments
+    Trainer, TrainingArguments, Seq2SeqTrainingArguments,
+    EarlyStoppingCallback
 )
 
 from transformers.optimization import Adafactor, AdafactorSchedule
@@ -33,13 +34,20 @@ class ModelTrainer:
             model = T5ForConditionalGeneration.from_pretrained(self.model_name)
         elif self.task_format == "classification":
             model = T5ForSequenceClassification.from_pretrained(self.model_name)
-
         return model
 
     def train_and_evaluate(self, train_dataset, eval_dataset, test_dataset):
         # TODO: Should we change this with Seq2SeqTrainingArguments?
         # TODO: predict_with_generate, generation_max_length, generation_num_beams, generation_config
-        training_args = TrainingArguments(**self.training_params)
+        training_args = Seq2SeqTrainingArguments(
+            predict_with_generate=True,
+            report_to="wandb",
+            metric_for_best_model='eval_loss',
+            load_best_model_at_end=True,
+            greater_is_better=False,
+            callbacks = [EarlyStoppingCallback(early_stopping_patience=3)],
+            **self.training_params)
+        
         model = self.initialize_model()
         
         if self.adafactor_scheduler == True:
@@ -69,6 +77,7 @@ class ModelTrainer:
             compute_metrics = self.compute_metrics,
             optimizers=(optimizer, lr_scheduler)
         )
+
         trainer.train()
         results = trainer.evaluate(test_dataset)
         print(results)
