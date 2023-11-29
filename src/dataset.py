@@ -78,6 +78,7 @@ class DatasetProcessor:
         processed_dataset = dataset.map(preprocess_function, remove_columns=column_names, batched=True)
         if self.max_input_length == -1 or self.max_target_length == -1:
             self.compute_token_length(processed_dataset)
+            return
         tokenized_dataset = processed_dataset.map(self.tokenize_function, batched=True)
         return tokenized_dataset
 
