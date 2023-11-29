@@ -15,5 +15,5 @@ if __name__ == '__main__':
     max_input_length = -1
     max_target_length = -1
 
-    dataset_processor = DatasetProcessor(dataset_name, task, task_format, task_mode, max_input_length, max_target_length)
+    dataset_processor = DatasetProcessor(dataset_name, task, task_format, task_mode, model_name, max_input_length, max_target_length)
     dataset_processor.load_and_preprocess_data()
