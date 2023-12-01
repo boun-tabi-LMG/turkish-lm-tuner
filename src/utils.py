@@ -101,7 +101,7 @@ def preprocess_mkqa_qg(examples):
 def preprocess_wikiann_ner(examples):
     input_texts = []
     target_texts = []
-    for tokens, ner_tags in zip(examples['tokens'], examples['ner_tags']):
+    for tokens, ner_tags in zip(examples['tokens'], examples['spans']):
         token_str, tag_type = '', ''
         tag_dict = {}
         for j, tag in enumerate(ner_tags):
