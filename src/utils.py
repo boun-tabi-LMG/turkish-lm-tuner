@@ -51,15 +51,30 @@ def preprocess_exams_qg(examples):
     return {"input_text": target_texts, 'target_text': input_texts}
 
 def preprocess_xquad_qa(examples):
-    question, context, answers = examples["question"], examples["context"], examples["answers"]
-    input_text = f"Bağlam: {context} | Soru: {question}"
-    answer = answers["text"][0] # does this work?
-    return {"input_text": input_text, "target_text": answer}
+    input_texts, target_texts = [], []
+    for example in examples:
+        question = example["question"]
+        context = example["context"]
+        answers = example["answers"]
+        answer = answers["text"][0]
+        input_text = f"Bağlam: {context} | Soru: {question}"
+        input_texts.append(input_text)
+        target_text = answer
+        target_texts.append(target_text)
+    return {"input_text": input_texts, "target_text": target_texts}
 
 def preprocess_xquad_qg(examples):
-    question, context, answers = examples["question"], examples["context"], examples["answers"]
-    input_text = f"Bağlam: {context} | Cevap: {answers['text'][0]}"
-    return {"input_text": input_text, "target_text": question}
+    input_texts, target_texts = [], []
+    for example in examples:
+        question = example["question"]
+        context = example["context"]
+        answers = example["answers"]
+        answer = answers["text"][0]
+        input_text = f"Bağlam: {context} | Cevap: {answer}"
+        input_texts.append(input_text)
+        target_text = question
+        target_texts.append(target_text)
+    return {"input_text": input_texts, "target_text": target_texts}
 
 def preprocess_mkqa_qa(examples):
     query = examples["queries"]["tr"]
