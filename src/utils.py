@@ -15,32 +15,40 @@ def preprocess_nli(examples):
     return {"input_text": f"hipotez: {examples['hypothesis']} önerme: {examples['premise']}"}
 
 def preprocess_exams_qa(examples):
-    question = examples["question"]
-    question_str = question["stem"]
-    answer_key = examples["answerKey"]
-    choices = question["choices"]
-    try:
-        answer_order = choices['label'].index(answer_key) # won't work probably
-    except:
-        return None
-    answer = choices['text'][answer_order]
-    if not answer:
-        return None
-    return {"input_text": question_str, "target_text": answer}
+    input_texts, target_texts = [], []
+    for example in examples:
+        question = example["question"]
+        question_str = question["stem"]
+        answer_key = example["answerKey"]
+        choices = question["choices"]
+        try:
+            answer_order = choices['label'].index(answer_key)
+        except:
+            continue
+        answer = choices['text'][answer_order]
+        if not answer:
+            continue
+        input_texts.append(question_str)
+        target_texts.append(answer)
+    return {"input_text": input_texts, 'target_text': target_texts}
 
 def preprocess_exams_qg(examples):
-    question = examples["question"]
-    question_str = question["stem"]
-    answer_key = examples["answerKey"]
-    choices = question["choices"]
-    try:
-        answer_order = choices['label'].index(answer_key) # won't work probably
-    except:
-        return None
-    answer = choices['text'][answer_order]
-    if not answer:
-        return None
-    return {"input_text": answer, "target_text": question_str}
+    input_texts, target_texts = [], []
+    for example in examples:
+        question = example["question"]
+        question_str = question["stem"]
+        answer_key = example["answerKey"]
+        choices = question["choices"]
+        try:
+            answer_order = choices['label'].index(answer_key)
+        except:
+            continue
+        answer = choices['text'][answer_order]
+        if not answer:
+            continue
+        input_texts.append(question_str)
+        target_texts.append(answer)
+    return {"input_text": target_texts, 'target_text': input_texts}
 
 def preprocess_xquad_qa(examples):
     question, context, answers = examples["question"], examples["context"], examples["answers"]
