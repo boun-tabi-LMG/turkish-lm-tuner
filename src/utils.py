@@ -77,18 +77,26 @@ def preprocess_xquad_qg(examples):
     return {"input_text": input_texts, "target_text": target_texts}
 
 def preprocess_mkqa_qa(examples):
-    query = examples["queries"]["tr"]
-    answer = examples["answers"]["tr"][0]['text']
-    if not answer:
-        return None
-    return {"input_text": query, "target_text": answer}
+    input_texts, target_texts = [], []
+    for example in examples:
+        query = example["queries"]["tr"]
+        answer = example["answers"]["tr"][0]['text']
+        if not answer:
+            continue
+        input_texts.append(query)
+        target_texts.append(answer)
+    return {"input_text": input_texts, "target_text": target_texts}
 
 def preprocess_mkqa_qg(examples):
-    query = examples["queries"]["tr"]
-    answer = examples["answers"]["tr"][0]['text']
-    if not answer:
-        return None
-    return {"input_text": answer, "target_text": query}
+    input_texts, target_texts = [], []
+    for example in examples:
+        query = example["queries"]["tr"]
+        answer = example["answers"]["tr"][0]['text']
+        if not answer:
+            continue
+        input_texts.append(answer)
+        target_texts.append(query)
+    return {"input_text": input_texts, "target_text": target_texts}
 
 def preprocess_wikiann_ner(examples):
     input_texts = []
