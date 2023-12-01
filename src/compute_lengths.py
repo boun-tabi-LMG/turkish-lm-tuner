@@ -3,7 +3,7 @@ from dataset import DatasetProcessor
 
 if __name__ == '__main__':
     parser = ArgumentParser()
-    parser.add_argument('--model_name', type=str, default='/stractch/bounllm/ckpt-500K')
+    parser.add_argument('--model_name', type=str, default='/stratch/bounllm/ckpt-500K')
     parser.add_argument('--dataset_name', type=str, default='wikiann')
     parser.add_argument('--task', type=str, default='ner')
     args = parser.parse_args()
