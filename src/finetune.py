@@ -1,7 +1,7 @@
 from transformers import (
     PreTrainedTokenizerFast, T5ForConditionalGeneration,
     T5ForSequenceClassification, 
-    Trainer, TrainingArguments, Seq2SeqTrainingArguments,
+    Seq2SeqTrainer, TrainingArguments, Seq2SeqTrainingArguments,
     EarlyStoppingCallback
 )
 
@@ -40,7 +40,6 @@ class ModelTrainer:
         # TODO: Should we change this with Seq2SeqTrainingArguments?
         # TODO: predict_with_generate, generation_max_length, generation_num_beams, generation_config
         training_args = Seq2SeqTrainingArguments(
-            predict_with_generate=True,
             report_to="wandb",
             metric_for_best_model='eval_loss',
             load_best_model_at_end=True,
@@ -68,7 +67,7 @@ class ModelTrainer:
             lr_scheduler = None
         
 
-        trainer = Trainer(
+        trainer = Seq2SeqTrainer(
             model=model,
             args=training_args,
             train_dataset=train_dataset,
