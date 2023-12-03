@@ -10,3 +10,5 @@ training_params:
   save_total_limit: 3
   remove_unused_columns: False
   push_to_hub: False
+  predict_with_generate: True
+  report_to: wandb
