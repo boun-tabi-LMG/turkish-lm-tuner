@@ -102,7 +102,7 @@ class ModelTrainer:
             # result = rouge.compute(predictions=decoded_preds, references=decoded_labels, use_stemmer=True, use_aggregator=True)
 
             result = rouge.compute(predictions=decoded_preds, references=decoded_labels)
-            result = {"rouge": result["score"]}
+            result = {key: value * 100 for key, value in result.items()}
             prediction_lens = [np.count_nonzero(pred != self.tokenizer.pad_token_id) for pred in preds]
             result["gen_len"] = np.mean(prediction_lens)
             result = {k: round(v, 4) for k, v in result.items()}
