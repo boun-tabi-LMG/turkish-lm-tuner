@@ -101,35 +101,20 @@ def preprocess_mkqa_qg(examples):
 def preprocess_wikiann_ner(examples):
     input_texts = []
     target_texts = []
-    for tokens, ner_tags in zip(examples['tokens'], examples['spans']):
-        token_str, tag_type = '', ''
+    for tokens, spans in zip(examples['tokens'], examples['spans']):
+        tag_type = ''
         tag_dict = {}
-        for j, tag in enumerate(ner_tags):
-            if tag == 0:
-                if token_str:
-                    if tag_type not in tag_dict:
-                        tag_dict[tag_type] = []
-                    tag_dict[tag_type].append(token_str)
-                token_str, tag_type = '', ''
-            elif tag in [1, 3, 5]:
-                if token_str:
-                    if tag_type not in tag_dict:
-                        tag_dict[tag_type] = []
-                    tag_dict[tag_type].append(token_str)
-                if tag == 1:
-                    tag_type = 'PERSON'
-                elif tag == 3:
-                    tag_type = 'ORGANIZATION'
-                elif tag == 5:
-                    tag_type = 'LOCATION'
-                token_str = tokens[j]
-            elif tag in [2, 4, 6]:
-                token_str += ' ' + tokens[j]
-        if token_str:
+        for span in spans:
+            if span.startswith('Kişi: '):
+                tag_type = 'PERSON'
+            elif span.startswith('Yer: '):
+                tag_type = 'LOCATION'
+            elif span.startswith('Kuruluş: '):
+                tag_type = 'ORGANIZATION'
             if tag_type not in tag_dict:
                 tag_dict[tag_type] = []
-            tag_dict[tag_type].append(token_str)
-        for j, tag_type in enumerate(tag_dict):
+            tag_dict[tag_type].append(span.replace('Kişi: ', '').replace('Yer: ', '').replace('Kuruluş: ', ''))
+        for tag_type in tag_dict.keys():
             new_l = []
             for el in tag_dict[tag_type]:
                 if el not in new_l:
@@ -138,11 +123,11 @@ def preprocess_wikiann_ner(examples):
         input_text = ' '.join(tokens)
         target_l = []
         target_text = ''
-        for j, tag_type in enumerate(tag_dict):
+        for tag_type in tag_dict.keys():
             target_l.append(f'{tag_type}: {", ".join(tag_dict[tag_type])}')
         target_text = ' | '.join(target_l)
-        input_text = input_text.strip()
         target_text = target_text.replace('PERSON: ', 'Kişi: ').replace('LOCATION: ', 'Yer: ').replace('ORGANIZATION: ', 'Kuruluş: ').strip()
+        input_text = input_text.strip()
         if not target_text:
             target_text = 'Bulunamadı.'
         input_texts.append(input_text)
