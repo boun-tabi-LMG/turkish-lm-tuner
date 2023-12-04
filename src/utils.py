@@ -52,10 +52,7 @@ def preprocess_exams_qg(examples):
 
 def preprocess_xquad_qa(examples):
     input_texts, target_texts = [], []
-    for example in examples:
-        question = example["question"]
-        context = example["context"]
-        answers = example["answers"]
+    for question, context, answers in zip(examples["question"], examples["context"], examples["answers"]):
         answer = answers["text"][0]
         input_text = f"Bağlam: {context} | Soru: {question}"
         input_texts.append(input_text)
@@ -65,10 +62,7 @@ def preprocess_xquad_qa(examples):
 
 def preprocess_xquad_qg(examples):
     input_texts, target_texts = [], []
-    for example in examples:
-        question = example["question"]
-        context = example["context"]
-        answers = example["answers"]
+    for question, context, answers in zip(examples["question"], examples["context"], examples["answers"]):
         answer = answers["text"][0]
         input_text = f"Bağlam: {context} | Cevap: {answer}"
         input_texts.append(input_text)
