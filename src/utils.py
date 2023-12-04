@@ -16,10 +16,8 @@ def preprocess_nli(examples):
 
 def preprocess_exams_qa(examples):
     input_texts, target_texts = [], []
-    for example in examples:
-        question = example["question"]
+    for question, answer_key in zip(examples["question"], examples["answerKey"]):
         question_str = question["stem"]
-        answer_key = example["answerKey"]
         choices = question["choices"]
         try:
             answer_order = choices['label'].index(answer_key)
@@ -34,10 +32,8 @@ def preprocess_exams_qa(examples):
 
 def preprocess_exams_qg(examples):
     input_texts, target_texts = [], []
-    for example in examples:
-        question = example["question"]
+    for question, answer_key in zip(examples["question"], examples["answerKey"]):
         question_str = question["stem"]
-        answer_key = example["answerKey"]
         choices = question["choices"]
         try:
             answer_order = choices['label'].index(answer_key)
