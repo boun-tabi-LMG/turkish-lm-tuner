@@ -15,6 +15,7 @@ from utils import (
     preprocess_mkqa_qg, 
     preprocess_wikiann_ner, 
     preprocess_xtreme_ner, 
+    preprocess_sts,
     postprocess_text
 )
 
@@ -42,6 +43,7 @@ dataset_mapping = {
     "nli_tr": "nli_tr",
 
     # semantic textual similarity
+    "stsb_tr": {'train': 'stsb_tr_train.tsv', 'test': 'stsb_tr_test.tsv', 'validation': 'stsb_tr_dev.tsv'},
 
     # ner
     "milliyet": "furkanakkurt1618/ner_dataset-milliyet-boun-llm", # wasn't on hf
@@ -58,7 +60,7 @@ dataset_mapping = {
 
 
 class DatasetProcessor:
-    def __init__(self, dataset_name, task, task_format, task_mode, tokenizer_name, max_input_length, max_target_length):
+    def __init__(self, dataset_name, task, task_format, task_mode, tokenizer_name, max_input_length, max_target_length, dataset_loc=""):
         self.dataset_name = dataset_name
         self.task = task
         self.task_format = task_format
@@ -66,11 +68,17 @@ class DatasetProcessor:
         self.tokenizer = PreTrainedTokenizerFast.from_pretrained(tokenizer_name)
         self.max_input_length = max_input_length
         self.max_target_length = max_target_length
+        self.dataset_loc = dataset_loc
 
     def load_and_preprocess_data(self, split='train'):
         mapped_dataset = dataset_mapping[self.dataset_name]
+        # For HF datasets with two dataset specifications (i.e. ("wikiann", "tr"))
         if type(mapped_dataset) == tuple:
             dataset = datasets.load_dataset(mapped_dataset[0], mapped_dataset[1], split=split)
+        # For local datasets (need to specify dataset location in .yaml file)
+        elif type(mapped_dataset) == dict:
+            dataset = datasets.load_dataset(self.dataset_loc, data_files=mapped_dataset, split=split)
+        # For HF datasets with a single dataset specification (i.e. "nli_tr")
         else:
             dataset = datasets.load_dataset(mapped_dataset, split=split) #.select(range(100))
         preprocess_function = self.get_preprocess_function()
@@ -126,6 +134,7 @@ class DatasetProcessor:
             ("mkqa", "question_generation"): preprocess_mkqa_qg,
             ("wikiann", "ner"): preprocess_wikiann_ner,
             ("xtreme", "ner"): preprocess_xtreme_ner,
+            ("stsb_tr", "semantic_similarity") : preprocess_sts,
             # ... add mappings for other dataset and task type combinations
         }
         return preprocess_functions.get((self.dataset_name, self.task), default_preprocess_function)

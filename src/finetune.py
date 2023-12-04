@@ -121,7 +121,8 @@ def main(cfg: DictConfig):
     max_target_length = cfg.max_target_length
     adafactor_scheduler = cfg.adafactor_scheduler
     training_params = cfg.training_params
-    dataset_processor = DatasetProcessor(dataset_name, task, task_format, task_mode, model_name, max_input_length, max_target_length)
+    dataset_location = cfg.dataset_loc
+    dataset_processor = DatasetProcessor(dataset_name, task, task_format, task_mode, model_name, max_input_length, max_target_length, dataset_location)
     train_set = dataset_processor.load_and_preprocess_data()
     
     try: 
