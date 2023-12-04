@@ -19,10 +19,11 @@ def preprocess_exams_qa(examples):
     for question, answer_key in zip(examples["question"], examples["answerKey"]):
         question_str = question["stem"]
         choices = question["choices"]
-        try:
-            answer_order = choices['label'].index(answer_key)
-        except:
+        if answer_key not in choices['label']:
+            input_texts.append(question_str)
+            target_texts.append('')
             continue
+        answer_order = choices['label'].index(answer_key)
         answer = choices['text'][answer_order]
         if not answer:
             continue
@@ -35,10 +36,11 @@ def preprocess_exams_qg(examples):
     for question, answer_key in zip(examples["question"], examples["answerKey"]):
         question_str = question["stem"]
         choices = question["choices"]
-        try:
-            answer_order = choices['label'].index(answer_key)
-        except:
+        if answer_key not in choices['label']:
+            input_texts.append(question_str)
+            target_texts.append('')
             continue
+        answer_order = choices['label'].index(answer_key)
         answer = choices['text'][answer_order]
         if not answer:
             continue
