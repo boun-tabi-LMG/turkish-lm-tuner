@@ -185,8 +185,11 @@ def preprocess_xtreme_ner(examples):
         target_texts.append(target_text)
     return {'input_text': input_texts, 'target_text': target_texts}
 
+
 def postprocess_text(preds, labels):
     preds = [pred.strip() for pred in preds]
-    labels = [[label.strip()] for label in labels]
+    labels = [label.strip() for label in labels]
+    print(f"Predictions: {preds[:5]}")
+    print(f"Labels: {labels[:5]}")
     return preds, labels
 

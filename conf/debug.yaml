@@ -3,11 +3,12 @@ task_format: conditional_generation
 task_mode: '' # '[S2S] ', '[NLU] ', '[NLG] '
 adafactor_scheduler: True
 training_params:
-  evaluation_strategy: epoch
-  save_strategy: epoch
+  evaluation_strategy: steps
+  save_strategy: steps
+  eval_steps: 100
   logging_dir: ./logs
   logging_steps: 100
-  save_total_limit: 3
+  save_total_limit: 1
   remove_unused_columns: False
   push_to_hub: False
   predict_with_generate: True
