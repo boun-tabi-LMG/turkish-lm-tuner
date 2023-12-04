@@ -3,6 +3,7 @@ task_format: conditional_generation
 task_mode: '' # '[S2S] ', '[NLU] ', '[NLG] '
 adafactor_scheduler: True
 training_params:
+  num_train_epochs: 10
   evaluation_strategy: steps
   save_strategy: steps
   eval_steps: 100
