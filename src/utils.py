@@ -78,10 +78,12 @@ def preprocess_xquad_qg(examples):
 
 def preprocess_mkqa_qa(examples):
     input_texts, target_texts = [], []
-    for example in examples:
-        query = example["queries"]["tr"]
-        answer = example["answers"]["tr"][0]['text']
+    for queries, answers in zip(examples['queries'], examples['answers']):
+        query = queries['tr']
+        answer = answers['tr'][0]['text']
         if not answer:
+            input_texts.append(query)
+            target_texts.append('')
             continue
         input_texts.append(query)
         target_texts.append(answer)
@@ -89,10 +91,12 @@ def preprocess_mkqa_qa(examples):
 
 def preprocess_mkqa_qg(examples):
     input_texts, target_texts = [], []
-    for example in examples:
-        query = example["queries"]["tr"]
-        answer = example["answers"]["tr"][0]['text']
+    for queries, answers in zip(examples['queries'], examples['answers']):
+        query = queries['tr']
+        answer = answers['tr'][0]['text']
         if not answer:
+            input_texts.append(answer)
+            target_texts.append('')
             continue
         input_texts.append(answer)
         target_texts.append(query)
