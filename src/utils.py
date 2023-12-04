@@ -101,13 +101,11 @@ def preprocess_mkqa_qg(examples):
 def preprocess_wikiann_ner(examples):
     input_texts = []
     target_texts = []
-    for example in examples:
-        tokens = example['tokens']
-        spans = example['spans']
+    for tokens, spans in zip(examples['tokens'], examples['spans']):
         tag_type = ''
         tag_dict = {}
-        for i, span in enumerate(spans):
-            spans[i] = span.replace('PER: ', 'Kişi: ').replace('LOC: ', 'Yer: ').replace('ORG: ', 'Kuruluş: ')
+        for span in spans:
+            span = span.replace('PER: ', 'Kişi: ').replace('LOC: ', 'Yer: ').replace('ORG: ', 'Kuruluş: ')
             if span.startswith('Kişi: '):
                 tag_type = 'PERSON'
             elif span.startswith('Yer: '):
@@ -140,9 +138,7 @@ def preprocess_wikiann_ner(examples):
 def preprocess_xtreme_ner(examples):
     input_texts = []
     target_texts = []
-    for example in examples:
-        tokens = example['tokens']
-        ner_tags = example['ner_tags']
+    for tokens, ner_tags in zip(examples['tokens'], examples['ner_tags']):
         token_str, tag_type = '', ''
         tag_dict = {}
         for j, tag in enumerate(ner_tags):
