@@ -3,7 +3,7 @@ defaults:
 
 dataset_name: stsb_tr
 task: semantic_similarity
-dataset_loc: "/media/disk/home/zeynep.yirmibesoglu/STSb-TR-corrected"
+dataset_loc: "/stratch/bounllm/supervised/STSb-TR-corrected/"
 max_input_length: 140
 max_target_length: 10
 training_params:
