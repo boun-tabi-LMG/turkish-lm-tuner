@@ -12,7 +12,10 @@ def preprocess_paraphrasing(examples):
     return {"input_text": examples["src"], "target_text": examples["tgt"]}
 
 def preprocess_nli(examples):
-    return {"input_text": f"hipotez: {examples['hypothesis']} önerme: {examples['premise']}"}
+    nli_label_dict = {0: "gereklilik", 1: "nötr", 2:"çelişki"}
+    input = [f"hipotez: {examples['hypothesis'][i]} önerme: {examples['premise'][i]}" for i in range(len(examples["premise"]))]
+    output = [nli_label_dict[ex] for ex in examples["label"]]
+    return {"input_text": input, "target_text": output}
 
 def preprocess_exams_qa(examples):
     input_texts, target_texts = [], []

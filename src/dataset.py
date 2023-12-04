@@ -40,7 +40,7 @@ dataset_mapping = {
     "turkish-nlp-qa-dataset-qg": "furkanakkurt1618/qg_dataset-turkish-nlp-qa-dataset-boun-llm", # wasn't on hf
 
     # nli
-    "nli_tr": "nli_tr",
+    "nli_tr": ["snli_tr", "multinli_tr"],
 
     # semantic textual similarity
     "stsb_tr": {'train': 'stsb_tr_train.tsv', 'test': 'stsb_tr_test.tsv', 'validation': 'stsb_tr_dev.tsv'},
@@ -78,6 +78,17 @@ class DatasetProcessor:
         # For local datasets (need to specify dataset location in .yaml file)
         elif type(mapped_dataset) == dict:
             dataset = datasets.load_dataset(self.dataset_loc, data_files=mapped_dataset, split=split)
+        # For the NLI_TR HF dataset
+        elif self.dataset_name == "nli_tr":
+            if split == "train":
+                mnli_dataset = datasets.load_dataset("nli_tr", 'multinli_tr', split="train")
+                snli_dataset = datasets.load_dataset("nli_tr", 'snli_tr', split="train")
+                snli_dataset = snli_dataset.filter(lambda example: example["label"] != -1) # removed samples with the label -1 (785 samples in train)
+                dataset = datasets.concatenate_datasets([mnli_dataset, snli_dataset])
+            else:
+                dataset = datasets.load_dataset("nli_tr", 'snli_tr', split=split)
+                dataset = dataset.filter(lambda example: example["label"] != -1) # removed samples with the label -1 
+                
         # For HF datasets with a single dataset specification (i.e. "nli_tr")
         else:
             dataset = datasets.load_dataset(mapped_dataset, split=split) #.select(range(100))
@@ -135,6 +146,7 @@ class DatasetProcessor:
             ("wikiann", "ner"): preprocess_wikiann_ner,
             ("xtreme", "ner"): preprocess_xtreme_ner,
             ("stsb_tr", "semantic_similarity") : preprocess_sts,
+            ("nli_tr", "nli") : preprocess_nli,
             # ... add mappings for other dataset and task type combinations
         }
         return preprocess_functions.get((self.dataset_name, self.task), default_preprocess_function)
