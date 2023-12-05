@@ -40,7 +40,9 @@ dataset_mapping = {
     "turkish-nlp-qa-dataset-qg": "furkanakkurt1618/qg_dataset-turkish-nlp-qa-dataset-boun-llm", # wasn't on hf
 
     # nli
-    "nli_tr": ["snli_tr", "multinli_tr"],
+    "snli_tr": ("nli_tr", "snli_tr"),
+    "multinli_tr": ("nli_tr", "multinli_tr"),
+    "nli_tr": ["snli_tr", "multinli_tr"], # SNLI and Multi-NLI merged together
 
     # semantic textual similarity
     "stsb_tr": {'train': 'stsb_tr_train.tsv', 'test': 'stsb_tr_test.tsv', 'validation': 'stsb_tr_dev.tsv'},
@@ -74,7 +76,12 @@ class DatasetProcessor:
         mapped_dataset = dataset_mapping[self.dataset_name]
         # For HF datasets with two dataset specifications (i.e. ("wikiann", "tr"))
         if type(mapped_dataset) == tuple:
+            if "multinli" in self.dataset_name and split == "test":
+                split = "validation_matched" # There's no test set in Multi-NLI
             dataset = datasets.load_dataset(mapped_dataset[0], mapped_dataset[1], split=split)
+            if "nli" in self.dataset_name:
+                dataset = dataset.filter(lambda example: example["label"] != -1) # removed samples with the label -1 
+
         # For local datasets (need to specify dataset location in .yaml file)
         elif type(mapped_dataset) == dict:
             dataset = datasets.load_dataset(self.dataset_loc, data_files=mapped_dataset, split=split)
@@ -147,6 +154,8 @@ class DatasetProcessor:
             ("xtreme", "ner"): preprocess_xtreme_ner,
             ("stsb_tr", "semantic_similarity") : preprocess_sts,
             ("nli_tr", "nli") : preprocess_nli,
+            ("snli_tr", "nli") : preprocess_nli,
+            ("multinli_tr", "nli") : preprocess_nli,
             # ... add mappings for other dataset and task type combinations
         }
         return preprocess_functions.get((self.dataset_name, self.task), default_preprocess_function)
