@@ -7,8 +7,8 @@ dataset_loc: "/stratch/bounllm/supervised/STSb-TR-corrected/"
 max_input_length: 140
 max_target_length: 10
 training_params:
-  per_device_train_batch_size: 128 # 4 for ultramarine
-  per_device_eval_batch_size: 128 # 4 for ultramarine
+  per_device_train_batch_size: 32 # for ultramarine
+  per_device_eval_batch_size: 32 # for ultramarine
   output_dir: ./t5_tr_semantic_similarity
 
 
