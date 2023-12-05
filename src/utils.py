@@ -16,15 +16,14 @@ def preprocess_nli(examples):
 
 def preprocess_exams_qa(examples):
     input_texts, target_texts = [], []
-    for example in examples:
-        question = example["question"]
+    for question, answer_key in zip(examples["question"], examples["answerKey"]):
         question_str = question["stem"]
-        answer_key = example["answerKey"]
         choices = question["choices"]
-        try:
-            answer_order = choices['label'].index(answer_key)
-        except:
+        if answer_key not in choices['label']:
+            input_texts.append(question_str)
+            target_texts.append('')
             continue
+        answer_order = choices['label'].index(answer_key)
         answer = choices['text'][answer_order]
         if not answer:
             continue
@@ -34,15 +33,14 @@ def preprocess_exams_qa(examples):
 
 def preprocess_exams_qg(examples):
     input_texts, target_texts = [], []
-    for example in examples:
-        question = example["question"]
+    for question, answer_key in zip(examples["question"], examples["answerKey"]):
         question_str = question["stem"]
-        answer_key = example["answerKey"]
         choices = question["choices"]
-        try:
-            answer_order = choices['label'].index(answer_key)
-        except:
+        if answer_key not in choices['label']:
+            input_texts.append(question_str)
+            target_texts.append('')
             continue
+        answer_order = choices['label'].index(answer_key)
         answer = choices['text'][answer_order]
         if not answer:
             continue
@@ -52,10 +50,7 @@ def preprocess_exams_qg(examples):
 
 def preprocess_xquad_qa(examples):
     input_texts, target_texts = [], []
-    for example in examples:
-        question = example["question"]
-        context = example["context"]
-        answers = example["answers"]
+    for question, context, answers in zip(examples["question"], examples["context"], examples["answers"]):
         answer = answers["text"][0]
         input_text = f"Bağlam: {context} | Soru: {question}"
         input_texts.append(input_text)
@@ -65,10 +60,7 @@ def preprocess_xquad_qa(examples):
 
 def preprocess_xquad_qg(examples):
     input_texts, target_texts = [], []
-    for example in examples:
-        question = example["question"]
-        context = example["context"]
-        answers = example["answers"]
+    for question, context, answers in zip(examples["question"], examples["context"], examples["answers"]):
         answer = answers["text"][0]
         input_text = f"Bağlam: {context} | Cevap: {answer}"
         input_texts.append(input_text)
@@ -78,10 +70,12 @@ def preprocess_xquad_qg(examples):
 
 def preprocess_mkqa_qa(examples):
     input_texts, target_texts = [], []
-    for example in examples:
-        query = example["queries"]["tr"]
-        answer = example["answers"]["tr"][0]['text']
+    for queries, answers in zip(examples['queries'], examples['answers']):
+        query = queries['tr']
+        answer = answers['tr'][0]['text']
         if not answer:
+            input_texts.append(query)
+            target_texts.append('')
             continue
         input_texts.append(query)
         target_texts.append(answer)
@@ -89,10 +83,12 @@ def preprocess_mkqa_qa(examples):
 
 def preprocess_mkqa_qg(examples):
     input_texts, target_texts = [], []
-    for example in examples:
-        query = example["queries"]["tr"]
-        answer = example["answers"]["tr"][0]['text']
+    for queries, answers in zip(examples['queries'], examples['answers']):
+        query = queries['tr']
+        answer = answers['tr'][0]['text']
         if not answer:
+            input_texts.append(answer)
+            target_texts.append('')
             continue
         input_texts.append(answer)
         target_texts.append(query)
@@ -105,6 +101,7 @@ def preprocess_wikiann_ner(examples):
         tag_type = ''
         tag_dict = {}
         for span in spans:
+            span = span.replace('PER: ', 'Kişi: ').replace('LOC: ', 'Yer: ').replace('ORG: ', 'Kuruluş: ')
             if span.startswith('Kişi: '):
                 tag_type = 'PERSON'
             elif span.startswith('Yer: '):
