@@ -48,12 +48,18 @@ dataset_mapping = {
 
     # nli
 <<<<<<< HEAD
+<<<<<<< HEAD
     "snli_tr": ("nli_tr", "snli_tr"),
     "multinli_tr": ("nli_tr", "multinli_tr"),
     "nli_tr": ["snli_tr", "multinli_tr"], # SNLI and Multi-NLI merged together
 =======
     "nli_tr": ["snli_tr", "multinli_tr"],
 >>>>>>> 9357506 (Added nli conf and preprocessing)
+=======
+    "snli_tr": ("nli_tr", "snli_tr"),
+    "multinli_tr": ("nli_tr", "multinli_tr"),
+    "nli_tr": ["snli_tr", "multinli_tr"], # SNLI and Multi-NLI merged together
+>>>>>>> 92a002e (Added Snli and multinli preprocessing)
 
     # semantic textual similarity
     "stsb_tr": {'train': 'stsb_tr_train.tsv', 'test': 'stsb_tr_test.tsv', 'validation': 'stsb_tr_dev.tsv'},
@@ -109,7 +115,6 @@ class DatasetProcessor:
             else:
                 dataset = datasets.load_dataset("nli_tr", 'snli_tr', split=split)
                 dataset = dataset.filter(lambda example: example["label"] != -1) # removed samples with the label -1 
-<<<<<<< HEAD
         elif self.dataset_name == 'combined_news':
             tr_news_dataset = datasets.load_dataset(dataset_mapping["tr_news"], split=split)
             mlsum_dataset = datasets.load_dataset("mlsum", 'tu', split=split)
@@ -117,9 +122,6 @@ class DatasetProcessor:
             mlsum_dataset = mlsum_dataset.rename_column("summary", "abstract")
             dataset = datasets.concatenate_datasets([tr_news_dataset, mlsum_dataset])
 
-=======
-                
->>>>>>> 9357506 (Added nli conf and preprocessing)
         # For HF datasets with a single dataset specification (i.e. "nli_tr")
         else:
             dataset = datasets.load_dataset(mapped_dataset, split=split) #.select(range(100))
