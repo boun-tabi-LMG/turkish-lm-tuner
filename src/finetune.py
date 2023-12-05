@@ -127,12 +127,16 @@ def main(cfg: DictConfig):
     
     try: 
         eval_dataset = dataset_processor.load_and_preprocess_data(split='validation')
-        train_dataset = train_set["train"]
+        train_dataset = train_set
     except:
         train_set = train_set.train_test_split(test_size=0.1)
         train_dataset, eval_dataset = train_set["train"], train_set["test"]
     
     test_dataset = dataset_processor.load_and_preprocess_data(split="test")
+
+    print("train", train_dataset)
+    print("val", eval_dataset)
+    print("test", test_dataset)
 
     model_trainer = ModelTrainer(model_name, task, task_format, adafactor_scheduler, training_params)
     trainer, model = model_trainer.train_and_evaluate(train_dataset, eval_dataset, test_dataset)
