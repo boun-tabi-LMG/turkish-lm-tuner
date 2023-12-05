@@ -13,3 +13,4 @@ training_params:
   push_to_hub: False
   predict_with_generate: True
   report_to: wandb
+dataset_loc: ""

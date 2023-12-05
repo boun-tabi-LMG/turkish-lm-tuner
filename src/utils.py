@@ -12,7 +12,10 @@ def preprocess_paraphrasing(examples):
     return {"input_text": examples["src"], "target_text": examples["tgt"]}
 
 def preprocess_nli(examples):
-    return {"input_text": f"hipotez: {examples['hypothesis']} önerme: {examples['premise']}"}
+    nli_label_dict = {0: "gereklilik", 1: "nötr", 2:"çelişki"}
+    input = [f"hipotez: {examples['hypothesis'][i]} önerme: {examples['premise'][i]}" for i in range(len(examples["premise"]))]
+    output = [nli_label_dict[ex] for ex in examples["label"]]
+    return {"input_text": input, "target_text": output}
 
 def preprocess_exams_qa(examples):
     input_texts, target_texts = [], []
@@ -182,6 +185,10 @@ def preprocess_xtreme_ner(examples):
         target_texts.append(target_text)
     return {'input_text': input_texts, 'target_text': target_texts}
 
+def preprocess_sts(examples):
+    input = [f"ilk cümle: {examples['sentence1'][i]} ikinci cümle: {examples['sentence2'][i]}" for i in range(len(examples["sentence1"]))]
+    output = [str(ex) for ex in examples["score"]]
+    return {"input_text": input, "target_text": output}
 
 def postprocess_text(preds, labels):
     preds = [pred.strip() for pred in preds]
