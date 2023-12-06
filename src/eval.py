@@ -5,12 +5,15 @@ from transformers import (
 )
 
 from omegaconf import DictConfig
-from utils import postprocess_text
 from dataset import DatasetProcessor
 import hydra
 import evaluate
 import numpy as np
 import os
+from utils import (
+    postprocess_text,
+    postprocess_nli
+)
 
 # local_rank = int(os.environ["LOCAL_RANK"])
 
@@ -18,9 +21,10 @@ rouge = evaluate.load("rouge")
 accuracy = evaluate.load("accuracy")
 
 class Evaluator:
-    def __init__(self, model_save_path, tokenizer_path, task, task_format, max_target_length, test_params): # generation_params
+    def __init__(self, model_save_path, tokenizer_path, dataset_name, task, task_format, max_target_length, test_params): # generation_params
         self.model_save_path = model_save_path
         self.tokenizer_path = tokenizer_path
+        self.dataset_name = dataset_name
         self.task = task
         self.task_format = task_format      
         self.max_target_length = max_target_length  
@@ -56,6 +60,30 @@ class Evaluator:
         results = trainer.predict(test_dataset)
         print(results)
         return trainer, model
+
+    def get_postprocess_function(self):
+        # Mapping of dataset_name and task to corresponding postprocess functions
+        postprocess_functions = {
+            ('tr_news', 'summarization'): postprocess_text,
+            ('tr_news', 'title_generation'): postprocess_text,
+            ('opensubtitles', 'paraphrasing'): postprocess_text,
+            ('ted', 'paraphrasing'): postprocess_text,
+            ('tatoeba', 'paraphrasing'): postprocess_text,
+            ('exams', 'question_answering'): postprocess_text,
+            ('exams', 'question_generation'): postprocess_text,
+            ("xquad", "question_answering"): postprocess_text,
+            ("xquad", "question_generation"): postprocess_text,
+            ("mkqa", "question_answering"): postprocess_text,
+            ("mkqa", "question_generation"): postprocess_text,
+            ("wikiann", "ner"): postprocess_text,
+            ("xtreme", "ner"): postprocess_text,
+            ("stsb_tr", "semantic_similarity") : postprocess_text,
+            ("nli_tr", "nli") : postprocess_text,
+            ("snli_tr", "nli") : postprocess_nli,
+            ("multinli_tr", "nli") : postprocess_text,
+            # ... add mappings for other dataset and task type combinations
+        }
+        return postprocess_functions.get((self.dataset_name, self.task), postprocess_text)
     
     def compute_metrics(self, eval_preds):
         preds, labels = eval_preds
@@ -67,8 +95,10 @@ class Evaluator:
         labels = np.where(labels != -100, labels, self.tokenizer.pad_token_id)
         decoded_labels = self.tokenizer.batch_decode(labels, skip_special_tokens=True)
 
-        # Some simple post-processing
-        decoded_preds, decoded_labels = postprocess_text(decoded_preds, decoded_labels)
+        # Get post-processing function for specific dataset and task
+        postprocess_function = self.get_postprocess_function()
+        decoded_preds, decoded_labels = postprocess_function(decoded_preds, decoded_labels)
+
         if self.task == 'summarization':
             # TODO: Check if rouge is working correctly or need to be fixed
             # decoded_preds = ["\n".join(nltk.sent_tokenize(pred.strip())) for pred in decoded_preds]
@@ -82,8 +112,8 @@ class Evaluator:
             result = {k: round(v, 4) for k, v in result.items()}
         else:
             result = accuracy.compute(predictions=decoded_preds, references=decoded_labels)
-            print(result)
-
+            
+        print(result)
         return result
 
 
@@ -100,7 +130,7 @@ def main(cfg: DictConfig):
     test_params = cfg.test_params
     dataset_location = cfg.dataset_loc
 
-    evaluator = Evaluator(model_path, model_name, task, task_format, max_target_length, test_params)
+    evaluator = Evaluator(model_path, model_name, dataset_name, task, task_format, max_target_length, test_params)
 
     dataset_processor = DatasetProcessor(dataset_name, task, task_format, task_mode, model_name, max_input_length, max_target_length, dataset_location)
     test_dataset = dataset_processor.load_and_preprocess_data(split="test[:10]")

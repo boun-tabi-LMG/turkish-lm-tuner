@@ -197,3 +197,12 @@ def postprocess_text(preds, labels):
     print(f"Labels: {labels[:5]}")
     return preds, labels
 
+def postprocess_nli(preds, labels):
+    nli_label_dict = {"gereklilik":0, "nötr":1 , "çelişki": 2}
+
+    preds = [nli_label_dict.get(pred.strip(), -1) for pred in preds]
+    labels = [nli_label_dict.get(label.strip(), -1) for label in labels]
+    print(f"Predictions: {preds[:5]}")
+    print(f"Labels: {labels[:5]}")
+    return preds, labels
+
