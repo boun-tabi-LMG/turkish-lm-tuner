@@ -12,13 +12,15 @@ import numpy as np
 import os
 from utils import (
     postprocess_text,
-    postprocess_nli
+    postprocess_nli,
+    postprocess_sts
 )
 
 # local_rank = int(os.environ["LOCAL_RANK"])
 
 rouge = evaluate.load("rouge")
 accuracy = evaluate.load("accuracy")
+pearsonr = evaluate.load("pearsonr")
 
 class Evaluator:
     def __init__(self, model_save_path, tokenizer_path, dataset_name, task, task_format, max_target_length, test_params): # generation_params
@@ -77,7 +79,7 @@ class Evaluator:
             ("mkqa", "question_generation"): postprocess_text,
             ("wikiann", "ner"): postprocess_text,
             ("xtreme", "ner"): postprocess_text,
-            ("stsb_tr", "semantic_similarity") : postprocess_text,
+            ("stsb_tr", "semantic_similarity") : postprocess_sts,
             ("nli_tr", "nli") : postprocess_text,
             ("snli_tr", "nli") : postprocess_nli,
             ("multinli_tr", "nli") : postprocess_text,
@@ -98,7 +100,7 @@ class Evaluator:
         # Get post-processing function for specific dataset and task
         postprocess_function = self.get_postprocess_function()
         decoded_preds, decoded_labels = postprocess_function(decoded_preds, decoded_labels)
-
+        
         if self.task == 'summarization':
             # TODO: Check if rouge is working correctly or need to be fixed
             # decoded_preds = ["\n".join(nltk.sent_tokenize(pred.strip())) for pred in decoded_preds]
@@ -110,8 +112,10 @@ class Evaluator:
             prediction_lens = [np.count_nonzero(pred != self.tokenizer.pad_token_id) for pred in preds]
             result["gen_len"] = np.mean(prediction_lens)
             result = {k: round(v, 4) for k, v in result.items()}
-        else:
+        elif self.task == "nli":
             result = accuracy.compute(predictions=decoded_preds, references=decoded_labels)
+        elif self.task == "semantic_similarity":
+            result = pearsonr.compute(predictions=decoded_preds, references=decoded_labels)
             
         print(result)
         return result
@@ -133,7 +137,7 @@ def main(cfg: DictConfig):
     evaluator = Evaluator(model_path, model_name, dataset_name, task, task_format, max_target_length, test_params)
 
     dataset_processor = DatasetProcessor(dataset_name, task, task_format, task_mode, model_name, max_input_length, max_target_length, dataset_location)
-    test_dataset = dataset_processor.load_and_preprocess_data(split="test[:10]")
+    test_dataset = dataset_processor.load_and_preprocess_data(split="test")  # Use split="test[:10]" to test for small sample
 
     print(test_dataset[0])
     print("test", test_dataset)
