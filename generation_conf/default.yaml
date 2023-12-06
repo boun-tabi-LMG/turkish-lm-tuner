@@ -1,4 +1,4 @@
-model_name: /media/disk/home/zeynep.yirmibesoglu/ckpt-500-tokenizer # /stratch/bounllm/ckpt-500K
+model_name: /stratch/bounllm/ckpt-500K
 task_format: conditional_generation
 task_mode: '' # '[S2S] ', '[NLU] ', '[NLG] '
 test_params:
