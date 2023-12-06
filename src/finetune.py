@@ -124,6 +124,7 @@ def main(cfg: DictConfig):
     dataset_location = cfg.dataset_loc
     dataset_processor = DatasetProcessor(dataset_name, task, task_format, task_mode, model_name, max_input_length, max_target_length, dataset_location)
     train_set = dataset_processor.load_and_preprocess_data()
+    model_save_path = training_params['output_dir']
     
     try: 
         eval_dataset = dataset_processor.load_and_preprocess_data(split='validation')
@@ -141,7 +142,8 @@ def main(cfg: DictConfig):
     model_trainer = ModelTrainer(model_name, task, task_format, adafactor_scheduler, training_params)
     trainer, model = model_trainer.train_and_evaluate(train_dataset, eval_dataset, test_dataset)
 
-    # model.save_pretrained(model_save_path)
+    print("Best model saved at", model_save_path)
+    model.save_pretrained(model_save_path)
     # dataset_processor.tokenizer.save_pretrained(model_save_path)
 
 if __name__ == "__main__":
