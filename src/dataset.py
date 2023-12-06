@@ -8,13 +8,10 @@ from utils import (
     preprocess_paraphrasing,
     preprocess_nli,
     preprocess_exams_qa, 
-    preprocess_exams_qg, 
-    preprocess_xquad_qa, 
-    preprocess_xquad_qg, 
+    preprocess_exams_qg,
     preprocess_mkqa_qa, 
-    preprocess_mkqa_qg, 
-    preprocess_wikiann_ner, 
-    preprocess_xtreme_ner, 
+    preprocess_mkqa_qg,
+    preprocess_wikiann_ner,
     preprocess_sts,
     postprocess_text
 )
@@ -35,7 +32,6 @@ dataset_mapping = {
     # question answering & generation
     "exams": ("exams", "crosslingual_tr"),
     "mkqa": "mkqa",
-    "xquad": ("xquad", "xquad.tr"),
     "turkish-nlp-qa-dataset": "furkanakkurt1618/qa_dataset-turkish-nlp-qa-dataset-boun-llm",
     "turkish-nlp-qa-dataset-qg": "furkanakkurt1618/qg_dataset-turkish-nlp-qa-dataset-boun-llm", # wasn't on hf
 
@@ -50,7 +46,6 @@ dataset_mapping = {
     # ner
     "milliyet": "furkanakkurt1618/ner_dataset-milliyet-boun-llm", # wasn't on hf
     "wikiann": ("wikiann", "tr"),
-    "xtreme": ("xtreme", "PAN-X.tr"),
 
     # pos tagging
     "boun": "furkanakkurt1618/pos_dataset-UD_Turkish-BOUN-v2.13-boun-llm", # wasn't on hf
@@ -146,12 +141,9 @@ class DatasetProcessor:
             ('tatoeba', 'paraphrasing'): preprocess_paraphrasing,
             ('exams', 'question_answering'): preprocess_exams_qa,
             ('exams', 'question_generation'): preprocess_exams_qg,
-            ("xquad", "question_answering"): preprocess_xquad_qa,
-            ("xquad", "question_generation"): preprocess_xquad_qg,
             ("mkqa", "question_answering"): preprocess_mkqa_qa,
             ("mkqa", "question_generation"): preprocess_mkqa_qg,
             ("wikiann", "ner"): preprocess_wikiann_ner,
-            ("xtreme", "ner"): preprocess_xtreme_ner,
             ("stsb_tr", "semantic_similarity") : preprocess_sts,
             ("nli_tr", "nli") : preprocess_nli,
             ("snli_tr", "nli") : preprocess_nli,
