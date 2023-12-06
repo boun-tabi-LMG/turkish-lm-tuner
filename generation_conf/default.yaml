@@ -1,0 +1,11 @@
+model_name: /media/disk/home/zeynep.yirmibesoglu/ckpt-500-tokenizer # /stratch/bounllm/ckpt-500K
+task_format: conditional_generation
+task_mode: '' # '[S2S] ', '[NLU] ', '[NLG] '
+test_params:
+  remove_unused_columns: False
+  push_to_hub: False
+  predict_with_generate: True
+  #report_to: wandb
+  do_train: False
+  do_predict: True
+dataset_loc: ""

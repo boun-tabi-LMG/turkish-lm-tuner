@@ -1,0 +1,14 @@
+defaults:
+  - default
+
+dataset_name: tr_news
+task: summarization
+max_input_length: 768
+max_target_length: 128 
+model_path: /media/disk/home/zeynep.yirmibesoglu/checkpoint-320
+test_params:
+  per_device_eval_batch_size: 4 # 4 for ultramarine
+  output_dir: ./t5_tr_news_summarization
+  bf16: true
+
+
