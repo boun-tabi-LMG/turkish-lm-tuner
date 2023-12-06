@@ -8,10 +8,11 @@ from utils import (
     preprocess_paraphrasing,
     preprocess_nli,
     preprocess_exams_qa, 
-    preprocess_exams_qg, 
+    preprocess_exams_qg,
     preprocess_mkqa_qa, 
-    preprocess_mkqa_qg, 
-    preprocess_wikiann_ner, 
+    preprocess_mkqa_qg,
+    preprocess_wikiann_ner,
+    preprocess_sts,
     postprocess_text
 )
 
@@ -35,9 +36,12 @@ dataset_mapping = {
     "turkish-nlp-qa-dataset-qg": "furkanakkurt1618/qg_dataset-turkish-nlp-qa-dataset-boun-llm", # wasn't on hf
 
     # nli
-    "nli_tr": "nli_tr",
+    "snli_tr": ("nli_tr", "snli_tr"),
+    "multinli_tr": ("nli_tr", "multinli_tr"),
+    "nli_tr": ["snli_tr", "multinli_tr"], # SNLI and Multi-NLI merged together
 
     # semantic textual similarity
+    "stsb_tr": {'train': 'stsb_tr_train.tsv', 'test': 'stsb_tr_test.tsv', 'validation': 'stsb_tr_dev.tsv'},
 
     # ner
     "milliyet": "furkanakkurt1618/ner_dataset-milliyet-boun-llm", # wasn't on hf
@@ -53,7 +57,7 @@ dataset_mapping = {
 
 
 class DatasetProcessor:
-    def __init__(self, dataset_name, task, task_format, task_mode, tokenizer_name, max_input_length, max_target_length):
+    def __init__(self, dataset_name, task, task_format, task_mode, tokenizer_name, max_input_length, max_target_length, dataset_loc=""):
         self.dataset_name = dataset_name
         self.task = task
         self.task_format = task_format
@@ -61,11 +65,33 @@ class DatasetProcessor:
         self.tokenizer = PreTrainedTokenizerFast.from_pretrained(tokenizer_name)
         self.max_input_length = max_input_length
         self.max_target_length = max_target_length
+        self.dataset_loc = dataset_loc
 
     def load_and_preprocess_data(self, split='train'):
         mapped_dataset = dataset_mapping[self.dataset_name]
+        # For HF datasets with two dataset specifications (i.e. ("wikiann", "tr"))
         if type(mapped_dataset) == tuple:
+            if "multinli" in self.dataset_name and split == "test":
+                split = "validation_matched" # There's no test set in Multi-NLI
             dataset = datasets.load_dataset(mapped_dataset[0], mapped_dataset[1], split=split)
+            if "nli" in self.dataset_name:
+                dataset = dataset.filter(lambda example: example["label"] != -1) # removed samples with the label -1 
+
+        # For local datasets (need to specify dataset location in .yaml file)
+        elif type(mapped_dataset) == dict:
+            dataset = datasets.load_dataset(self.dataset_loc, data_files=mapped_dataset, split=split)
+        # For the NLI_TR HF dataset
+        elif self.dataset_name == "nli_tr":
+            if split == "train":
+                mnli_dataset = datasets.load_dataset("nli_tr", 'multinli_tr', split="train")
+                snli_dataset = datasets.load_dataset("nli_tr", 'snli_tr', split="train")
+                snli_dataset = snli_dataset.filter(lambda example: example["label"] != -1) # removed samples with the label -1 (785 samples in train)
+                dataset = datasets.concatenate_datasets([mnli_dataset, snli_dataset])
+            else:
+                dataset = datasets.load_dataset("nli_tr", 'snli_tr', split=split)
+                dataset = dataset.filter(lambda example: example["label"] != -1) # removed samples with the label -1 
+                
+        # For HF datasets with a single dataset specification (i.e. "nli_tr")
         else:
             dataset = datasets.load_dataset(mapped_dataset, split=split) #.select(range(100))
         preprocess_function = self.get_preprocess_function()
@@ -118,6 +144,10 @@ class DatasetProcessor:
             ("mkqa", "question_answering"): preprocess_mkqa_qa,
             ("mkqa", "question_generation"): preprocess_mkqa_qg,
             ("wikiann", "ner"): preprocess_wikiann_ner,
+            ("stsb_tr", "semantic_similarity") : preprocess_sts,
+            ("nli_tr", "nli") : preprocess_nli,
+            ("snli_tr", "nli") : preprocess_nli,
+            ("multinli_tr", "nli") : preprocess_nli,
             # ... add mappings for other dataset and task type combinations
         }
         return preprocess_functions.get((self.dataset_name, self.task), default_preprocess_function)

@@ -1,7 +1,7 @@
 from transformers import (
     PreTrainedTokenizerFast, T5ForConditionalGeneration,
     T5ForSequenceClassification, 
-    Trainer, TrainingArguments, Seq2SeqTrainingArguments,
+    Seq2SeqTrainer, TrainingArguments, Seq2SeqTrainingArguments,
     EarlyStoppingCallback
 )
 
@@ -40,7 +40,6 @@ class ModelTrainer:
         # TODO: Should we change this with Seq2SeqTrainingArguments?
         # TODO: predict_with_generate, generation_max_length, generation_num_beams, generation_config
         training_args = Seq2SeqTrainingArguments(
-            predict_with_generate=True,
             report_to="wandb",
             metric_for_best_model='eval_loss',
             load_best_model_at_end=True,
@@ -68,7 +67,7 @@ class ModelTrainer:
             lr_scheduler = None
         
 
-        trainer = Trainer(
+        trainer = Seq2SeqTrainer(
             model=model,
             args=training_args,
             train_dataset=train_dataset,
@@ -103,7 +102,7 @@ class ModelTrainer:
             # result = rouge.compute(predictions=decoded_preds, references=decoded_labels, use_stemmer=True, use_aggregator=True)
 
             result = rouge.compute(predictions=decoded_preds, references=decoded_labels)
-            result = {"rouge": result["score"]}
+            result = {key: value * 100 for key, value in result.items()}
             prediction_lens = [np.count_nonzero(pred != self.tokenizer.pad_token_id) for pred in preds]
             result["gen_len"] = np.mean(prediction_lens)
             result = {k: round(v, 4) for k, v in result.items()}
@@ -122,17 +121,22 @@ def main(cfg: DictConfig):
     max_target_length = cfg.max_target_length
     adafactor_scheduler = cfg.adafactor_scheduler
     training_params = cfg.training_params
-    dataset_processor = DatasetProcessor(dataset_name, task, task_format, task_mode, model_name, max_input_length, max_target_length)
+    dataset_location = cfg.dataset_loc
+    dataset_processor = DatasetProcessor(dataset_name, task, task_format, task_mode, model_name, max_input_length, max_target_length, dataset_location)
     train_set = dataset_processor.load_and_preprocess_data()
     
     try: 
         eval_dataset = dataset_processor.load_and_preprocess_data(split='validation')
-        train_dataset = train_set["train"]
+        train_dataset = train_set
     except:
         train_set = train_set.train_test_split(test_size=0.1)
         train_dataset, eval_dataset = train_set["train"], train_set["test"]
     
     test_dataset = dataset_processor.load_and_preprocess_data(split="test")
+
+    print("train", train_dataset)
+    print("val", eval_dataset)
+    print("test", test_dataset)
 
     model_trainer = ModelTrainer(model_name, task, task_format, adafactor_scheduler, training_params)
     trainer, model = model_trainer.train_and_evaluate(train_dataset, eval_dataset, test_dataset)
