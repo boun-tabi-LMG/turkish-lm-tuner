@@ -1,0 +1,12 @@
+defaults:
+  - default
+
+dataset_name: turkish-nlp-qa-dataset
+task: question_generation
+max_input_length: 2500
+max_target_length: 50
+training_params:
+  num_train_epochs: 10
+  per_device_train_batch_size: 128
+  per_device_eval_batch_size: 128
+  output_dir: ./t5_qg_turkish-nlp-qa-dataset
