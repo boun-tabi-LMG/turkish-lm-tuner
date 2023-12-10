@@ -10,6 +10,8 @@
 #SBATCH --cpus-per-gpu=8
 #SBATCH --mem-per-gpu=40G
 
+echo $1
+
 source /opt/python3/venv/base/bin/activate
 
 pip install torch --index-url https://download.pytorch.org/whl/cu118
