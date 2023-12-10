@@ -132,7 +132,9 @@ class DatasetProcessor:
                 json.dump(dataset_dict[split], f, ensure_ascii=False)
             mapped_dataset = {split: split + '.json'}
             dataset = datasets.load_dataset(self.dataset_loc, data_files=mapped_dataset, split=split)
-        elif self.dataset_name in ["tr_boun-ud", "tr_imst-ud"]:
+        elif self.dataset_name in ["boun", "imst"]:
+            md_pattern = re.compile('^# (.+?) = (.+?)$')
+            annotation_pattern = re.compile('(.+\t){9}.+')
             data_d = {'treebank_name': self.dataset_name, 'sentences': {}}
             data_file = os.path.join(self.dataset_loc, mapped_dataset[split])
             with open(data_file, 'r', encoding='utf-8') as f:
@@ -160,10 +162,7 @@ class DatasetProcessor:
                 if d_t:
                     data_d['sentences'][sent_id] = d_t
             pos_d_tr = { "ADP": "edat", "AUX": "yardımcı", "PRON": "zamir", "NOUN": "isim", "PROPN": "özel", "INTJ": "ünlem", "PART": "tanımcık", "CCONJ": "eşgüdümlü", "VERB": "fiil", "SYM": "sembol", "DET": "belirteç", "ADV": "zarf", "ADJ": "sıfat", "X": "diğer", "SCONJ": "yantümce", "NUM": "sayı", "PUNCT": "noktalama" }
-            new_d = {'train': [], 'test': [], 'dev': []}
-            data_d = {'treebank_name': self.dataset_name, 'sentences': {}}
-            md_pattern = re.compile('^# (.+?) = (.+?)$')
-            annotation_pattern = re.compile('(.+\t){9}.+')
+            new_l = []
             sentences = data_d['sentences']
             for sent_id in sentences:
                 table = sentences[sent_id]['table']
@@ -186,10 +185,9 @@ class DatasetProcessor:
                         if split_token != 0:
                             split_token -= 1
                 output = ' '.join(tag_l)
-                new_d[split].append({'target_text': output, 'sent_id': sent_id, 'input_text': text})
-            for split in new_d:
-                with open(os.path.join(self.dataset_loc, split + '.json'), 'w', encoding='utf-8') as f:
-                    json.dump(new_d[split], f, ensure_ascii=False)
+                new_l.append({'target_text': output, 'sent_id': sent_id, 'input_text': text})
+            with open(os.path.join(self.dataset_loc, split + '.json'), 'w', encoding='utf-8') as f:
+                json.dump(new_l, f, ensure_ascii=False)
             dataset = datasets.load_dataset(self.dataset_loc, data_files={split: split + '.json'}, split=split)
         elif type(mapped_dataset) == dict:
             dataset = datasets.load_dataset(self.dataset_loc, data_files=mapped_dataset, split=split)
