@@ -31,7 +31,10 @@ def main(cfg: DictConfig):
     if "num_labels" in cfg.keys():
         num_labels = cfg.num_labels
      
-    dataset_processor = DatasetProcessor(dataset_name, task, task_format, task_mode, model_name, max_input_length, max_target_length, dataset_location)
+    if cfg.no_preprocess:
+        dataset_processor = DatasetProcessor(dataset_name, task, task_format, task_mode, model_name, max_input_length, max_target_length, dataset_location, no_preprocess=True)
+    else:
+        dataset_processor = DatasetProcessor(dataset_name, task, task_format, task_mode, model_name, max_input_length, max_target_length, dataset_location)
     train_set = dataset_processor.load_and_preprocess_data()
     model_save_path = training_params['output_dir']
     try: 

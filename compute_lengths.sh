@@ -18,4 +18,8 @@ source /opt/python3/venv/base/bin/activate
 pip install torch --index-url https://download.pytorch.org/whl/cu118
 cd ~/t5-tuner
 pip install -r requirements.txt
-python src/compute_lengths.py --dataset_name $1 --task $2 #--no-preprocess
+if [ "$3" == "--no-preprocess" ]; then
+    python src/compute_lengths.py --dataset_name $1 --task $2 --no-preprocess
+else
+    python src/compute_lengths.py --dataset_name $1 --task $2
+fi
