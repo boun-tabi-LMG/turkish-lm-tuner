@@ -81,8 +81,8 @@ def preprocess_mkqa_qg(examples):
         query = queries['tr']
         answer = answers['tr'][0]['text']
         if not answer:
-            input_texts.append(answer)
-            target_texts.append('')
+            input_texts.append('')
+            target_texts.append(query)
             continue
         input_texts.append(answer)
         target_texts.append(query)
