@@ -30,7 +30,7 @@ class Evaluator:
         self.max_target_length = max_target_length  
         self.test_params = test_params
         #self.generation_params = generation_params
-        self.tokenizer = PreTrainedTokenizerFast.from_pretrained(tokenizer_path)
+        self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
 
     def initialize_model(self):
         # If used without fine-tuning model should be loaded from the model save path
@@ -94,10 +94,6 @@ class Evaluator:
         decoded_preds, decoded_labels = postprocess_function(decoded_preds, decoded_labels)
         
         if self.task == 'summarization':
-            # TODO: Check if rouge is working correctly or need to be fixed
-            # decoded_preds = ["\n".join(nltk.sent_tokenize(pred.strip())) for pred in decoded_preds]
-            # decoded_labels = ["\n".join(nltk.sent_tokenize(label.strip())) for label in decoded_labels]
-            # result = rouge.compute(predictions=decoded_preds, references=decoded_labels, use_stemmer=True, use_aggregator=True)
 
             result = rouge.compute(predictions=decoded_preds, references=decoded_labels)
             result = {key: value * 100 for key, value in result.items()}
