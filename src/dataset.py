@@ -10,7 +10,7 @@ formatter = logging.Formatter('%(levelname)s - %(asctime)s - %(name)s: %(message
 stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
 
-import os, json
+import os, json, re
 from utils import (
     default_preprocess_function,
     preprocess_trnews_summarization,
@@ -71,8 +71,8 @@ dataset_mapping = {
     "wikiann": ("wikiann", "tr"),
 
     # pos tagging
-    "boun": "furkanakkurt1618/pos_dataset-UD_Turkish-BOUN-v2.13-boun-llm", # wasn't on hf
-    "imst": "furkanakkurt1618/pos_dataset-UD_Turkish-IMST-v2.13-boun-llm", # wasn't on hf
+    "boun": {'train': 'tr_boun-ud-train.conllu', 'test': 'tr_boun-ud-test.conllu', 'validation': 'tr_boun-ud-dev.conllu'},
+    "imst": {'train': 'tr_imst-ud-train.conllu', 'test': 'tr_imst-ud-test.conllu', 'validation': 'tr_imst-ud-dev.conllu'},
 
     # text classification
 
@@ -132,6 +132,65 @@ class DatasetProcessor:
                 json.dump(dataset_dict[split], f, ensure_ascii=False)
             mapped_dataset = {split: split + '.json'}
             dataset = datasets.load_dataset(self.dataset_loc, data_files=mapped_dataset, split=split)
+        elif self.dataset_name in ["tr_boun-ud", "tr_imst-ud"]:
+            data_d = {'treebank_name': self.dataset_name, 'sentences': {}}
+            data_file = os.path.join(self.dataset_loc, mapped_dataset[split])
+            with open(data_file, 'r', encoding='utf-8') as f:
+                content = f.read()
+            sents = content.split('\n\n')
+            for sent in sents:
+                lines = sent.split('\n')
+                sent_id = ''
+                d_t = {}
+                for i, line in enumerate(lines):
+                    md_match = md_pattern.match(line)
+                    if md_match:
+                        field = md_match.group(1).strip()
+                        value = md_match.group(2).strip()
+                        if field == 'sent_id':
+                            sent_id = value
+                        else:
+                            d_t[field] = value
+                    annotation_match = annotation_pattern.match(line)
+                    if annotation_match:
+                        annotation = '\n'.join(lines[i:])
+                        d_t['table'] = annotation
+                        d_t['split'] = split
+                        break
+                if d_t:
+                    data_d['sentences'][sent_id] = d_t
+            pos_d_tr = { "ADP": "edat", "AUX": "yardımcı", "PRON": "zamir", "NOUN": "isim", "PROPN": "özel", "INTJ": "ünlem", "PART": "tanımcık", "CCONJ": "eşgüdümlü", "VERB": "fiil", "SYM": "sembol", "DET": "belirteç", "ADV": "zarf", "ADJ": "sıfat", "X": "diğer", "SCONJ": "yantümce", "NUM": "sayı", "PUNCT": "noktalama" }
+            new_d = {'train': [], 'test': [], 'dev': []}
+            data_d = {'treebank_name': self.dataset_name, 'sentences': {}}
+            md_pattern = re.compile('^# (.+?) = (.+?)$')
+            annotation_pattern = re.compile('(.+\t){9}.+')
+            sentences = data_d['sentences']
+            for sent_id in sentences:
+                table = sentences[sent_id]['table']
+                text = sentences[sent_id]['text']
+                split_t = sentences[sent_id]['split']
+                tag_l = []
+                split_token = 0
+                for row in table.split('\n'):
+                    if row:
+                        fields = row.split('\t')
+                        id_t, form, pos = fields[0], fields[1], fields[3]
+                        if '-' in id_t:
+                            split_token = 2
+                        if pos == '_':
+                            continue
+                        if split_token == 1:
+                            tag_l.append('-{}/{}'.format(form, pos_d_tr[pos]))
+                        else:
+                            tag_l.append('{}/{}'.format(form, pos_d_tr[pos]))
+                        if split_token != 0:
+                            split_token -= 1
+                output = ' '.join(tag_l)
+                new_d[split].append({'target_text': output, 'sent_id': sent_id, 'input_text': text})
+            for split in new_d:
+                with open(os.path.join(self.dataset_loc, split + '.json'), 'w', encoding='utf-8') as f:
+                    json.dump(new_d[split], f, ensure_ascii=False)
+            dataset = datasets.load_dataset(self.dataset_loc, data_files={split: split + '.json'}, split=split)
         elif type(mapped_dataset) == dict:
             dataset = datasets.load_dataset(self.dataset_loc, data_files=mapped_dataset, split=split)
         # For the NLI_TR HF dataset
