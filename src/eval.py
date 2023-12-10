@@ -11,8 +11,8 @@ import numpy as np
 import os
 from utils import (
     postprocess_text,
-#    postprocess_nli,
-#     postprocess_sts
+    postprocess_nli,
+    postprocess_sts
 )
 
 # local_rank = int(os.environ["LOCAL_RANK"])
