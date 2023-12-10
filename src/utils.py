@@ -125,6 +125,51 @@ def preprocess_wikiann_ner(examples):
         target_texts.append(target_text)
     return {'input_text': input_texts, 'target_text': target_texts}
 
+def preprocess_ner_milliyet(examples):
+    input_texts, target_texts = [], []
+    for tokens, tags in zip(examples['tokens'], examples['tags']):
+        token_str, tag_type = '', ''
+        tag_dict = {}
+        for j, tag in enumerate(tags):
+            if tag == 'O':
+                if token_str:
+                    if tag_type not in tag_dict:
+                        tag_dict[tag_type] = []
+                    tag_dict[tag_type].append(token_str)
+                token_str, tag_type = '', ''
+            elif tag.startswith('B-'):
+                if token_str:
+                    if tag_type not in tag_dict:
+                        tag_dict[tag_type] = []
+                    tag_dict[tag_type].append(token_str)
+                tag_type = tag[2:]
+                token_str = tokens[j]
+            elif tag.startswith('I-'):
+                token_str += ' ' + tokens[tags.index(tag)]
+        if token_str:
+            if tag_type not in tag_dict:
+                tag_dict[tag_type] = []
+            tag_dict[tag_type].append(token_str)
+        for j, tag_type in enumerate(tag_dict):
+            new_l = []
+            for el in tag_dict[tag_type]:
+                if el not in new_l:
+                    new_l.append(el)
+            tag_dict[tag_type] = new_l
+        input_text = ' '.join(tokens)
+        target_l = []
+        target_text = ''
+        for j, tag_type in enumerate(tag_dict):
+            target_l.append(f'{tag_type}: {", ".join(tag_dict[tag_type])}')
+        target_text = ' | '.join(target_l)
+        input_text = input_text.strip()
+        target_text = target_text.replace('PERSON: ', 'Kişi: ').replace('LOCATION: ', 'Yer: ').replace('ORGANIZATION: ', 'Kuruluş: ').strip()
+        if not target_text:
+            target_text = 'Bulunamadı.'
+        input_texts.append(input_text)
+        target_texts.append(target_text)
+    return {'input_text': input_texts, 'target_text': target_texts}
+
 def preprocess_sts(examples):
     input = [f"ilk cümle: {examples['sentence1'][i]} ikinci cümle: {examples['sentence2'][i]}" for i in range(len(examples["sentence1"]))]
     output = [str(ex) for ex in examples["score"]]

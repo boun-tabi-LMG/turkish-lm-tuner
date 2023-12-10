@@ -1,12 +1,13 @@
 defaults:
   - default
 
+dataset_loc: "/stratch/bounllm/supervised/ner-milliyet"
 dataset_name: milliyet
 task: ner
 max_input_length: 380
 max_target_length: 60
-no_preprocess: true
 training_params:
+  num_train_epochs: 10
   per_device_train_batch_size: 8 # worked in ultramarine
   per_device_eval_batch_size: 8 # worked in ultramarine
   output_dir: ./t5_ner_milliyet

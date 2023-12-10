@@ -10,6 +10,7 @@ formatter = logging.Formatter('%(levelname)s - %(asctime)s - %(name)s: %(message
 stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
 
+import os, json
 from utils import (
     default_preprocess_function,
     preprocess_trnews_summarization,
@@ -23,6 +24,7 @@ from utils import (
     preprocess_mkqa_qa, 
     preprocess_mkqa_qg,
     preprocess_wikiann_ner,
+    preprocess_ner_milliyet,
     preprocess_sts,
     postprocess_text
 )
@@ -65,7 +67,7 @@ dataset_mapping = {
     "stsb_tr": {'train': 'stsb_tr_train.tsv', 'test': 'stsb_tr_test.tsv', 'validation': 'stsb_tr_dev.tsv'},
 
     # ner
-    "milliyet": "furkanakkurt1618/ner_dataset-milliyet-boun-llm", # wasn't on hf
+    "milliyet": {'train': 'train.txt', 'test': 'test.txt', 'validation': 'dev.txt'},
     "wikiann": ("wikiann", "tr"),
 
     # pos tagging
@@ -104,6 +106,32 @@ class DatasetProcessor:
                 dataset = dataset.filter(lambda example: example["label"] != -1) # removed samples with the label -1 
 
         # For local datasets (need to specify dataset location in .yaml file)
+        elif self.dataset_name == "milliyet":
+            data_files = [i for i in os.listdir(self.dataset_loc) if i.endswith('.txt') and i.startswith(split)]
+            data_file = data_files[0]
+            dataset_dict = {}
+            dataset_dict[split] = []
+            with open(os.path.join(self.dataset_loc, data_file), 'r', encoding='utf-8') as f:
+                content = f.read()
+            data = content.split('\n\n')
+            for example in data:
+                if example.strip() == '':
+                    continue
+                lines = example.split('\n')
+                tokens = []
+                tags = []
+                for line in lines:
+                    if line.strip() == '':
+                        break
+                    token, tag = line.split(' ')
+                    tokens.append(token)
+                    tags.append(tag)
+                el = {'tokens': tokens, 'tags': tags}
+                dataset_dict[split].append(el)
+            with open(os.path.join(self.dataset_loc, split + '.json'), 'w', encoding='utf-8') as f:
+                json.dump(dataset_dict[split], f, ensure_ascii=False)
+            mapped_dataset = {split: split + '.json'}
+            dataset = datasets.load_dataset(self.dataset_loc, data_files=mapped_dataset, split=split)
         elif type(mapped_dataset) == dict:
             dataset = datasets.load_dataset(self.dataset_loc, data_files=mapped_dataset, split=split)
         # For the NLI_TR HF dataset
@@ -190,6 +218,7 @@ class DatasetProcessor:
             ("mkqa", "question_answering"): preprocess_mkqa_qa,
             ("mkqa", "question_generation"): preprocess_mkqa_qg,
             ("wikiann", "ner"): preprocess_wikiann_ner,
+            ("milliyet", "ner"): preprocess_ner_milliyet,
             ("stsb_tr", "semantic_similarity") : preprocess_sts,
             ("nli_tr", "nli") : preprocess_nli,
             ("snli_tr", "nli") : preprocess_nli,
