@@ -102,6 +102,8 @@ class DatasetProcessor:
         if type(mapped_dataset) == tuple:
             if "multinli" in self.dataset_name and split == "test":
                 split = "validation_matched" # There's no test set in Multi-NLI
+            elif self.dataset_name == "exams" and split == "test":
+                split = "validation" # will this cause val to be used in both dev and test?
             dataset = datasets.load_dataset(mapped_dataset[0], mapped_dataset[1], split=split)
             if "nli" in self.dataset_name:
                 dataset = dataset.filter(lambda example: example["label"] != -1) # removed samples with the label -1 
