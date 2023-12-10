@@ -23,6 +23,8 @@ from utils import (
     preprocess_exams_qg,
     preprocess_mkqa_qa, 
     preprocess_mkqa_qg,
+    preprocess_turkish_nlp_qa_dataset_qa,
+    preprocess_turkish_nlp_qa_dataset_qg,
     preprocess_wikiann_ner,
     preprocess_ner_milliyet,
     preprocess_sts,
@@ -46,7 +48,6 @@ dataset_mapping = {
     "exams": ("exams", "crosslingual_tr"),
     "mkqa": "mkqa",
     "turkish-nlp-qa-dataset": {'train': 'train-v0.1.json', 'test': 'dev-v0.1.json'},
-    "turkish-nlp-qa-dataset-qg": {'train': 'train-v0.1.json', 'test': 'dev-v0.1.json'},
 
     # nli
 <<<<<<< HEAD
@@ -190,7 +191,7 @@ class DatasetProcessor:
             dataset = datasets.load_dataset(self.dataset_loc, data_files={split: split + '.json'}, split=split)
         elif self.dataset_name == "turkish-nlp-qa-dataset":
             dataset = datasets.load_dataset(
-                self.dataset_loc, data_files=mapped_dataset, field="data")
+                self.dataset_loc, data_files=mapped_dataset, field="data", split=split)
         elif type(mapped_dataset) == dict:
             dataset = datasets.load_dataset(self.dataset_loc, data_files=mapped_dataset, split=split)
         # For the NLI_TR HF dataset
@@ -276,6 +277,8 @@ class DatasetProcessor:
             ('exams', 'question_generation'): preprocess_exams_qg,
             ("mkqa", "question_answering"): preprocess_mkqa_qa,
             ("mkqa", "question_generation"): preprocess_mkqa_qg,
+            ("turkish-nlp-qa-dataset", "question_answering"): preprocess_turkish_nlp_qa_dataset_qa,
+            ("turkish-nlp-qa-dataset", "question_generation"): preprocess_turkish_nlp_qa_dataset_qg,
             ("wikiann", "ner"): preprocess_wikiann_ner,
             ("milliyet", "ner"): preprocess_ner_milliyet,
             ("stsb_tr", "semantic_similarity") : preprocess_sts,
