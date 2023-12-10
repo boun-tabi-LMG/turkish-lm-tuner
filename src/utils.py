@@ -1,6 +1,6 @@
 def default_preprocess_function(examples):
     # Default preprocessing if specific preprocess function is not found
-    return {"input_text": examples["text"], "labels": examples["label"]}
+    return {"input_text": examples["text"], "label": examples["label"]}
 
 def preprocess_trnews_summarization(examples):
     return {"input_text": examples["content"], "target_text": examples["abstract"]}
