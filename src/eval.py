@@ -1,6 +1,6 @@
 from transformers import (
-    PreTrainedTokenizerFast, T5ForConditionalGeneration,
-    Seq2SeqTrainer, TrainingArguments, Seq2SeqTrainingArguments,
+    AutoTokenizer, T5ForConditionalGeneration,
+    Seq2SeqTrainer, Seq2SeqTrainingArguments,
 )
 
 from omegaconf import DictConfig
@@ -11,8 +11,8 @@ import numpy as np
 import os
 from utils import (
     postprocess_text,
-    postprocess_nli,
-    postprocess_sts
+#    postprocess_nli,
+#     postprocess_sts
 )
 
 # local_rank = int(os.environ["LOCAL_RANK"])
@@ -22,16 +22,15 @@ accuracy = evaluate.load("accuracy")
 pearsonr = evaluate.load("pearsonr")
 
 class Evaluator:
-    def __init__(self, model_save_path, tokenizer_path, dataset_name, task, task_format, max_target_length, test_params): # generation_params
+    def __init__(self, model_save_path, tokenizer_path, dataset_name, task, max_target_length, test_params): # generation_params
         self.model_save_path = model_save_path
         self.tokenizer_path = tokenizer_path
         self.dataset_name = dataset_name
         self.task = task
-        self.task_format = task_format      
         self.max_target_length = max_target_length  
         self.test_params = test_params
         #self.generation_params = generation_params
-        self.tokenizer = PreTrainedTokenizerFast.from_pretrained(tokenizer_path)
+        self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
 
     def initialize_model(self):
         # If used without fine-tuning model should be loaded from the model save path
@@ -127,7 +126,7 @@ def main(cfg: DictConfig):
     test_params = cfg.test_params
     dataset_location = cfg.dataset_loc
 
-    evaluator = Evaluator(model_path, model_name, dataset_name, task, task_format, max_target_length, test_params)
+    evaluator = Evaluator(model_path, model_name, dataset_name, task, max_target_length, test_params)
 
     dataset_processor = DatasetProcessor(dataset_name, task, task_format, task_mode, model_name, max_input_length, max_target_length, dataset_location)
     test_dataset = dataset_processor.load_and_preprocess_data(split="test")  # Use split="test[:10]" to test for small sample
