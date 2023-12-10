@@ -45,8 +45,8 @@ dataset_mapping = {
     # question answering & generation
     "exams": ("exams", "crosslingual_tr"),
     "mkqa": "mkqa",
-    "turkish-nlp-qa-dataset": "furkanakkurt1618/qa_dataset-turkish-nlp-qa-dataset-boun-llm",
-    "turkish-nlp-qa-dataset-qg": "furkanakkurt1618/qg_dataset-turkish-nlp-qa-dataset-boun-llm", # wasn't on hf
+    "turkish-nlp-qa-dataset": {'train': 'train-v0.1.json', 'test': 'dev-v0.1.json'},
+    "turkish-nlp-qa-dataset-qg": {'train': 'train-v0.1.json', 'test': 'dev-v0.1.json'},
 
     # nli
 <<<<<<< HEAD
@@ -167,7 +167,6 @@ class DatasetProcessor:
             for sent_id in sentences:
                 table = sentences[sent_id]['table']
                 text = sentences[sent_id]['text']
-                split_t = sentences[sent_id]['split']
                 tag_l = []
                 split_token = 0
                 for row in table.split('\n'):
@@ -189,6 +188,9 @@ class DatasetProcessor:
             with open(os.path.join(self.dataset_loc, split + '.json'), 'w', encoding='utf-8') as f:
                 json.dump(new_l, f, ensure_ascii=False)
             dataset = datasets.load_dataset(self.dataset_loc, data_files={split: split + '.json'}, split=split)
+        elif self.dataset_name == "turkish-nlp-qa-dataset":
+            dataset = datasets.load_dataset(
+                self.dataset_loc, data_files=mapped_dataset, field="data")
         elif type(mapped_dataset) == dict:
             dataset = datasets.load_dataset(self.dataset_loc, data_files=mapped_dataset, split=split)
         # For the NLI_TR HF dataset

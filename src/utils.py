@@ -88,6 +88,38 @@ def preprocess_mkqa_qg(examples):
         target_texts.append(query)
     return {"input_text": input_texts, "target_text": target_texts}
 
+def preprocess_turkish_nlp_qa_dataset_qa(examples):
+    input_texts, target_texts = [], []
+    for paragraphs in examples['paragraphs']:
+        for paragraph in paragraphs:
+            qas = paragraph['qas']
+            context = paragraph['context'].strip()
+            for qa in qas:
+                question = qa['question'].strip()
+                answers = qa['answers']
+                answer = answers[0]['text'].strip()
+                input_text = f"Bağlam: {context} | Soru: {question}"
+                target_text = answer
+                input_texts.append(input_text)
+                target_texts.append(target_text)
+    return {"input_text": input_texts, "target_text": target_texts}
+
+def preprocess_turkish_nlp_qa_dataset_qg(examples):
+    input_texts, target_texts = [], []
+    for paragraphs in examples['paragraphs']:
+        for paragraph in paragraphs:
+            qas = paragraph['qas']
+            context = paragraph['context'].strip()
+            for qa in qas:
+                question = qa['question'].strip()
+                answers = qa['answers']
+                answer = answers[0]['text'].strip()
+                input_text = f"Bağlam: {context} | Cevap: {answer}"
+                target_text = question
+                input_texts.append(input_text)
+                target_texts.append(target_text)
+    return {"input_text": input_texts, "target_text": target_texts}
+
 def preprocess_wikiann_ner(examples):
     input_texts = []
     target_texts = []
