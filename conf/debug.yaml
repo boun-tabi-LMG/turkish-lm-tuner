@@ -1,6 +1,6 @@
 model_name: /stratch/bounllm/ckpt-500K
-task_format: conditional_generation
-task_mode: '' # '[S2S] ', '[NLU] ', '[NLG] '
+task_format: classification
+task_mode: '' # '[S2S]: ', '[NLU]: ', '[NLG]: '
 adafactor_scheduler: True
 training_params:
   num_train_epochs: 10
@@ -14,3 +14,4 @@ training_params:
   push_to_hub: False
   predict_with_generate: True
   report_to: wandb
+dataset_loc: ""

@@ -1,5 +1,5 @@
 import datasets
-from transformers import PreTrainedTokenizerFast
+from transformers import AutoTokenizer
 import numpy as np
 from utils import (
     default_preprocess_function,
@@ -62,7 +62,7 @@ class DatasetProcessor:
         self.task = task
         self.task_format = task_format
         self.task_mode = task_mode
-        self.tokenizer = PreTrainedTokenizerFast.from_pretrained(tokenizer_name)
+        self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
         self.max_input_length = max_input_length
         self.max_target_length = max_target_length
         self.dataset_loc = dataset_loc
@@ -96,6 +96,7 @@ class DatasetProcessor:
             dataset = datasets.load_dataset(mapped_dataset, split=split) #.select(range(100))
         preprocess_function = self.get_preprocess_function()
         column_names = dataset.column_names
+        column_names = [col for col in column_names if col not in ['input_text', 'target_text', 'label']]
         processed_dataset = dataset.map(preprocess_function, remove_columns=column_names, batched=True)
         if self.max_input_length == -1 or self.max_target_length == -1:
             self.compute_token_length(processed_dataset)
@@ -153,14 +154,14 @@ class DatasetProcessor:
         return preprocess_functions.get((self.dataset_name, self.task), default_preprocess_function)
     
     def prepend_prefix(self, examples):
-        return [f'{self.task_mode}: {ex}' for ex in examples]
+        return [f'{self.task_mode}{ex}' for ex in examples]
     
     def append_eos(self, examples):
         def append_eos_text(text):
             if text.endswith(self.tokenizer.eos_token):
                 return text
             else:
-                return f'{text} {self.tokenizer.eos_token}'
+                return f'{text}{self.tokenizer.eos_token}'
 
         return [append_eos_text(ex) for ex in examples]
 
@@ -181,9 +182,8 @@ class DatasetProcessor:
                         return_token_type_ids=False,
                    )
             return {'labels': targets_tokenized['input_ids'], **inputs_tokenized}
-
         return self.tokenizer(
-            self.prepend_prefix(examples["input_text"]),
+            self.append_eos(self.prepend_prefix(examples["input_text"])),
             padding="max_length",
             truncation=True,
             max_length=self.max_input_length,

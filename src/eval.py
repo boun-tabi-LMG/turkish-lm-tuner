@@ -1,6 +1,7 @@
 from transformers import (
-    PreTrainedTokenizerFast, T5ForConditionalGeneration,
-    Seq2SeqTrainer, TrainingArguments, Seq2SeqTrainingArguments,
+    AutoTokenizer, AutoModelForSeq2SeqLM, AutoModelForSequenceClassification,
+    Seq2SeqTrainer, Seq2SeqTrainingArguments,
+    Trainer, TrainingArguments,
 )
 
 from omegaconf import DictConfig
@@ -21,46 +22,90 @@ rouge = evaluate.load("rouge")
 accuracy = evaluate.load("accuracy")
 pearsonr = evaluate.load("pearsonr")
 
-class Evaluator:
-    def __init__(self, model_save_path, tokenizer_path, dataset_name, task, task_format, max_target_length, test_params): # generation_params
+class BaseEvaluator:
+    def __init__(self, model_save_path, tokenizer_path, dataset_name, task, max_target_length, test_params):
         self.model_save_path = model_save_path
         self.tokenizer_path = tokenizer_path
         self.dataset_name = dataset_name
         self.task = task
-        self.task_format = task_format      
         self.max_target_length = max_target_length  
         self.test_params = test_params
-        #self.generation_params = generation_params
-        self.tokenizer = PreTrainedTokenizerFast.from_pretrained(tokenizer_path)
+        self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
 
     def initialize_model(self):
-        # If used without fine-tuning model should be loaded from the model save path
-        model = T5ForConditionalGeneration.from_pretrained(self.model_save_path)
+        raise NotImplementedError
+    
+    def initialize_trainer(self, model):
+        test_args = TrainingArguments(
+            **self.test_params)
         
-        return model
+        trainer = Trainer(
+            model=model,
+            args=test_args
+        )
+
+        return trainer
 
     def evaluate_model(self, test_dataset, model=None):
-        
         if not model:
             model = self.initialize_model()
 
+        trainer = self.initialize_trainer(model)
+        results = trainer.predict(test_dataset)
+        raise trainer, model
+class EvaluatorForClassification(BaseEvaluator):
+    def __init__(self, model_save_path, tokenizer_path, dataset_name, task, max_target_length, test_params):
+        super().__init__(model_save_path, tokenizer_path, dataset_name, task, max_target_length, test_params)
+
+    def initialize_model(self):
+        # If used without fine-tuning model should be loaded from the model save path
+        return AutoModelForSequenceClassification.from_pretrained(self.model_save_path)
+
+    def initialize_trainer(self, model):
+        test_args = TrainingArguments(
+            **self.test_params)
+        
+        trainer = Trainer(
+            model=model,
+            args=test_args,
+            compute_metrics=self.compute_metrics,
+        )
+        return trainer
+
+    def compute_metrics(self, eval_preds):
+        preds, labels = eval_preds
+        preds = np.argmax(preds, axis=1)
+        print(preds)
+        print(labels)
+        result = accuracy.compute(predictions=preds, references=labels)
+        print(result)
+        return result
+    
+
+class EvaluatorForConditionalGeneration(BaseEvaluator):
+    def __init__(self, model_save_path, tokenizer_path, dataset_name, task, max_target_length, test_params): # generation_params
+        super().__init__(model_save_path, tokenizer_path, dataset_name, task, max_target_length, test_params)
+        #self.generation_params = generation_params
+
+    def initialize_model(self):
+        # If used without fine-tuning model should be loaded from the model save path
+        return AutoModelForSeq2SeqLM.from_pretrained(self.model_save_path)
+
+    def initialize_trainer(self, model):
         generation_config = model.generation_config 
         generation_config.max_new_tokens = self.max_target_length
 
         test_args = Seq2SeqTrainingArguments(
-            generation_config = generation_config,
+            generation_config=generation_config,
             **self.test_params)
         
         trainer = Seq2SeqTrainer(
             model=model,
             args=test_args,
-            #eval_dataset=eval_dataset, 
-            compute_metrics = self.compute_metrics,
+            compute_metrics=self.compute_metrics,
         )
-
-        results = trainer.predict(test_dataset)
-        return trainer, model
-
+        return trainer
+  
     def get_postprocess_function(self):
         # Mapping of dataset_name and task to corresponding postprocess functions
         postprocess_functions = {
@@ -95,11 +140,6 @@ class Evaluator:
         decoded_preds, decoded_labels = postprocess_function(decoded_preds, decoded_labels)
         
         if self.task == 'summarization':
-            # TODO: Check if rouge is working correctly or need to be fixed
-            # decoded_preds = ["\n".join(nltk.sent_tokenize(pred.strip())) for pred in decoded_preds]
-            # decoded_labels = ["\n".join(nltk.sent_tokenize(label.strip())) for label in decoded_labels]
-            # result = rouge.compute(predictions=decoded_preds, references=decoded_labels, use_stemmer=True, use_aggregator=True)
-
             result = rouge.compute(predictions=decoded_preds, references=decoded_labels)
             result = {key: value * 100 for key, value in result.items()}
             prediction_lens = [np.count_nonzero(pred != self.tokenizer.pad_token_id) for pred in preds]
@@ -126,8 +166,10 @@ def main(cfg: DictConfig):
     max_target_length = cfg.max_target_length
     test_params = cfg.test_params
     dataset_location = cfg.dataset_loc
-
-    evaluator = Evaluator(model_path, model_name, dataset_name, task, task_format, max_target_length, test_params)
+    if task_format == 'conditional_generation':
+        evaluator = EvaluatorForConditionalGeneration(model_path, model_name, dataset_name, task, max_target_length, test_params)
+    elif task_format == 'classification':
+        evaluator = EvaluatorForClassification(model_path, model_name, dataset_name, task, max_target_length, test_params)
 
     dataset_processor = DatasetProcessor(dataset_name, task, task_format, task_mode, model_name, max_input_length, max_target_length, dataset_location)
     test_dataset = dataset_processor.load_and_preprocess_data(split="test")  # Use split="test[:10]" to test for small sample
