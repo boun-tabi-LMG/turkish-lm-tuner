@@ -10,7 +10,7 @@ formatter = logging.Formatter('%(levelname)s - %(asctime)s - %(name)s: %(message
 stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
 
-import os, json, re
+import os, json, re, random
 from utils import (
     default_preprocess_function,
     preprocess_trnews_summarization,
@@ -213,6 +213,12 @@ class DatasetProcessor:
             mlsum_dataset = mlsum_dataset.rename_column("summary", "abstract")
             dataset = datasets.concatenate_datasets([tr_news_dataset, mlsum_dataset])
 
+                
+        elif self.dataset_name == "mkqa":
+            random.seed(42)
+            dataset = datasets.load_dataset(mapped_dataset, split='train')
+            dataset = dataset.train_test_split(test_size=0.1)
+            dataset = dataset[split]
         # For HF datasets with a single dataset specification (i.e. "nli_tr")
         else:
             dataset = datasets.load_dataset(mapped_dataset, split=split) #.select(range(100))
