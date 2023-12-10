@@ -10,6 +10,7 @@ from transformers.optimization import Adafactor, AdafactorSchedule
 from omegaconf import DictConfig
 from utils import postprocess_text
 from dataset import DatasetProcessor
+from eval import Evaluator
 import hydra
 import evaluate
 import numpy as np
@@ -35,6 +36,9 @@ class ModelTrainer:
         elif self.task_format == "classification":
             model = T5ForSequenceClassification.from_pretrained(self.model_name)
         return model
+
+    def initialize_evaluator(self, model_save_path, dataset_name, max_target_length):
+        self.evaluator = Evaluator(model_save_path, self.model_name, dataset_name, self.task, self.task_format, max_target_length, self.training_params)
 
     def train_and_evaluate(self, train_dataset, eval_dataset, test_dataset):
         # TODO: Should we change this with Seq2SeqTrainingArguments?
@@ -72,7 +76,7 @@ class ModelTrainer:
             args=training_args,
             train_dataset=train_dataset,
             eval_dataset=eval_dataset, 
-            compute_metrics = self.compute_metrics,
+            compute_metrics = self.evaluator.compute_metrics,
             optimizers=(optimizer, lr_scheduler),
             callbacks = [EarlyStoppingCallback(early_stopping_patience=3)],
 
@@ -82,33 +86,6 @@ class ModelTrainer:
         results = trainer.evaluate(test_dataset)
         print(results)
         return trainer, model
-    
-    def compute_metrics(self, eval_preds):
-        preds, labels = eval_preds
-        if isinstance(preds, tuple):
-            preds = preds[0]
-        # Replace -100s used for padding as we can't decode them
-        preds = np.where(preds != -100, preds, self.tokenizer.pad_token_id)
-        decoded_preds = self.tokenizer.batch_decode(preds, skip_special_tokens=True)
-        labels = np.where(labels != -100, labels, self.tokenizer.pad_token_id)
-        decoded_labels = self.tokenizer.batch_decode(labels, skip_special_tokens=True)
-
-        # Some simple post-processing
-        decoded_preds, decoded_labels = postprocess_text(decoded_preds, decoded_labels)
-        if self.task == 'summarization':
-            # TODO: Check if rouge is working correctly or need to be fixed
-            # decoded_preds = ["\n".join(nltk.sent_tokenize(pred.strip())) for pred in decoded_preds]
-            # decoded_labels = ["\n".join(nltk.sent_tokenize(label.strip())) for label in decoded_labels]
-            # result = rouge.compute(predictions=decoded_preds, references=decoded_labels, use_stemmer=True, use_aggregator=True)
-
-            result = rouge.compute(predictions=decoded_preds, references=decoded_labels)
-            result = {key: value * 100 for key, value in result.items()}
-            prediction_lens = [np.count_nonzero(pred != self.tokenizer.pad_token_id) for pred in preds]
-            result["gen_len"] = np.mean(prediction_lens)
-            result = {k: round(v, 4) for k, v in result.items()}
-
-        return result
-
 
 @hydra.main(config_path="../conf", config_name="default")
 def main(cfg: DictConfig):
@@ -124,6 +101,7 @@ def main(cfg: DictConfig):
     dataset_location = cfg.dataset_loc
     dataset_processor = DatasetProcessor(dataset_name, task, task_format, task_mode, model_name, max_input_length, max_target_length, dataset_location)
     train_set = dataset_processor.load_and_preprocess_data()
+    model_save_path = training_params['output_dir']
     
     try: 
         eval_dataset = dataset_processor.load_and_preprocess_data(split='validation')
@@ -139,10 +117,15 @@ def main(cfg: DictConfig):
     print("test", test_dataset)
 
     model_trainer = ModelTrainer(model_name, task, task_format, adafactor_scheduler, training_params)
+    model_trainer.initialize_evaluator(model_save_path, dataset_name, max_target_length)
     trainer, model = model_trainer.train_and_evaluate(train_dataset, eval_dataset, test_dataset)
 
-    # model.save_pretrained(model_save_path)
+    print("Best model saved at", model_save_path)
+    model.save_pretrained(model_save_path)
     # dataset_processor.tokenizer.save_pretrained(model_save_path)
+
+    # If separate evaluation will be made, send the model to the evaluator to avoid re-loading
+    # model_trainer.evaluator.evaluate_model(test_dataset, model)
 
 if __name__ == "__main__":
     main()

@@ -24,7 +24,7 @@ python src/finetune.py --config-name <task>
 ### Inference
 To run inference with a fine-tuned model, ...
 ```
-python infer.py --model_name .... 
+python eval.py --config-name <task>
 ```
 
 ## Available Models
