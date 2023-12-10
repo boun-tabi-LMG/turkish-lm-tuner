@@ -93,7 +93,11 @@ class TrainerForClassification(BaseModelTrainer):
     
 
     def train_and_evaluate(self, train_dataset, eval_dataset, test_dataset):
-        training_args = TrainingArguments(**self.training_params)
+        training_args = TrainingArguments(
+            metric_for_best_model='eval_loss',
+            load_best_model_at_end=True,
+            greater_is_better=False,
+            **self.training_params)
         model = self.initialize_model()
         optimizer, lr_scheduler = self.create_optimizer(model)
 
