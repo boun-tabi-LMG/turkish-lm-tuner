@@ -79,7 +79,7 @@ dataset_mapping = {
 
 
 class DatasetProcessor:
-    def __init__(self, dataset_name, task, task_format, task_mode, tokenizer_name, max_input_length, max_target_length, dataset_loc=""):
+    def __init__(self, dataset_name, task, task_format, task_mode, tokenizer_name, max_input_length, max_target_length, dataset_loc="", no_preprocess=False):
         logger.info(f"Initializing dataset processor for {dataset_name} dataset with {tokenizer_name} tokenizer and {task} task in {task_format} format with {task_mode} mode")
         logger.info(f"Max input length: {max_input_length} Max target length: {max_target_length}")
         self.dataset_name = dataset_name
@@ -90,6 +90,7 @@ class DatasetProcessor:
         self.max_input_length = max_input_length
         self.max_target_length = max_target_length
         self.dataset_loc = dataset_loc
+        self.no_preprocess = no_preprocess
 
     def load_and_preprocess_data(self, split='train'):
         logger.info(f"Loading {split} split of {self.dataset_name} dataset")
@@ -125,15 +126,17 @@ class DatasetProcessor:
         # For HF datasets with a single dataset specification (i.e. "nli_tr")
         else:
             dataset = datasets.load_dataset(mapped_dataset, split=split) #.select(range(100))
-        
-        logger.info(f"Preprocessing {self.dataset_name} dataset")
-        preprocess_function = self.get_preprocess_function()
-        column_names = dataset.column_names
-        column_names = [col for col in column_names if col not in ['input_text', 'target_text', 'label']]
-        if self.task_format == "classification" and self.task == "nli":
-            processed_dataset = dataset.map(preprocess_function, remove_columns=column_names, batched=True, fn_kwargs={"skip_output_processing": True})
+        if self.no_preprocess:
+            processed_dataset = dataset
         else:
-            processed_dataset = dataset.map(preprocess_function, remove_columns=column_names, batched=True)
+            logger.info(f"Preprocessing {self.dataset_name} dataset")
+            preprocess_function = self.get_preprocess_function()
+            column_names = dataset.column_names
+            column_names = [col for col in column_names if col not in ['input_text', 'target_text', 'label']]
+            if self.task_format == "classification" and self.task == "nli":
+                processed_dataset = dataset.map(preprocess_function, remove_columns=column_names, batched=True, fn_kwargs={"skip_output_processing": True})
+            else:
+                processed_dataset = dataset.map(preprocess_function, remove_columns=column_names, batched=True)
         if self.max_input_length == -1 or self.max_target_length == -1:
             self.compute_token_length(processed_dataset)
             return

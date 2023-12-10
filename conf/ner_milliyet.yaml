@@ -1,0 +1,11 @@
+defaults:
+  - default
+
+dataset_name: milliyet
+task: ner
+max_input_length: 380
+max_target_length: 60
+training_params:
+  per_device_train_batch_size: 256
+  per_device_eval_batch_size: 256
+  output_dir: ./t5_ner_milliyet
