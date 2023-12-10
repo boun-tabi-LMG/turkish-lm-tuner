@@ -1,6 +1,5 @@
 from transformers import (
     PreTrainedTokenizerFast, T5ForConditionalGeneration,
-    T5ForSequenceClassification, 
     Seq2SeqTrainer, TrainingArguments, Seq2SeqTrainingArguments,
 )
 
@@ -35,16 +34,16 @@ class Evaluator:
         self.tokenizer = PreTrainedTokenizerFast.from_pretrained(tokenizer_path)
 
     def initialize_model(self):
-        if self.task_format == "conditional_generation":
-            model = T5ForConditionalGeneration.from_pretrained(self.model_save_path)
-        elif self.task_format == "classification":
-            model = T5ForSequenceClassification.from_pretrained(self.model_save_path)
-        self.model = model
+        # If used without fine-tuning model should be loaded from the model save path
+        model = T5ForConditionalGeneration.from_pretrained(self.model_save_path)
+        
         return model
 
-    def evaluate_model(self, test_dataset):
+    def evaluate_model(self, test_dataset, model=None):
         
-        model = self.initialize_model()
+        if not model:
+            model = self.initialize_model()
+
         generation_config = model.generation_config 
         generation_config.max_new_tokens = self.max_target_length
 
@@ -60,17 +59,11 @@ class Evaluator:
         )
 
         results = trainer.predict(test_dataset)
-        print(results)
         return trainer, model
 
     def get_postprocess_function(self):
         # Mapping of dataset_name and task to corresponding postprocess functions
         postprocess_functions = {
-            ('tr_news', 'summarization'): postprocess_text,
-            ('tr_news', 'title_generation'): postprocess_text,
-            ('opensubtitles', 'paraphrasing'): postprocess_text,
-            ('ted', 'paraphrasing'): postprocess_text,
-            ('tatoeba', 'paraphrasing'): postprocess_text,
             ('exams', 'question_answering'): postprocess_text,
             ('exams', 'question_generation'): postprocess_text,
             ("xquad", "question_answering"): postprocess_text,
@@ -80,9 +73,9 @@ class Evaluator:
             ("wikiann", "ner"): postprocess_text,
             ("xtreme", "ner"): postprocess_text,
             ("stsb_tr", "semantic_similarity") : postprocess_sts,
-            ("nli_tr", "nli") : postprocess_text,
+            ("nli_tr", "nli") : postprocess_nli,
             ("snli_tr", "nli") : postprocess_nli,
-            ("multinli_tr", "nli") : postprocess_text,
+            ("multinli_tr", "nli") : postprocess_nli,
             # ... add mappings for other dataset and task type combinations
         }
         return postprocess_functions.get((self.dataset_name, self.task), postprocess_text)

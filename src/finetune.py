@@ -124,5 +124,8 @@ def main(cfg: DictConfig):
     model.save_pretrained(model_save_path)
     # dataset_processor.tokenizer.save_pretrained(model_save_path)
 
+    # If separate evaluation will be made, send the model to the evaluator to avoid re-loading
+    # model_trainer.evaluator.evaluate_model(test_dataset, model)
+
 if __name__ == "__main__":
     main()
