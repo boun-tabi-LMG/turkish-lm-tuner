@@ -9,7 +9,10 @@ from transformers import (
 )
 from transformers.optimization import Adafactor, AdafactorSchedule
 
-from eval import Evaluator  # Assuming this is a custom module
+from eval import (
+    EvaluatorForClassification,
+    EvaluatorForConditionalGeneration
+)
 
 import os
 
@@ -54,7 +57,7 @@ class BaseModelTrainer:
 class TrainerForConditionalGeneration(BaseModelTrainer):
     def __init__(self, model_name, task, adafactor_scheduler, training_params, model_save_path, dataset_name, max_target_length):
         super().__init__(model_name, adafactor_scheduler, training_params)
-        self.evaluator = Evaluator(model_save_path, model_name, dataset_name, task, max_target_length, training_params)
+        self.evaluator = EvaluatorForConditionalGeneration(model_save_path, model_name, dataset_name, task, max_target_length, training_params)
 
     def initialize_model(self):
         return AutoModelForSeq2SeqLM.from_pretrained(self.model_name)
