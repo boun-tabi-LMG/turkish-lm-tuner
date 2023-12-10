@@ -30,7 +30,7 @@ class Evaluator:
         self.max_target_length = max_target_length  
         self.test_params = test_params
         #self.generation_params = generation_params
-        self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
+        self.tokenizer = PreTrainedTokenizerFast.from_pretrained(tokenizer_path)
 
     def initialize_model(self):
         # If used without fine-tuning model should be loaded from the model save path
