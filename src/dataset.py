@@ -1,5 +1,5 @@
 import datasets
-from transformers import PreTrainedTokenizerFast
+from transformers import AutoTokenizer
 import numpy as np
 from utils import (
     default_preprocess_function,
@@ -62,7 +62,7 @@ class DatasetProcessor:
         self.task = task
         self.task_format = task_format
         self.task_mode = task_mode
-        self.tokenizer = PreTrainedTokenizerFast.from_pretrained(tokenizer_name)
+        self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
         self.max_input_length = max_input_length
         self.max_target_length = max_target_length
         self.dataset_loc = dataset_loc
