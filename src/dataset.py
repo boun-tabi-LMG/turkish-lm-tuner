@@ -52,6 +52,7 @@ dataset_mapping = {
     "imst": "furkanakkurt1618/pos_dataset-UD_Turkish-IMST-v2.13-boun-llm", # wasn't on hf
 
     # text classification
+
 }
 
 
@@ -97,7 +98,10 @@ class DatasetProcessor:
         preprocess_function = self.get_preprocess_function()
         column_names = dataset.column_names
         column_names = [col for col in column_names if col not in ['input_text', 'target_text', 'label']]
-        processed_dataset = dataset.map(preprocess_function, remove_columns=column_names, batched=True)
+        if self.task_format == "classification" and self.task == "nli":
+            processed_dataset = dataset.map(preprocess_function, remove_columns=column_names, batched=True, fn_kwargs={"no_output_process": True})
+        else:
+            processed_dataset = dataset.map(preprocess_function, remove_columns=column_names, batched=True)
         if self.max_input_length == -1 or self.max_target_length == -1:
             self.compute_token_length(processed_dataset)
             return

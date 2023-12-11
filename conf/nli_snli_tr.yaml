@@ -3,9 +3,12 @@ defaults:
 
 dataset_name: snli_tr 
 task: nli
+#task_format: classification  # Remove this line for conditional generation
 max_input_length: 128
 max_target_length: 8
+num_labels: 3 
 training_params:
   per_device_train_batch_size: 32 # for ultramarine
   per_device_eval_batch_size: 32 # for ultramarine
   output_dir: ./t5_nli_tr
+
