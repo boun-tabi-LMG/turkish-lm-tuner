@@ -104,7 +104,7 @@ class DatasetProcessor:
                 dataset = datasets.load_dataset("nli_tr", 'snli_tr', split=split)
                 dataset = dataset.filter(lambda example: example["label"] != -1) # removed samples with the label -1 
         elif self.dataset_name == 'combined_news':
-            tr_news_dataset = datasets.load_dataset("tr_news", split=split)
+            tr_news_dataset = datasets.load_dataset(dataset_mapping["tr_news"], split=split)
             mlsum_dataset = datasets.load_dataset("mlsum", 'tu', split=split)
             mlsum_dataset = mlsum_dataset.rename_column("text", "content")
             mlsum_dataset = mlsum_dataset.rename_column("summary", "abstract")
