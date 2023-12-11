@@ -22,13 +22,12 @@ dataset_mapping = {
     # summarization/title generation
     "tr_news": "batubayk/TR-News",
     "mlsum": ("mlsum", "tu"),
-    "combined_news": ("tr_news", "mlsum"), 
+    "combined_news": ["tr_news", "mlsum"], 
+
     # paraphrasing
     "opensubtitles": "mrbesher/tr-paraphrase-opensubtitles2018",
     "tatoeba": "mrbesher/tr-paraphrase-tatoeba",
     "ted": "mrbesher/tr-paraphrase-ted2013",
-
-    # translation
 
     # question answering & generation
     "exams": ("exams", "crosslingual_tr"),
@@ -96,7 +95,7 @@ class DatasetProcessor:
             tr_news_dataset = datasets.load_dataset("tr_news", split=split)
             mlsum_dataset = datasets.load_dataset("mlsum", 'tu', split=split)
             dataset = datasets.concatenate_datasets([tr_news_dataset, mlsum_dataset])
-            
+
         # For HF datasets with a single dataset specification (i.e. "nli_tr")
         else:
             dataset = datasets.load_dataset(mapped_dataset, split=split) #.select(range(100))
@@ -146,6 +145,10 @@ class DatasetProcessor:
         preprocess_functions = {
             ('tr_news', 'summarization'): preprocess_trnews_summarization,
             ('tr_news', 'title_generation'): preprocess_trnews_title_generation,
+            ('mlsum', 'summarization'): preprocess_trnews_summarization,
+            ('mlsum', 'title_generation'): preprocess_trnews_title_generation,
+            ('combined_news', 'summarization'): preprocess_trnews_summarization,
+            ('combined_news', 'title_generation'): preprocess_trnews_title_generation,
             ('opensubtitles', 'paraphrasing'): preprocess_paraphrasing,
             ('ted', 'paraphrasing'): preprocess_paraphrasing,
             ('tatoeba', 'paraphrasing'): preprocess_paraphrasing,
