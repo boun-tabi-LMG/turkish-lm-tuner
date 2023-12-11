@@ -21,7 +21,8 @@ dataset_mapping = {
 
     # summarization/title generation
     "tr_news": "batubayk/TR-News",
-
+    "mlsum": ("mlsum", "tu"),
+    "combined_news": ("tr_news", "mlsum"), 
     # paraphrasing
     "opensubtitles": "mrbesher/tr-paraphrase-opensubtitles2018",
     "tatoeba": "mrbesher/tr-paraphrase-tatoeba",
@@ -91,7 +92,11 @@ class DatasetProcessor:
             else:
                 dataset = datasets.load_dataset("nli_tr", 'snli_tr', split=split)
                 dataset = dataset.filter(lambda example: example["label"] != -1) # removed samples with the label -1 
-                
+        elif self.dataset_name == 'combined_news':
+            tr_news_dataset = datasets.load_dataset("tr_news", split=split)
+            mlsum_dataset = datasets.load_dataset("mlsum", 'tu', split=split)
+            dataset = datasets.concatenate_datasets([tr_news_dataset, mlsum_dataset])
+            
         # For HF datasets with a single dataset specification (i.e. "nli_tr")
         else:
             dataset = datasets.load_dataset(mapped_dataset, split=split) #.select(range(100))
