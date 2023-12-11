@@ -106,6 +106,8 @@ class DatasetProcessor:
         elif self.dataset_name == 'combined_news':
             tr_news_dataset = datasets.load_dataset("tr_news", split=split)
             mlsum_dataset = datasets.load_dataset("mlsum", 'tu', split=split)
+            mlsum_dataset = mlsum_dataset.rename_column("text", "content")
+            mlsum_dataset = mlsum_dataset.rename_column("summary", "abstract")
             dataset = datasets.concatenate_datasets([tr_news_dataset, mlsum_dataset])
 
         # For HF datasets with a single dataset specification (i.e. "nli_tr")
