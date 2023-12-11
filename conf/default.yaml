@@ -11,6 +11,6 @@ training_params:
   save_total_limit: 3
   remove_unused_columns: False
   push_to_hub: False
-  predict_with_generate: True
+  #predict_with_generate: True  # Moved inside trainer due to error in classification mode
   report_to: wandb
 dataset_loc: ""
