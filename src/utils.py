@@ -120,6 +120,28 @@ def preprocess_turkish_nlp_qa_dataset_qg(examples):
                 target_texts.append(target_text)
     return {"input_text": input_texts, "target_text": target_texts}
 
+def preprocess_pos(examples):
+    pos_d_tr = { "ADP": "edat", "AUX": "yardımcı", "PRON": "zamir", "NOUN": "isim", "PROPN": "özel", "INTJ": "ünlem", "PART": "tanımcık", "CCONJ": "eşgüdümlü", "VERB": "fiil", "SYM": "sembol", "DET": "belirteç", "ADV": "zarf", "ADJ": "sıfat", "X": "diğer", "SCONJ": "yantümce", "NUM": "sayı", "PUNCT": "noktalama" }
+    input_texts, target_texts = [], []
+    for ids, tokens, tags in zip(examples['ids'], examples['tokens'], examples['tags']):
+        tag_l = []
+        split_token = 0
+        for id_t, form, pos in zip(ids, tokens, tags):
+                if '-' in id_t:
+                    split_token = 2
+                if pos == '_':
+                    continue
+                if split_token == 1:
+                    tag_l.append('-{}/{}'.format(form, pos_d_tr[pos]))
+                else:
+                    tag_l.append('{}/{}'.format(form, pos_d_tr[pos]))
+                if split_token != 0:
+                    split_token -= 1
+        output = ' '.join(tag_l)
+        input_texts.append(' '.join(tokens))
+        target_texts.append(output)
+    return {"input_text": input_texts, "target_text": target_texts}
+
 def preprocess_wikiann_ner(examples):
     input_texts = []
     target_texts = []

@@ -138,11 +138,11 @@ class DatasetProcessor:
         elif self.dataset_name in ["boun", "imst"]:
             md_pattern = re.compile('^# (.+?) = (.+?)$')
             annotation_pattern = re.compile('(.+\t){9}.+')
-            data_d = {'treebank_name': self.dataset_name, 'sentences': {}}
             data_file = os.path.join(self.dataset_loc, mapped_dataset[split])
             with open(data_file, 'r', encoding='utf-8') as f:
                 content = f.read()
             sents = content.split('\n\n')
+            data_l = []
             for sent in sents:
                 lines = sent.split('\n')
                 sent_id = ''
@@ -159,37 +159,24 @@ class DatasetProcessor:
                     annotation_match = annotation_pattern.match(line)
                     if annotation_match:
                         annotation = '\n'.join(lines[i:])
-                        d_t['table'] = annotation
+                        id_l, token_l, tag_l = [], []
+                        for row in annotation.split('\n'):
+                            if row.strip() == '':
+                                break
+                            fields = row.split('\t')
+                            id_t, token, tag = fields[0], fields[1], fields[3]
+                            id_l.append(id_t)
+                            token_l.append(token)
+                            tag_l.append(tag)
                         d_t['split'] = split
-                        break
+                        d_t['tokens'] = token_l
+                        d_t['tags'] = tag_l
+                        d_t['sent_id'] = sent_id
+                        d_t['ids'] = id_l
                 if d_t:
-                    data_d['sentences'][sent_id] = d_t
-            pos_d_tr = { "ADP": "edat", "AUX": "yardımcı", "PRON": "zamir", "NOUN": "isim", "PROPN": "özel", "INTJ": "ünlem", "PART": "tanımcık", "CCONJ": "eşgüdümlü", "VERB": "fiil", "SYM": "sembol", "DET": "belirteç", "ADV": "zarf", "ADJ": "sıfat", "X": "diğer", "SCONJ": "yantümce", "NUM": "sayı", "PUNCT": "noktalama" }
-            new_l = []
-            sentences = data_d['sentences']
-            for sent_id in sentences:
-                table = sentences[sent_id]['table']
-                text = sentences[sent_id]['text']
-                tag_l = []
-                split_token = 0
-                for row in table.split('\n'):
-                    if row:
-                        fields = row.split('\t')
-                        id_t, form, pos = fields[0], fields[1], fields[3]
-                        if '-' in id_t:
-                            split_token = 2
-                        if pos == '_':
-                            continue
-                        if split_token == 1:
-                            tag_l.append('-{}/{}'.format(form, pos_d_tr[pos]))
-                        else:
-                            tag_l.append('{}/{}'.format(form, pos_d_tr[pos]))
-                        if split_token != 0:
-                            split_token -= 1
-                output = ' '.join(tag_l)
-                new_l.append({'target_text': output, 'sent_id': sent_id, 'input_text': text})
+                    data_l.append(d_t)
             with open(os.path.join(self.dataset_loc, split + '.json'), 'w', encoding='utf-8') as f:
-                json.dump(new_l, f, ensure_ascii=False)
+                json.dump(data_l, f, ensure_ascii=False)
             dataset = datasets.load_dataset(self.dataset_loc, data_files={split: split + '.json'}, split=split)
         elif self.dataset_name == "turkish-nlp-qa-dataset":
             dataset = datasets.load_dataset(
