@@ -10,11 +10,21 @@ import hydra
 import evaluate
 import numpy as np
 import os
+
 from utils import (
     postprocess_text,
     postprocess_nli,
     postprocess_sts
 )
+
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+stream_handler = logging.StreamHandler()
+formatter = logging.Formatter('%(levelname)s - %(asctime)s - %(name)s: %(message)s')
+stream_handler.setFormatter(formatter)
+logger.addHandler(stream_handler)
 
 # local_rank = int(os.environ["LOCAL_RANK"])
 # TODO: Check their arguments
@@ -50,9 +60,13 @@ class BaseEvaluator:
 
     def evaluate_model(self, test_dataset, model=None):
         if not model:
+            logger.info("Loading model from %s", self.model_save_path)
             model = self.initialize_model()
 
+        logger.info("Loading trainer")
         trainer = self.initialize_trainer(model)
+
+        logger.info("Predicting")
         results = trainer.predict(test_dataset)
         return trainer, model
 
@@ -78,11 +92,13 @@ class EvaluatorForClassification(BaseEvaluator):
     def compute_metrics(self, eval_preds):
         preds, labels = eval_preds
         preds = np.argmax(preds[0], axis=-1)
-        print(preds)
-        print(labels)
-        
+
         result = accuracy.compute(predictions=preds, references=labels)
-        print(result)
+
+        logger.info("Predictions: %s", preds[:5])
+        logger.info("Labels: %s", labels[:5])
+        logger.info("Result: %s", result)
+
         return result
     
 
@@ -140,11 +156,12 @@ class EvaluatorForConditionalGeneration(BaseEvaluator):
         labels = np.where(labels != -100, labels, self.tokenizer.pad_token_id)
         decoded_labels = self.tokenizer.batch_decode(labels, skip_special_tokens=True)
 
-
+        logger.info("Postprocessing predictions and labels")
         # Get post-processing function for specific dataset and task
         postprocess_function = self.get_postprocess_function()
         decoded_preds, decoded_labels = postprocess_function(decoded_preds, decoded_labels)
 
+        logger.info("Computing metrics")
         if self.task in ['summarization', "paraphrasing", "title_generation"]:
             result = rouge.compute(predictions=decoded_preds, references=decoded_labels)
             result = {key: value * 100 for key, value in result.items()}
@@ -155,11 +172,14 @@ class EvaluatorForConditionalGeneration(BaseEvaluator):
             result = accuracy.compute(predictions=decoded_preds, references=decoded_labels)
         elif self.task == "semantic_similarity":
             result = pearsonr.compute(predictions=decoded_preds, references=decoded_labels)
+        
         if self.task == 'paraphrasing':
             meteor_score = meteor.compute(predictions=decoded_preds, references=decoded_labels)
             bleu_score = bleu.compute(predictions=decoded_preds, references=decoded_labels)
             ter_score = ter.compute(predictions=decoded_preds, references=decoded_labels, case_insensitive=True)
             result = {**result, **meteor_score, **bleu_score, **ter_score}        
+
+        logger.info("Result: %s", result)    
         return result
 
 
@@ -176,18 +196,21 @@ def main(cfg: DictConfig):
     test_params = cfg.test_params
     dataset_location = cfg.dataset_loc
     if task_format == 'conditional_generation':
-        print("******Conditional Generation Mode******")
+        logger.info("Evaluating in conditional generation mode")
         evaluator = EvaluatorForConditionalGeneration(model_path, model_name, dataset_name, task, max_target_length, test_params)
     elif task_format == 'classification':
-        print("******Classification Mode******")
+        logger.info("Evaluating in classification mode")
         evaluator = EvaluatorForClassification(model_path, model_name, dataset_name, task, test_params)
 
+    logger.info("Loading test dataset")
     dataset_processor = DatasetProcessor(dataset_name, task, task_format, task_mode, model_name, max_input_length, max_target_length, dataset_location)
     test_dataset = dataset_processor.load_and_preprocess_data(split="test")  # Use split="test[:10]" to test for small sample
+    
+    logger.info("test_dataset[0]: %s", test_dataset[0])
+    logger.info("test_dataset: %s", test_dataset)
+    
 
-    print(test_dataset[0])
-    print("test", test_dataset)
-
+    logger.info("Evaluating model")
     evaluator.evaluate_model(test_dataset)
 
 
