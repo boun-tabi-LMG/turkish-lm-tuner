@@ -17,8 +17,11 @@ from utils import (
 )
 
 # local_rank = int(os.environ["LOCAL_RANK"])
-
-rouge = evaluate.load("rouge")
+# TODO: Check their arguments
+bleu = evaluate.load("bleu")        # https://huggingface.co/spaces/evaluate-metric/bleu
+meteor = evaluate.load("meteor")    # https://huggingface.co/spaces/evaluate-metric/meteor
+rouge = evaluate.load("rouge")      # https://huggingface.co/spaces/evaluate-metric/rouge
+ter = evaluate.load("ter")          # https://huggingface.co/spaces/evaluate-metric/ter
 accuracy = evaluate.load("accuracy")
 pearsonr = evaluate.load("pearsonr")
 
@@ -152,8 +155,11 @@ class EvaluatorForConditionalGeneration(BaseEvaluator):
             result = accuracy.compute(predictions=decoded_preds, references=decoded_labels)
         elif self.task == "semantic_similarity":
             result = pearsonr.compute(predictions=decoded_preds, references=decoded_labels)
-            
-        print(result)
+        if self.task == 'paraphrasing':
+            meteor_score = meteor.compute(predictions=decoded_preds, references=decoded_labels)
+            bleu_score = bleu.compute(predictions=decoded_preds, references=decoded_labels)
+            ter_score = ter.compute(predictions=decoded_preds, references=decoded_labels, case_insensitive=True)
+            result = {**result, **meteor_score, **bleu_score, **ter_score}        
         return result
 
 
