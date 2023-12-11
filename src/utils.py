@@ -11,11 +11,11 @@ def preprocess_trnews_title_generation(examples):
 def preprocess_paraphrasing(examples):
     return {"input_text": examples["src"], "target_text": examples["tgt"]}
 
-def preprocess_nli(examples, no_output_process=False):
+def preprocess_nli(examples, skip_output_processing=False):
     nli_label_dict = {0: "gereklilik", 1: "nötr", 2:"çelişki"}
     input = [f"hipotez: {examples['hypothesis'][i]} önerme: {examples['premise'][i]}" for i in range(len(examples["premise"]))]
     # If used with the classification mode, don't process the output 
-    if no_output_process:
+    if skip_output_processing:
         print("******No pre-process for NLI output")
         return {"input_text": input, "label": examples["label"]}
     print("******Pre-processing for NLI output")

@@ -99,7 +99,7 @@ class DatasetProcessor:
         column_names = dataset.column_names
         column_names = [col for col in column_names if col not in ['input_text', 'target_text', 'label']]
         if self.task_format == "classification" and self.task == "nli":
-            processed_dataset = dataset.map(preprocess_function, remove_columns=column_names, batched=True, fn_kwargs={"no_output_process": True})
+            processed_dataset = dataset.map(preprocess_function, remove_columns=column_names, batched=True, fn_kwargs={"skip_output_processing": True})
         else:
             processed_dataset = dataset.map(preprocess_function, remove_columns=column_names, batched=True)
         if self.max_input_length == -1 or self.max_target_length == -1:
