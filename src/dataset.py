@@ -1,6 +1,15 @@
 import datasets
 from transformers import AutoTokenizer
 import numpy as np
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+stream_handler = logging.StreamHandler()
+formatter = logging.Formatter('%(levelname)s - %(asctime)s - %(name)s: %(message)s')
+stream_handler.setFormatter(formatter)
+logger.addHandler(stream_handler)
+
 from utils import (
     default_preprocess_function,
     preprocess_trnews_summarization,
@@ -69,6 +78,7 @@ class DatasetProcessor:
         self.dataset_loc = dataset_loc
 
     def load_and_preprocess_data(self, split='train'):
+        logger.info(f"Loading {self.dataset_name} dataset")
         mapped_dataset = dataset_mapping[self.dataset_name]
         # For HF datasets with two dataset specifications (i.e. ("wikiann", "tr"))
         if type(mapped_dataset) == tuple:
@@ -99,6 +109,8 @@ class DatasetProcessor:
         # For HF datasets with a single dataset specification (i.e. "nli_tr")
         else:
             dataset = datasets.load_dataset(mapped_dataset, split=split) #.select(range(100))
+        
+        logger.info(f"Preprocessing {self.dataset_name} dataset")
         preprocess_function = self.get_preprocess_function()
         column_names = dataset.column_names
         column_names = [col for col in column_names if col not in ['input_text', 'target_text', 'label']]
@@ -109,6 +121,8 @@ class DatasetProcessor:
         if self.max_input_length == -1 or self.max_target_length == -1:
             self.compute_token_length(processed_dataset)
             return
+        
+        logger.info(f"Tokenizing {self.dataset_name} dataset")
         tokenized_dataset = processed_dataset.map(self.tokenize_function, batched=True)
         return tokenized_dataset
 
