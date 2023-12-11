@@ -1,11 +1,11 @@
 defaults:
-  - default
+  - default_classification  
+  #- default_cond_gen # switch to this line for Conditional Generation
 
 dataset_name: snli_tr 
 task: nli
 max_input_length: 128
 max_target_length: 8
-#task_format: classification # Comment out this line for conditional generation
 model_path: /users/zeynep.yirmibesoglu/t5-tuner/outputs/2023-12-05/23-26-53/t5_nli_tr/checkpoint-320/
 test_params:
   per_device_eval_batch_size: 32 # for ultramarine

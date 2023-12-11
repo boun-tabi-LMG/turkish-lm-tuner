@@ -1,11 +1,9 @@
 model_name: /stratch/bounllm/ckpt-500K
-task_format: conditional_generation
 task_mode: '' # '[S2S] ', '[NLU] ', '[NLG] '
 test_params:
   remove_unused_columns: False
   push_to_hub: False
-  #predict_with_generate: True  # Moved inside evaluator due to error in classification mode
-  #report_to: wandb
+  report_to: wandb
   do_train: False
   do_predict: True
 dataset_loc: ""
