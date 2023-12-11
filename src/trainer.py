@@ -88,19 +88,21 @@ class TrainerForConditionalGeneration(BaseModelTrainer):
 
 
 class TrainerForClassification(BaseModelTrainer):
-    def __init__(self, model_name, adafactor_scheduler, training_params):
+    def __init__(self, model_name, task, adafactor_scheduler, training_params, model_save_path, dataset_name, num_labels):
         super().__init__(model_name, adafactor_scheduler, training_params)
+        self.num_labels = num_labels
+        self.evaluator = EvaluatorForClassification(model_save_path, model_name, dataset_name, task, training_params)
 
     def initialize_model(self):
-        return AutoModelForSequenceClassification.from_pretrained(self.model_name)
+        return AutoModelForSequenceClassification.from_pretrained(self.model_name, num_labels=self.num_labels)
     
-
     def train_and_evaluate(self, train_dataset, eval_dataset, test_dataset):
         training_args = TrainingArguments(
             metric_for_best_model='eval_loss',
             load_best_model_at_end=True,
             greater_is_better=False,
             **self.training_params)
+
         model = self.initialize_model()
         optimizer, lr_scheduler = self.create_optimizer(model)
 
@@ -109,6 +111,7 @@ class TrainerForClassification(BaseModelTrainer):
             args=training_args,
             train_dataset=train_dataset,
             eval_dataset=eval_dataset,
+            compute_metrics=self.evaluator.compute_metrics,
             optimizers=(optimizer, lr_scheduler),
             callbacks = [EarlyStoppingCallback(early_stopping_patience=3)],
         )

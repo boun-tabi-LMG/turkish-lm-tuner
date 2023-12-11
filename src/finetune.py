@@ -19,6 +19,8 @@ def main(cfg: DictConfig):
     adafactor_scheduler = cfg.adafactor_scheduler
     training_params = cfg.training_params
     dataset_location = cfg.dataset_loc
+    if "num_labels" in cfg.keys():
+        num_labels = cfg.num_labels
      
     dataset_processor = DatasetProcessor(dataset_name, task, task_format, task_mode, model_name, max_input_length, max_target_length, dataset_location)
     train_set = dataset_processor.load_and_preprocess_data()
@@ -32,13 +34,17 @@ def main(cfg: DictConfig):
     
     test_dataset = dataset_processor.load_and_preprocess_data(split="test")
 
+
     print("train", train_dataset)
+    print("train", train_dataset[0])
     print("val", eval_dataset)
     print("test", test_dataset)
     if task_format == 'conditional_generation':
+        print("******Conditional Generation Mode******")
         model_trainer = TrainerForConditionalGeneration(model_name, task, adafactor_scheduler, training_params, model_save_path, dataset_name, max_target_length)
     elif task_format == 'classification':
-        model_trainer = TrainerForClassification(model_name, adafactor_scheduler, training_params)
+        print("******Classification Mode******")
+        model_trainer = TrainerForClassification(model_name, task, adafactor_scheduler, training_params, model_save_path, dataset_name, num_labels)
 
     trainer, model = model_trainer.train_and_evaluate(train_dataset, eval_dataset, test_dataset)
 

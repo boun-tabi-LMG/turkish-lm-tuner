@@ -1,10 +1,12 @@
 defaults:
-  - default
+  - default_classification  
+  #- default_cond_gen # switch to this line for Conditional Generation
 
 dataset_name: multinli_tr 
 task: nli
 max_input_length: 128
 max_target_length: 8
+num_labels: 3 
 training_params:
   per_device_train_batch_size: 32 # for ultramarine
   per_device_eval_batch_size: 32 # for ultramarine

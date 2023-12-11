@@ -1,0 +1,6 @@
+defaults:
+  - default
+
+task_format: conditional_generation
+training_params:
+  predict_with_generate: True

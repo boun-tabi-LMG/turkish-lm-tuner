@@ -1,5 +1,6 @@
 defaults:
-  - default
+  - default_classification  
+  #- default_cond_gen # switch to this line for Conditional Generation
 
 dataset_name: snli_tr 
 task: nli
