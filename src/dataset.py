@@ -70,6 +70,8 @@ dataset_mapping = {
 
 class DatasetProcessor:
     def __init__(self, dataset_name, task, task_format, task_mode, tokenizer_name, max_input_length, max_target_length, dataset_loc=""):
+        logger.info(f"Initializing dataset processor for {dataset_name} dataset with {tokenizer_name} tokenizer and {task} task in {task_format} format with {task_mode} mode")
+        logger.info(f"Max input length: {max_input_length} Max target length: {max_target_length}")
         self.dataset_name = dataset_name
         self.task = task
         self.task_format = task_format
@@ -80,7 +82,7 @@ class DatasetProcessor:
         self.dataset_loc = dataset_loc
 
     def load_and_preprocess_data(self, split='train'):
-        logger.info(f"Loading {self.dataset_name} dataset")
+        logger.info(f"Loading {split} split of {self.dataset_name} dataset")
         mapped_dataset = dataset_mapping[self.dataset_name]
         # For HF datasets with two dataset specifications (i.e. ("wikiann", "tr"))
         if type(mapped_dataset) == tuple:
