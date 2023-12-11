@@ -33,7 +33,11 @@ meteor = evaluate.load("meteor")    # https://huggingface.co/spaces/evaluate-met
 rouge = evaluate.load("rouge")      # https://huggingface.co/spaces/evaluate-metric/rouge
 ter = evaluate.load("ter")          # https://huggingface.co/spaces/evaluate-metric/ter
 accuracy = evaluate.load("accuracy")
+precision = evaluate.load("precision")
+recall = evaluate.load('recall')
+f1 = evaluate.load("f1")
 pearsonr = evaluate.load("pearsonr")
+
 
 class BaseEvaluator:
     def __init__(self, model_save_path, tokenizer_path, dataset_name, task, test_params):
@@ -93,7 +97,11 @@ class EvaluatorForClassification(BaseEvaluator):
         preds, labels = eval_preds
         preds = np.argmax(preds[0], axis=-1)
 
-        result = accuracy.compute(predictions=preds, references=labels)
+        accuracy_score = accuracy.compute(predictions=preds, references=labels)
+        precision_score = precision.compute(predictions=preds, references=labels)
+        recall_score = recall.compute(predictions=preds, references=labels)
+        f1_score = f1.compute(predictions=preds, references=labels) # average= "macro", "micro", "weighted" in case of multiclass classification
+        result = {"accuracy": accuracy_score, "precision": precision_score, "recall": recall_score, "f1": f1_score}
 
         logger.info("Predictions: %s", preds[:5])
         logger.info("Labels: %s", labels[:5])
