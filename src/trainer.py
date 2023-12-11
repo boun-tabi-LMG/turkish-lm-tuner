@@ -17,6 +17,15 @@ from eval import (
 import os
 
 
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+stream_handler = logging.StreamHandler()
+formatter = logging.Formatter('%(levelname)s - %(asctime)s - %(name)s: %(message)s')
+stream_handler.setFormatter(formatter)
+logger.addHandler(stream_handler)
+
 class BaseModelTrainer:
     def __init__(self, model_name, adafactor_scheduler, training_params):
         self.model_name = model_name
@@ -28,7 +37,9 @@ class BaseModelTrainer:
         raise NotImplementedError
 
     def create_optimizer(self, model):
+        logger.info("Creating optimizer")
         if self.adafactor_scheduler:
+            logger.info("Using Adafactor with scheduler")
             optimizer = Adafactor(
                 model.parameters(),
                 scale_parameter=True,
@@ -38,6 +49,7 @@ class BaseModelTrainer:
             )
             lr_scheduler = AdafactorSchedule(optimizer)
         else:
+            logger.info("Using Adafactor without scheduler")
             optimizer = Adafactor(
                 model.parameters(),
                 lr=1e-3,
@@ -63,11 +75,15 @@ class TrainerForConditionalGeneration(BaseModelTrainer):
         return AutoModelForSeq2SeqLM.from_pretrained(self.model_name)
     
     def train_and_evaluate(self, train_dataset, eval_dataset, test_dataset):
+        logger.info("Training in conditional generation mode")
+
         training_args = Seq2SeqTrainingArguments(
             metric_for_best_model='eval_loss',
             load_best_model_at_end=True,
             greater_is_better=False,
             **self.training_params)
+        logger.info("Training arguments: %s", training_args)
+
         model = self.initialize_model()
         optimizer, lr_scheduler = self.create_optimizer(model)
 
@@ -81,9 +97,11 @@ class TrainerForConditionalGeneration(BaseModelTrainer):
             callbacks = [EarlyStoppingCallback(early_stopping_patience=3)],
 
         )
+
         trainer.train()
         results = trainer.evaluate(test_dataset)
-        print(results)
+        
+        logger.info("Results: %s", results)
         return trainer, model
 
 
@@ -97,11 +115,14 @@ class TrainerForClassification(BaseModelTrainer):
         return AutoModelForSequenceClassification.from_pretrained(self.model_name, num_labels=self.num_labels)
     
     def train_and_evaluate(self, train_dataset, eval_dataset, test_dataset):
+        logger.info("Training in classification mode")
+
         training_args = TrainingArguments(
             metric_for_best_model='eval_loss',
             load_best_model_at_end=True,
             greater_is_better=False,
             **self.training_params)
+        logger.info("Training arguments: %s", training_args)
 
         model = self.initialize_model()
         optimizer, lr_scheduler = self.create_optimizer(model)
@@ -117,5 +138,6 @@ class TrainerForClassification(BaseModelTrainer):
         )
         trainer.train()
         results = trainer.evaluate(test_dataset)
-        print(results)
+        
+        logger.info("Results: %s", results)
         return trainer, model
