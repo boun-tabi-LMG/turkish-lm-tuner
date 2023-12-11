@@ -99,7 +99,6 @@ class EvaluatorForConditionalGeneration(BaseEvaluator):
 
         test_args = Seq2SeqTrainingArguments(
             generation_config=generation_config,
-            predict_with_generate=True,
             **self.test_params)
         
         trainer = Seq2SeqTrainer(

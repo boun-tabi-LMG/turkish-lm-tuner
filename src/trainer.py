@@ -67,7 +67,6 @@ class TrainerForConditionalGeneration(BaseModelTrainer):
             metric_for_best_model='eval_loss',
             load_best_model_at_end=True,
             greater_is_better=False,
-            predict_with_generate=True,
             **self.training_params)
         model = self.initialize_model()
         optimizer, lr_scheduler = self.create_optimizer(model)
