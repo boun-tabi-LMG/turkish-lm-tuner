@@ -1,5 +1,5 @@
 from omegaconf import DictConfig
-from dataset import DatasetProcessor
+from dataset_processor import DatasetProcessor
 from trainer import TrainerForConditionalGeneration, TrainerForClassification
 
 import hydra
@@ -32,6 +32,8 @@ def main(cfg: DictConfig):
         num_labels = cfg.num_labels
      
     dataset_processor = DatasetProcessor(dataset_name, task, task_format, task_mode, model_name, max_input_length, max_target_length, dataset_location)
+    postprocess_fn = dataset_processor.dataset.postprocess_fn
+
     train_set = dataset_processor.load_and_preprocess_data()
     model_save_path = training_params['output_dir']
     try: 
@@ -52,7 +54,7 @@ def main(cfg: DictConfig):
 
     if task_format == 'conditional_generation':
         logger.info("******Conditional Generation Mode******")
-        model_trainer = TrainerForConditionalGeneration(model_name, task, adafactor_scheduler, training_params, model_save_path, dataset_name, max_target_length)
+        model_trainer = TrainerForConditionalGeneration(model_name, task, adafactor_scheduler, training_params, model_save_path, dataset_name, max_target_length, postprocess_fn)
     elif task_format == 'classification':
         logger.info("******Classification Mode******")
         model_trainer = TrainerForClassification(model_name, task, adafactor_scheduler, training_params, model_save_path, dataset_name, num_labels)

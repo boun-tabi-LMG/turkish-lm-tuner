@@ -5,7 +5,7 @@ from transformers import (
 )
 
 from omegaconf import DictConfig
-from dataset import DatasetProcessor
+from dataset_processor import DatasetProcessor
 import hydra
 import evaluate
 import numpy as np
@@ -41,12 +41,13 @@ pearsonr = evaluate.load("pearsonr")
 
 
 class BaseEvaluator:
-    def __init__(self, model_save_path, tokenizer_path, dataset_name, task, test_params):
+    def __init__(self, model_save_path, tokenizer_path, dataset_name, task, test_params, postprocess_fn=None):
         self.model_save_path = model_save_path
         self.tokenizer_path = tokenizer_path
         self.dataset_name = dataset_name
         self.task = task 
         self.test_params = test_params
+        self.postprocess_fn = postprocess_fn
         self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
 
     def initialize_model(self):
@@ -76,8 +77,6 @@ class BaseEvaluator:
         return results
 
 class EvaluatorForClassification(BaseEvaluator):
-    def __init__(self, model_save_path, tokenizer_path, dataset_name, task, test_params):
-        super().__init__(model_save_path, tokenizer_path, dataset_name, task, test_params)
 
     def initialize_model(self):
         # If used without fine-tuning model should be loaded from the model save path
@@ -112,8 +111,8 @@ class EvaluatorForClassification(BaseEvaluator):
     
 
 class EvaluatorForConditionalGeneration(BaseEvaluator):
-    def __init__(self, model_save_path, tokenizer_path, dataset_name, task, max_target_length, test_params): # generation_params
-        super().__init__(model_save_path, tokenizer_path, dataset_name, task, test_params)
+    def __init__(self, model_save_path, tokenizer_path, dataset_name, task, max_target_length, test_params, postprocess_fn=None): # generation_params
+        super().__init__(model_save_path, tokenizer_path, dataset_name, task, test_params, postprocess_fn)
         self.max_target_length = max_target_length 
         #self.generation_params = generation_params
 
@@ -136,25 +135,6 @@ class EvaluatorForConditionalGeneration(BaseEvaluator):
         )
         return trainer
   
-    def get_postprocess_function(self):
-        # Mapping of dataset_name and task to corresponding postprocess functions
-        postprocess_functions = {
-            ('exams', 'question_answering'): postprocess_text,
-            ('exams', 'question_generation'): postprocess_text,
-            ("xquad", "question_answering"): postprocess_text,
-            ("xquad", "question_generation"): postprocess_text,
-            ("mkqa", "question_answering"): postprocess_text,
-            ("mkqa", "question_generation"): postprocess_text,
-            ("wikiann", "ner"): postprocess_text,
-            ("xtreme", "ner"): postprocess_text,
-            ("stsb_tr", "semantic_similarity") : postprocess_sts,
-            ("nli_tr", "nli") : postprocess_nli,
-            ("snli_tr", "nli") : postprocess_nli,
-            ("multinli_tr", "nli") : postprocess_nli,
-            # ... add mappings for other dataset and task type combinations
-        }
-        return postprocess_functions.get((self.dataset_name, self.task), postprocess_text)
-    
     def compute_metrics(self, eval_preds):
         preds, labels = eval_preds
         if isinstance(preds, tuple):
@@ -167,8 +147,8 @@ class EvaluatorForConditionalGeneration(BaseEvaluator):
 
         logger.info("Postprocessing predictions and labels")
         # Get post-processing function for specific dataset and task
-        postprocess_function = self.get_postprocess_function()
-        decoded_preds, decoded_labels = postprocess_function(decoded_preds, decoded_labels)
+        decoded_preds = self.postprocess_fn(decoded_preds) 
+        decoded_labels = self.postprocess_fn(decoded_labels)
 
         logger.info("Computing metrics")
         if self.task in ['summarization', "paraphrasing", "title_generation"]:
@@ -203,21 +183,24 @@ def main(cfg: DictConfig):
     max_target_length = cfg.max_target_length
     test_params = cfg.test_params
     dataset_location = cfg.dataset_loc
-    if task_format == 'conditional_generation':
-        logger.info("Evaluating in conditional generation mode")
-        evaluator = EvaluatorForConditionalGeneration(model_path, model_name, dataset_name, task, max_target_length, test_params)
-    elif task_format == 'classification':
-        logger.info("Evaluating in classification mode")
-        evaluator = EvaluatorForClassification(model_path, model_name, dataset_name, task, test_params)
 
     logger.info("Loading test dataset")
     dataset_processor = DatasetProcessor(dataset_name, task, task_format, task_mode, model_name, max_input_length, max_target_length, dataset_location)
     test_dataset = dataset_processor.load_and_preprocess_data(split="test")  # Use split="test[:10]" to test for small sample
-    
+    postprocess_fn = dataset_processor.dataset.postprocess_data
+
     logger.info("test_dataset[0]: %s", test_dataset[0])
     logger.info("test_dataset: %s", test_dataset)
     
 
+    if task_format == 'conditional_generation':
+        logger.info("Evaluating in conditional generation mode")
+        evaluator = EvaluatorForConditionalGeneration(model_path, model_name, dataset_name, task, max_target_length, test_params, postprocess_fn)
+    elif task_format == 'classification':
+        logger.info("Evaluating in classification mode")
+        evaluator = EvaluatorForClassification(model_path, model_name, dataset_name, task, test_params)
+
+  
     logger.info("Evaluating model")
     results = evaluator.evaluate_model(test_dataset)
     logger.info("Result: %s", results)    
