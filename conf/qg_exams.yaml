@@ -1,5 +1,5 @@
 defaults:
-  - default
+  - default_cond_gen
 
 dataset_name: exams
 task: question_generation

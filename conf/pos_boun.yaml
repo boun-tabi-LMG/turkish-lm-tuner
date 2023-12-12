@@ -1,5 +1,5 @@
 defaults:
-  - default
+  - default_cond_gen
 
 dataset_loc: "/stratch/bounllm/supervised/tr_boun-ud"
 dataset_name: boun
