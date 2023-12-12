@@ -10,6 +10,7 @@ formatter = logging.Formatter('%(levelname)s - %(asctime)s - %(name)s: %(message
 stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
 
+import os, json, re, random
 from utils import (
     default_preprocess_function,
     preprocess_trnews_summarization,
@@ -22,7 +23,11 @@ from utils import (
     preprocess_exams_qg,
     preprocess_mkqa_qa, 
     preprocess_mkqa_qg,
+    preprocess_turkish_nlp_qa_dataset_qa,
+    preprocess_turkish_nlp_qa_dataset_qg,
+    preprocess_pos,
     preprocess_wikiann_ner,
+    preprocess_ner_milliyet,
     preprocess_sts,
     postprocess_text
 )
@@ -43,8 +48,7 @@ dataset_mapping = {
     # question answering & generation
     "exams": ("exams", "crosslingual_tr"),
     "mkqa": "mkqa",
-    "turkish-nlp-qa-dataset": "furkanakkurt1618/qa_dataset-turkish-nlp-qa-dataset-boun-llm",
-    "turkish-nlp-qa-dataset-qg": "furkanakkurt1618/qg_dataset-turkish-nlp-qa-dataset-boun-llm", # wasn't on hf
+    "turkish-nlp-qa-dataset": {'train': 'train-v0.1.json', 'test': 'dev-v0.1.json'},
 
     # nli
     "snli_tr": ("nli_tr", "snli_tr"),
@@ -55,12 +59,12 @@ dataset_mapping = {
     "stsb_tr": {'train': 'stsb_tr_train.tsv', 'test': 'stsb_tr_test.tsv', 'validation': 'stsb_tr_dev.tsv'},
 
     # ner
-    "milliyet": "furkanakkurt1618/ner_dataset-milliyet-boun-llm", # wasn't on hf
+    "milliyet": {'train': 'train.txt', 'test': 'test.txt', 'validation': 'dev.txt'},
     "wikiann": ("wikiann", "tr"),
 
     # pos tagging
-    "boun": "furkanakkurt1618/pos_dataset-UD_Turkish-BOUN-v2.13-boun-llm", # wasn't on hf
-    "imst": "furkanakkurt1618/pos_dataset-UD_Turkish-IMST-v2.13-boun-llm", # wasn't on hf
+    "boun": {'train': 'tr_boun-ud-train.conllu', 'test': 'tr_boun-ud-test.conllu', 'validation': 'tr_boun-ud-dev.conllu'},
+    "imst": {'train': 'tr_imst-ud-train.conllu', 'test': 'tr_imst-ud-test.conllu', 'validation': 'tr_imst-ud-dev.conllu'},
 
     # text classification
 
@@ -69,7 +73,7 @@ dataset_mapping = {
 
 
 class DatasetProcessor:
-    def __init__(self, dataset_name, task, task_format, task_mode, tokenizer_name, max_input_length, max_target_length, dataset_loc=""):
+    def __init__(self, dataset_name, task, task_format, task_mode, tokenizer_name, max_input_length, max_target_length, dataset_loc="", no_preprocess=False):
         logger.info(f"Initializing dataset processor for {dataset_name} dataset with {tokenizer_name} tokenizer and {task} task in {task_format} format with {task_mode} mode")
         logger.info(f"Max input length: {max_input_length} Max target length: {max_target_length}")
         self.dataset_name = dataset_name
@@ -80,6 +84,7 @@ class DatasetProcessor:
         self.max_input_length = max_input_length
         self.max_target_length = max_target_length
         self.dataset_loc = dataset_loc
+        self.no_preprocess = no_preprocess
 
     def load_and_preprocess_data(self, split='train'):
         logger.info(f"Loading {split} split of {self.dataset_name} dataset")
@@ -88,11 +93,85 @@ class DatasetProcessor:
         if type(mapped_dataset) == tuple:
             if "multinli" in self.dataset_name and split == "test":
                 split = "validation_matched" # There's no test set in Multi-NLI
+            elif self.dataset_name == "exams" and split == "test":
+                split = "validation" # will this cause val to be used in both dev and test?
             dataset = datasets.load_dataset(mapped_dataset[0], mapped_dataset[1], split=split)
             if "nli" in self.dataset_name:
                 dataset = dataset.filter(lambda example: example["label"] != -1) # removed samples with the label -1 
 
         # For local datasets (need to specify dataset location in .yaml file)
+        elif self.dataset_name == "milliyet":
+            data_files = [i for i in os.listdir(self.dataset_loc) if i.endswith('.txt') and i.startswith(split)]
+            data_file = data_files[0]
+            dataset_dict = {}
+            dataset_dict[split] = []
+            with open(os.path.join(self.dataset_loc, data_file), 'r', encoding='utf-8') as f:
+                content = f.read()
+            data = content.split('\n\n')
+            for example in data:
+                if example.strip() == '':
+                    continue
+                lines = example.split('\n')
+                tokens = []
+                tags = []
+                for line in lines:
+                    if line.strip() == '':
+                        break
+                    token, tag = line.split(' ')
+                    tokens.append(token)
+                    tags.append(tag)
+                el = {'tokens': tokens, 'tags': tags}
+                dataset_dict[split].append(el)
+            with open(os.path.join(self.dataset_loc, split + '.json'), 'w', encoding='utf-8') as f:
+                json.dump(dataset_dict[split], f, ensure_ascii=False)
+            mapped_dataset = {split: split + '.json'}
+            dataset = datasets.load_dataset(self.dataset_loc, data_files=mapped_dataset, split=split)
+        elif self.dataset_name in ["boun", "imst"]:
+            md_pattern = re.compile('^# (.+?) = (.+?)$')
+            annotation_pattern = re.compile('(.+\t){9}.+')
+            data_file = os.path.join(self.dataset_loc, mapped_dataset[split])
+            with open(data_file, 'r', encoding='utf-8') as f:
+                content = f.read()
+            sents = content.split('\n\n')
+            data_l = []
+            for sent in sents:
+                lines = sent.split('\n')
+                sent_id = ''
+                d_t = {}
+                for i, line in enumerate(lines):
+                    md_match = md_pattern.match(line)
+                    if md_match:
+                        field = md_match.group(1).strip()
+                        value = md_match.group(2).strip()
+                        if field == 'sent_id':
+                            sent_id = value
+                        else:
+                            d_t[field] = value
+                    annotation_match = annotation_pattern.match(line)
+                    if annotation_match:
+                        annotation = '\n'.join(lines[i:])
+                        id_l, token_l, tag_l = [], []
+                        for row in annotation.split('\n'):
+                            if row.strip() == '':
+                                break
+                            fields = row.split('\t')
+                            id_t, token, tag = fields[0], fields[1], fields[3]
+                            id_l.append(id_t)
+                            token_l.append(token)
+                            tag_l.append(tag)
+                        d_t['split'] = split
+                        d_t['tokens'] = token_l
+                        d_t['tags'] = tag_l
+                        d_t['sent_id'] = sent_id
+                        d_t['ids'] = id_l
+                if d_t:
+                    data_l.append(d_t)
+            with open(os.path.join(self.dataset_loc, split + '.json'), 'w', encoding='utf-8') as f:
+                json.dump(data_l, f, ensure_ascii=False)
+            dataset = datasets.load_dataset(self.dataset_loc, data_files={split: split + '.json'}, split=split)
+        elif self.dataset_name == "turkish-nlp-qa-dataset":
+            dataset = datasets.load_dataset(
+                self.dataset_loc, data_files=mapped_dataset, field="data", split=split)
         elif type(mapped_dataset) == dict:
             dataset = datasets.load_dataset(self.dataset_loc, data_files=mapped_dataset, split=split)
         # For the NLI_TR HF dataset
@@ -112,18 +191,25 @@ class DatasetProcessor:
             mlsum_dataset = mlsum_dataset.rename_column("summary", "abstract")
             dataset = datasets.concatenate_datasets([tr_news_dataset, mlsum_dataset])
 
+                
+        elif self.dataset_name == "mkqa":
+            dataset = datasets.load_dataset(mapped_dataset, split='train')
+            dataset = dataset.train_test_split(test_size=0.1, seed=42)
+            dataset = dataset[split]
         # For HF datasets with a single dataset specification (i.e. "nli_tr")
         else:
             dataset = datasets.load_dataset(mapped_dataset, split=split) #.select(range(100))
-        
-        logger.info(f"Preprocessing {self.dataset_name} dataset")
-        preprocess_function = self.get_preprocess_function()
-        column_names = dataset.column_names
-        column_names = [col for col in column_names if col not in ['input_text', 'target_text', 'label']]
-        if self.task_format == "classification" and self.task == "nli":
-            processed_dataset = dataset.map(preprocess_function, remove_columns=column_names, batched=True, fn_kwargs={"skip_output_processing": True})
+        if self.no_preprocess:
+            processed_dataset = dataset
         else:
-            processed_dataset = dataset.map(preprocess_function, remove_columns=column_names, batched=True)
+            logger.info(f"Preprocessing {self.dataset_name} dataset")
+            preprocess_function = self.get_preprocess_function()
+            column_names = dataset.column_names
+            column_names = [col for col in column_names if col not in ['input_text', 'target_text', 'label']]
+            if self.task_format == "classification" and self.task == "nli":
+                processed_dataset = dataset.map(preprocess_function, remove_columns=column_names, batched=True, fn_kwargs={"skip_output_processing": True})
+            else:
+                processed_dataset = dataset.map(preprocess_function, remove_columns=column_names, batched=True)
         if self.max_input_length == -1 or self.max_target_length == -1:
             self.compute_token_length(processed_dataset)
             return
@@ -176,7 +262,12 @@ class DatasetProcessor:
             ('exams', 'question_generation'): preprocess_exams_qg,
             ("mkqa", "question_answering"): preprocess_mkqa_qa,
             ("mkqa", "question_generation"): preprocess_mkqa_qg,
+            ("turkish-nlp-qa-dataset", "question_answering"): preprocess_turkish_nlp_qa_dataset_qa,
+            ("turkish-nlp-qa-dataset", "question_generation"): preprocess_turkish_nlp_qa_dataset_qg,
             ("wikiann", "ner"): preprocess_wikiann_ner,
+            ("milliyet", "ner"): preprocess_ner_milliyet,
+            ("boun", "pos"): preprocess_pos,
+            ("imst", "pos"): preprocess_pos,
             ("stsb_tr", "semantic_similarity") : preprocess_sts,
             ("nli_tr", "nli") : preprocess_nli,
             ("snli_tr", "nli") : preprocess_nli,

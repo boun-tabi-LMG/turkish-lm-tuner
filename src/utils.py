@@ -81,11 +81,65 @@ def preprocess_mkqa_qg(examples):
         query = queries['tr']
         answer = answers['tr'][0]['text']
         if not answer:
-            input_texts.append(answer)
-            target_texts.append('')
+            input_texts.append('')
+            target_texts.append(query)
             continue
         input_texts.append(answer)
         target_texts.append(query)
+    return {"input_text": input_texts, "target_text": target_texts}
+
+def preprocess_turkish_nlp_qa_dataset_qa(examples):
+    input_texts, target_texts = [], []
+    for paragraphs in examples['paragraphs']:
+        for paragraph in paragraphs:
+            qas = paragraph['qas']
+            context = paragraph['context'].strip()
+            for qa in qas:
+                question = qa['question'].strip()
+                answers = qa['answers']
+                answer = answers[0]['text'].strip()
+                input_text = f"Bağlam: {context} | Soru: {question}"
+                target_text = answer
+                input_texts.append(input_text)
+                target_texts.append(target_text)
+    return {"input_text": input_texts, "target_text": target_texts}
+
+def preprocess_turkish_nlp_qa_dataset_qg(examples):
+    input_texts, target_texts = [], []
+    for paragraphs in examples['paragraphs']:
+        for paragraph in paragraphs:
+            qas = paragraph['qas']
+            context = paragraph['context'].strip()
+            for qa in qas:
+                question = qa['question'].strip()
+                answers = qa['answers']
+                answer = answers[0]['text'].strip()
+                input_text = f"Bağlam: {context} | Cevap: {answer}"
+                target_text = question
+                input_texts.append(input_text)
+                target_texts.append(target_text)
+    return {"input_text": input_texts, "target_text": target_texts}
+
+def preprocess_pos(examples):
+    pos_d_tr = { "ADP": "edat", "AUX": "yardımcı", "PRON": "zamir", "NOUN": "isim", "PROPN": "özel", "INTJ": "ünlem", "PART": "tanımcık", "CCONJ": "eşgüdümlü", "VERB": "fiil", "SYM": "sembol", "DET": "belirteç", "ADV": "zarf", "ADJ": "sıfat", "X": "diğer", "SCONJ": "yantümce", "NUM": "sayı", "PUNCT": "noktalama" }
+    input_texts, target_texts = [], []
+    for ids, tokens, tags in zip(examples['ids'], examples['tokens'], examples['tags']):
+        tag_l = []
+        split_token = 0
+        for id_t, form, pos in zip(ids, tokens, tags):
+                if '-' in id_t:
+                    split_token = 2
+                if pos == '_':
+                    continue
+                if split_token == 1:
+                    tag_l.append('-{}/{}'.format(form, pos_d_tr[pos]))
+                else:
+                    tag_l.append('{}/{}'.format(form, pos_d_tr[pos]))
+                if split_token != 0:
+                    split_token -= 1
+        output = ' '.join(tag_l)
+        input_texts.append(' '.join(tokens))
+        target_texts.append(output)
     return {"input_text": input_texts, "target_text": target_texts}
 
 def preprocess_wikiann_ner(examples):
@@ -119,6 +173,51 @@ def preprocess_wikiann_ner(examples):
         target_text = ' | '.join(target_l)
         target_text = target_text.replace('PERSON: ', 'Kişi: ').replace('LOCATION: ', 'Yer: ').replace('ORGANIZATION: ', 'Kuruluş: ').strip()
         input_text = input_text.strip()
+        if not target_text:
+            target_text = 'Bulunamadı.'
+        input_texts.append(input_text)
+        target_texts.append(target_text)
+    return {'input_text': input_texts, 'target_text': target_texts}
+
+def preprocess_ner_milliyet(examples):
+    input_texts, target_texts = [], []
+    for tokens, tags in zip(examples['tokens'], examples['tags']):
+        token_str, tag_type = '', ''
+        tag_dict = {}
+        for j, tag in enumerate(tags):
+            if tag == 'O':
+                if token_str:
+                    if tag_type not in tag_dict:
+                        tag_dict[tag_type] = []
+                    tag_dict[tag_type].append(token_str)
+                token_str, tag_type = '', ''
+            elif tag.startswith('B-'):
+                if token_str:
+                    if tag_type not in tag_dict:
+                        tag_dict[tag_type] = []
+                    tag_dict[tag_type].append(token_str)
+                tag_type = tag[2:]
+                token_str = tokens[j]
+            elif tag.startswith('I-'):
+                token_str += ' ' + tokens[tags.index(tag)]
+        if token_str:
+            if tag_type not in tag_dict:
+                tag_dict[tag_type] = []
+            tag_dict[tag_type].append(token_str)
+        for j, tag_type in enumerate(tag_dict):
+            new_l = []
+            for el in tag_dict[tag_type]:
+                if el not in new_l:
+                    new_l.append(el)
+            tag_dict[tag_type] = new_l
+        input_text = ' '.join(tokens)
+        target_l = []
+        target_text = ''
+        for j, tag_type in enumerate(tag_dict):
+            target_l.append(f'{tag_type}: {", ".join(tag_dict[tag_type])}')
+        target_text = ' | '.join(target_l)
+        input_text = input_text.strip()
+        target_text = target_text.replace('PERSON: ', 'Kişi: ').replace('LOCATION: ', 'Yer: ').replace('ORGANIZATION: ', 'Kuruluş: ').strip()
         if not target_text:
             target_text = 'Bulunamadı.'
         input_texts.append(input_text)
