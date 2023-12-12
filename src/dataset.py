@@ -25,6 +25,7 @@ from utils import (
     preprocess_mkqa_qg,
     preprocess_turkish_nlp_qa_dataset_qa,
     preprocess_turkish_nlp_qa_dataset_qg,
+    preprocess_pos,
     preprocess_wikiann_ner,
     preprocess_ner_milliyet,
     preprocess_sts,
@@ -202,9 +203,8 @@ class DatasetProcessor:
 
                 
         elif self.dataset_name == "mkqa":
-            random.seed(42)
             dataset = datasets.load_dataset(mapped_dataset, split='train')
-            dataset = dataset.train_test_split(test_size=0.1)
+            dataset = dataset.train_test_split(test_size=0.1, seed=42)
             dataset = dataset[split]
         # For HF datasets with a single dataset specification (i.e. "nli_tr")
         else:
@@ -276,6 +276,8 @@ class DatasetProcessor:
             ("turkish-nlp-qa-dataset", "question_generation"): preprocess_turkish_nlp_qa_dataset_qg,
             ("wikiann", "ner"): preprocess_wikiann_ner,
             ("milliyet", "ner"): preprocess_ner_milliyet,
+            ("boun", "pos"): preprocess_pos,
+            ("imst", "pos"): preprocess_pos,
             ("stsb_tr", "semantic_similarity") : preprocess_sts,
             ("nli_tr", "nli") : preprocess_nli,
             ("snli_tr", "nli") : preprocess_nli,
