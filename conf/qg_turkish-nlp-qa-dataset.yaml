@@ -1,7 +1,7 @@
 defaults:
   - default
 
-dataset_loc: "/stratch/bounllm/turkish-nlp-qa-dataset"
+dataset_loc: "/stratch/bounllm/supervised/turkish-nlp-qa-dataset"
 dataset_name: turkish-nlp-qa-dataset
 task: question_generation
 max_input_length: 1360
