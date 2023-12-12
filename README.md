@@ -21,6 +21,12 @@ To fine-tune a model on a specific task, ...
 ```
 python src/finetune.py --config-name <task>
 ```
+
+To finetune baseline mT5-large model, 
+```
+python src/finetune.py --config-name <task> model_name=google/mt5-large training_params.output_dir=<output_dir>
+```
+
 ### Inference
 To run inference with a fine-tuned model, ...
 ```

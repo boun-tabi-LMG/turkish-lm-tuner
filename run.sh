@@ -20,3 +20,5 @@ pip install wandb
 python src/finetune.py --config-name summarization
 # For Multi-GPU Training
 # python -m torch.distributed.launch --nproc_per_node 3 --use_env src/finetune.py --config-name summarization
+# Baseline Training
+# python src/finetune.py --config-name summarization model_name=google/mt5-large training_params.output_dir=<output_dir>
