@@ -51,19 +51,9 @@ dataset_mapping = {
     "turkish-nlp-qa-dataset": {'train': 'train-v0.1.json', 'test': 'dev-v0.1.json'},
 
     # nli
-<<<<<<< HEAD
-<<<<<<< HEAD
     "snli_tr": ("nli_tr", "snli_tr"),
     "multinli_tr": ("nli_tr", "multinli_tr"),
     "nli_tr": ["snli_tr", "multinli_tr"], # SNLI and Multi-NLI merged together
-=======
-    "nli_tr": ["snli_tr", "multinli_tr"],
->>>>>>> 9357506 (Added nli conf and preprocessing)
-=======
-    "snli_tr": ("nli_tr", "snli_tr"),
-    "multinli_tr": ("nli_tr", "multinli_tr"),
-    "nli_tr": ["snli_tr", "multinli_tr"], # SNLI and Multi-NLI merged together
->>>>>>> 92a002e (Added Snli and multinli preprocessing)
 
     # semantic textual similarity
     "stsb_tr": {'train': 'stsb_tr_train.tsv', 'test': 'stsb_tr_test.tsv', 'validation': 'stsb_tr_dev.tsv'},
