@@ -26,19 +26,19 @@ class DatasetProcessor:
 
     def load_and_preprocess_data(self, split='train'):
         logger.info(f"Loading {split} split of {self.dataset_name} dataset")
-        dataset = initialize_dataset(self.dataset_name, split, self.dataset_loc)
-        data = dataset.load_dataset(split)
+        self.dataset = initialize_dataset(self.dataset_name, self.dataset_loc)
+        data = self.dataset.load_dataset(split)
         
         logger.info(f"Preprocessing {self.dataset_name} dataset")
-        preprocess_function = dataset.preprocess_data
+        preprocess_function = self.dataset.preprocess_data
 
         column_names = data.column_names
         column_names = [col for col in column_names if col not in ['input_text', 'target_text', 'label']]
         
         if self.task_format == "classification":
-            processed_dataset = dataset.map(preprocess_function, remove_columns=column_names, batched=True, fn_kwargs={"skip_output_processing": True})
+            processed_dataset = data.map(preprocess_function, remove_columns=column_names, batched=True, fn_kwargs={"skip_output_processing": True})
         else:
-            processed_dataset = dataset.map(preprocess_function, remove_columns=column_names, batched=True)
+            processed_dataset = data.map(preprocess_function, remove_columns=column_names, batched=True)
         
         if self.max_input_length == -1 or self.max_target_length == -1:
             self.compute_token_length(processed_dataset)

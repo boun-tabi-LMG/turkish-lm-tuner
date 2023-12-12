@@ -19,7 +19,7 @@ DATASET_MAPPING_NAMES = [
         ("imst", "UDIMSTDataset"),
     ]
 
-def initialize_dataset(dataset_name, split=None, dataset_loc=None):
+def initialize_dataset(dataset_name, dataset_loc=None):
     for dataset_mapping_name in DATASET_MAPPING_NAMES:
         if dataset_name == dataset_mapping_name[0]:
             dataset_class = dataset_mapping_name[1]
