@@ -18,6 +18,7 @@ from utils import (
 )
 
 import logging
+import json
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -72,7 +73,7 @@ class BaseEvaluator:
 
         logger.info("Predicting")
         results = trainer.predict(test_dataset)
-        return trainer, model
+        return results
 
 class EvaluatorForClassification(BaseEvaluator):
     def __init__(self, model_save_path, tokenizer_path, dataset_name, task, test_params):
@@ -187,7 +188,6 @@ class EvaluatorForConditionalGeneration(BaseEvaluator):
             ter_score = ter.compute(predictions=decoded_preds, references=decoded_labels, case_insensitive=True)
             result = {**result, **meteor_score, **bleu_score, **ter_score}        
 
-        logger.info("Result: %s", result)    
         return result
 
 
@@ -219,7 +219,9 @@ def main(cfg: DictConfig):
     
 
     logger.info("Evaluating model")
-    evaluator.evaluate_model(test_dataset)
+    results = evaluator.evaluate_model(test_dataset)
+    logger.info("Result: %s", results)    
+    json.dump(results, open(os.path.join(test_params['output_dir'], "results.json"), "w"))
 
 
 if __name__ == "__main__":

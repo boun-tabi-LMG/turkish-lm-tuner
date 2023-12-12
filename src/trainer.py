@@ -13,7 +13,7 @@ from eval import (
     EvaluatorForClassification,
     EvaluatorForConditionalGeneration
 )
-
+import json 
 import os
 
 
@@ -140,4 +140,5 @@ class TrainerForClassification(BaseModelTrainer):
         results = trainer.evaluate(test_dataset)
         
         logger.info("Results: %s", results)
+        json.dump(results, open(os.path.join(self.training_params['output_dir'], "results.json"), "w"))
         return trainer, model
