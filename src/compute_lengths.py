@@ -1,9 +1,9 @@
 from argparse import ArgumentParser
-from dataset import DatasetProcessor
+from dataset_processor import DatasetProcessor
 
 if __name__ == '__main__':
     parser = ArgumentParser()
-    parser.add_argument('--model_name', type=str, default='/stratch/bounllm/ckpt-500K')
+    parser.add_argument('--model_name', type=str)
     parser.add_argument('--dataset_name', type=str, default='wikiann')
     parser.add_argument('--task', type=str, default='ner')
     parser.add_argument('--dataset_loc', type=str, default='')

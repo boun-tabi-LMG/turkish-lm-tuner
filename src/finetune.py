@@ -34,7 +34,7 @@ def main(cfg: DictConfig):
     dataset_processor = DatasetProcessor(dataset_name, task, task_format, task_mode, model_name, max_input_length, max_target_length, dataset_location)
     postprocess_fn = dataset_processor.dataset.postprocess_fn
 
-    train_set = dataset_processor.load_and_preprocess_data()
+    train_set = dataset_processor.load_and_preprocess_data(split='train')
     model_save_path = training_params['output_dir']
     try: 
         eval_dataset = dataset_processor.load_and_preprocess_data(split='validation')
