@@ -4,6 +4,15 @@ from trainer import TrainerForConditionalGeneration, TrainerForClassification
 
 import hydra
 import os
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+stream_handler = logging.StreamHandler()
+formatter = logging.Formatter('%(levelname)s - %(asctime)s - %(name)s: %(message)s')
+stream_handler.setFormatter(formatter)
+logger.addHandler(stream_handler)
+
 # local_rank = int(os.environ["LOCAL_RANK"])
 
 
@@ -34,21 +43,23 @@ def main(cfg: DictConfig):
     
     test_dataset = dataset_processor.load_and_preprocess_data(split="test")
 
+    logger.info("Training set size: %d", len(train_dataset))
+    logger.info("Validation set size: %d", len(eval_dataset))
+    logger.info("Test set size: %d", len(test_dataset))
+    logger.info("Training set example: %s", train_dataset[0])
+    logger.info("Validation set example: %s", eval_dataset[0])
+    logger.info("Test set example: %s", test_dataset[0])
 
-    print("train", train_dataset)
-    print("train", train_dataset[0])
-    print("val", eval_dataset)
-    print("test", test_dataset)
     if task_format == 'conditional_generation':
-        print("******Conditional Generation Mode******")
+        logger.info("******Conditional Generation Mode******")
         model_trainer = TrainerForConditionalGeneration(model_name, task, adafactor_scheduler, training_params, model_save_path, dataset_name, max_target_length)
     elif task_format == 'classification':
-        print("******Classification Mode******")
+        logger.info("******Classification Mode******")
         model_trainer = TrainerForClassification(model_name, task, adafactor_scheduler, training_params, model_save_path, dataset_name, num_labels)
 
     trainer, model = model_trainer.train_and_evaluate(train_dataset, eval_dataset, test_dataset)
 
-    print("Best model saved at", model_save_path)
+    logger.info("Best model saved at %s", model_save_path)
     model.save_pretrained(model_save_path)
     # dataset_processor.tokenizer.save_pretrained(model_save_path)
 

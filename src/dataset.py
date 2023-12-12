@@ -1,10 +1,21 @@
 import datasets
 from transformers import AutoTokenizer
 import numpy as np
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+stream_handler = logging.StreamHandler()
+formatter = logging.Formatter('%(levelname)s - %(asctime)s - %(name)s: %(message)s')
+stream_handler.setFormatter(formatter)
+logger.addHandler(stream_handler)
+
 from utils import (
     default_preprocess_function,
     preprocess_trnews_summarization,
     preprocess_trnews_title_generation,
+    preprocess_mlsum_summarization,
+    preprocess_mlsum_title_generation,
     preprocess_paraphrasing,
     preprocess_nli,
     preprocess_exams_qa, 
@@ -21,13 +32,13 @@ dataset_mapping = {
 
     # summarization/title generation
     "tr_news": "batubayk/TR-News",
+    "mlsum": ("mlsum", "tu"),
+    "combined_news": ["tr_news", "mlsum"], 
 
     # paraphrasing
     "opensubtitles": "mrbesher/tr-paraphrase-opensubtitles2018",
     "tatoeba": "mrbesher/tr-paraphrase-tatoeba",
     "ted": "mrbesher/tr-paraphrase-ted2013",
-
-    # translation
 
     # question answering & generation
     "exams": ("exams", "crosslingual_tr"),
@@ -59,6 +70,8 @@ dataset_mapping = {
 
 class DatasetProcessor:
     def __init__(self, dataset_name, task, task_format, task_mode, tokenizer_name, max_input_length, max_target_length, dataset_loc=""):
+        logger.info(f"Initializing dataset processor for {dataset_name} dataset with {tokenizer_name} tokenizer and {task} task in {task_format} format with {task_mode} mode")
+        logger.info(f"Max input length: {max_input_length} Max target length: {max_target_length}")
         self.dataset_name = dataset_name
         self.task = task
         self.task_format = task_format
@@ -69,6 +82,7 @@ class DatasetProcessor:
         self.dataset_loc = dataset_loc
 
     def load_and_preprocess_data(self, split='train'):
+        logger.info(f"Loading {split} split of {self.dataset_name} dataset")
         mapped_dataset = dataset_mapping[self.dataset_name]
         # For HF datasets with two dataset specifications (i.e. ("wikiann", "tr"))
         if type(mapped_dataset) == tuple:
@@ -91,10 +105,18 @@ class DatasetProcessor:
             else:
                 dataset = datasets.load_dataset("nli_tr", 'snli_tr', split=split)
                 dataset = dataset.filter(lambda example: example["label"] != -1) # removed samples with the label -1 
-                
+        elif self.dataset_name == 'combined_news':
+            tr_news_dataset = datasets.load_dataset(dataset_mapping["tr_news"], split=split)
+            mlsum_dataset = datasets.load_dataset("mlsum", 'tu', split=split)
+            mlsum_dataset = mlsum_dataset.rename_column("text", "content")
+            mlsum_dataset = mlsum_dataset.rename_column("summary", "abstract")
+            dataset = datasets.concatenate_datasets([tr_news_dataset, mlsum_dataset])
+
         # For HF datasets with a single dataset specification (i.e. "nli_tr")
         else:
             dataset = datasets.load_dataset(mapped_dataset, split=split) #.select(range(100))
+        
+        logger.info(f"Preprocessing {self.dataset_name} dataset")
         preprocess_function = self.get_preprocess_function()
         column_names = dataset.column_names
         column_names = [col for col in column_names if col not in ['input_text', 'target_text', 'label']]
@@ -105,6 +127,8 @@ class DatasetProcessor:
         if self.max_input_length == -1 or self.max_target_length == -1:
             self.compute_token_length(processed_dataset)
             return
+        
+        logger.info(f"Tokenizing {self.dataset_name} dataset")
         tokenized_dataset = processed_dataset.map(self.tokenize_function, batched=True)
         return tokenized_dataset
 
@@ -141,6 +165,10 @@ class DatasetProcessor:
         preprocess_functions = {
             ('tr_news', 'summarization'): preprocess_trnews_summarization,
             ('tr_news', 'title_generation'): preprocess_trnews_title_generation,
+            ('mlsum', 'summarization'): preprocess_mlsum_summarization,
+            ('mlsum', 'title_generation'): preprocess_mlsum_title_generation,
+            ('combined_news', 'summarization'): preprocess_trnews_summarization,
+            ('combined_news', 'title_generation'): preprocess_trnews_title_generation,
             ('opensubtitles', 'paraphrasing'): preprocess_paraphrasing,
             ('ted', 'paraphrasing'): preprocess_paraphrasing,
             ('tatoeba', 'paraphrasing'): preprocess_paraphrasing,

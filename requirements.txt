@@ -5,6 +5,7 @@ evaluate
 hydra-core
 nltk
 rouge-score
+sacrebleu
 safetensors
 sentencepiece
 tokenizers

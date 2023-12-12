@@ -8,6 +8,12 @@ def preprocess_trnews_summarization(examples):
 def preprocess_trnews_title_generation(examples):
     return {"input_text": examples["content"], "target_text": examples["title"]}
 
+def preprocess_mlsum_summarization(examples):
+    return {"input_text": examples["text"], "target_text": examples["summary"]}
+
+def preprocess_mlsum_title_generation(examples):
+    return {"input_text": examples["text"], "target_text": examples["title"]}
+
 def preprocess_paraphrasing(examples):
     return {"input_text": examples["src"], "target_text": examples["tgt"]}
 
