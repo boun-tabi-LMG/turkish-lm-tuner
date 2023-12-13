@@ -1,35 +1,5 @@
 import datasets 
 
-DATASET_MAPPING_NAMES = [
-        ("tr_news", "TRNewsDataset"),
-        ("mlsum", "MLSumDataset"),
-        ("combined_news", "CombinedNewsDataset"),
-        ("opensubtitles", "OpenSubtitlesDataset"),
-        ("tatoeba", "TatoebaDataset"),
-        ("ted", "TEDDataset"),
-        ("nli_tr", "NLI_TRDataset"),
-        ("snli_tr", "NLI_TRDataset"),
-        ("multinli_tr", "NLI_TRDataset"),
-        ("exams", "ExamsDataset"),
-        ("tquad", "TQUADDataset"),
-        ("mkqa", "MKQADataset"),
-        ("wikiann", "WikiANNDataset"),
-        ("milliyet_ner", "MilliyetNERDataset"),
-        ("boun", "UDBOUNDataset"),
-        ("imst", "UDIMSTDataset"),
-    ]
-
-def initialize_dataset(dataset_name, dataset_loc=None):
-    for dataset_mapping_name in DATASET_MAPPING_NAMES:
-        if dataset_name == dataset_mapping_name[0]:
-            dataset_class = dataset_mapping_name[1]
-            if dataset_loc is not None:
-                dataset = dataset_class(dataset_loc)
-            else:
-                dataset = dataset_class()
-            return dataset
-    raise NotImplementedError
-
 class BaseDataset:
     DATASET_NAME = None 
     DATASET_INFO = None
@@ -434,3 +404,34 @@ class UDIMSTDataset(POSDataset):
     DATASET_NAME = "imst"
     DATASET_INFO =  {'train': 'tr_imst-ud-train.conllu', 'test': 'tr_imst-ud-test.conllu', 'validation': 'tr_imst-ud-dev.conllu'}
 
+
+
+DATASET_MAPPING_NAMES = [
+        ("tr_news", TRNewsDataset),
+        ("mlsum", MLSumDataset),
+        ("combined_news", CombinedNewsDataset),
+        ("opensubtitles", OpenSubtitlesDataset),
+        ("tatoeba", TatoebaDataset),
+        ("ted", TEDDataset),
+        ("nli_tr", NLI_TRDataset),
+        ("snli_tr", NLI_TRDataset),
+        ("multinli_tr", NLI_TRDataset),
+        ("exams", ExamsDataset),
+        ("tquad", TQUADDataset),
+        ("mkqa", MKQADataset),
+        ("wikiann", WikiANNDataset),
+        ("milliyet_ner", MilliyetNERDataset),
+        ("boun", UDBOUNDataset),
+        ("imst", UDIMSTDataset),
+    ]
+
+def initialize_dataset(dataset_name, dataset_loc=None):
+    for dataset_mapping_name in DATASET_MAPPING_NAMES:
+        if dataset_name == dataset_mapping_name[0]:
+            dataset_class = dataset_mapping_name[1]
+            if dataset_loc is not None:
+                dataset = dataset_class(dataset_loc)
+            else:
+                dataset = dataset_class()
+            return dataset
+    raise NotImplementedError
