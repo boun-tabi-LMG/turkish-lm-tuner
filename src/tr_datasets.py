@@ -1,5 +1,9 @@
 import datasets 
 import sys
+import json 
+import re 
+
+from pathlib import Path 
 
 class BaseDataset:
     DATASET_NAME = None 
@@ -277,7 +281,11 @@ class MKQADataset(BaseDataset):
             target_texts.append(query)
         return {"input_text": input_texts, "target_text": target_texts}
 
-class WikiANNDataset(BaseDataset):
+class NERDataset(BaseDataset):
+    def postprocess_data(self, examples):
+        raise NotImplementedError
+
+class WikiANNDataset(NERDataset):
     DATASET_NAME = "wikiann"
     DATASET_INFO = ("wikiann", "tr")
 
@@ -318,13 +326,39 @@ class WikiANNDataset(BaseDataset):
             target_texts.append(target_text)
         return {'input_text': input_texts, 'target_text': target_texts}
     
-class MilliyetNERDataset(BaseDataset):
+class MilliyetNERDataset(LocalDataset,NERDataset):
     DATASET_NAME = "milliyet_ner"
-    DATASET_INFO = {'train': 'train.txt', 'test': 'test.txt', 'validation': 'dev.txt'}
+    DATASET_INFO = {'train': 'train.json', 'test': 'test.json', 'validation': 'dev.json'}
 
-    def load_dataset(self, split=None):
-        pass 
-
+    def __init__(self, dataset_loc):
+        super().__init__(dataset_loc)
+        for split, filename in self.dataset_info.items():
+            data_file = Path(self.dataset_loc) / filename
+            if data_file.exists():
+                continue
+            else:
+                dataset_dict = {}
+                dataset_dict[split] = []
+                with open(data_file.replace('.json', '.txt'), 'r', encoding='utf-8') as f:
+                    content = f.read()
+                data = content.split('\n\n')
+                for example in data:
+                    if example.strip() == '':
+                        continue
+                    lines = example.split('\n')
+                    tokens = []
+                    tags = []
+                    for line in lines:
+                        if line.strip() == '':
+                            break
+                        token, tag = line.split(' ')
+                        tokens.append(token)
+                        tags.append(tag)
+                    el = {'tokens': tokens, 'tags': tags}
+                    dataset_dict[split].append(el)
+                with open(data_file, 'w', encoding='utf-8') as f:
+                    json.dump(dataset_dict[split], f, ensure_ascii=False)
+ 
     def preprocess_data(self, examples):
         input_texts, target_texts = [], []
         for tokens, tags in zip(examples['tokens'], examples['tags']):
@@ -370,12 +404,59 @@ class MilliyetNERDataset(BaseDataset):
             target_texts.append(target_text)
         return {'input_text': input_texts, 'target_text': target_texts}
     
-class POSDataset(BaseDataset):
+class POSDataset(LocalDataset):
     DATASET_NAME = "pos"
-    DATASET_INFO = "udpos"
+    DATASET_INFO = {'train': 'train.json', 'test': 'test.json', 'validation': 'dev.json'}
 
-    def load_dataset(self, split=None):
-        pass
+    def __init__(self, dataset_loc=None, dataset_raw_info=None):
+        super().__init__(dataset_loc)
+
+        md_pattern = re.compile('^# (.+?) = (.+?)$')
+        annotation_pattern = re.compile('(.+\t){9}.+')
+        for split, filename in dataset_raw_info.items():
+            data_file = Path(self.dataset_loc) / filename
+            output_file = Path(self.dataset_loc) / self.DATASET_INFO[split]
+            if output_file.exists():
+                continue
+            else:
+                with open(data_file, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                sents = content.split('\n\n')
+                data_l = []
+                for sent in sents:
+                    lines = sent.split('\n')
+                    sent_id = ''
+                    d_t = {}
+                    for i, line in enumerate(lines):
+                        md_match = md_pattern.match(line)
+                        if md_match:
+                            field = md_match.group(1).strip()
+                            value = md_match.group(2).strip()
+                            if field == 'sent_id':
+                                sent_id = value
+                            else:
+                                d_t[field] = value
+                        annotation_match = annotation_pattern.match(line)
+                        if annotation_match:
+                            annotation = '\n'.join(lines[i:])
+                            id_l, token_l, tag_l = [], []
+                            for row in annotation.split('\n'):
+                                if row.strip() == '':
+                                    break
+                                fields = row.split('\t')
+                                id_t, token, tag = fields[0], fields[1], fields[3]
+                                id_l.append(id_t)
+                                token_l.append(token)
+                                tag_l.append(tag)
+                            d_t['split'] = split
+                            d_t['tokens'] = token_l
+                            d_t['tags'] = tag_l
+                            d_t['sent_id'] = sent_id
+                            d_t['ids'] = id_l
+                    if d_t:
+                        data_l.append(d_t)
+                with open(output_file, 'w', encoding='utf-8') as f:
+                    json.dump(data_l, f, ensure_ascii=False)
     
     def preprocess_data(self, examples):
         pos_d_tr = { "ADP": "edat", "AUX": "yardımcı", "PRON": "zamir", "NOUN": "isim", "PROPN": "özel", "INTJ": "ünlem", "PART": "tanımcık", "CCONJ": "eşgüdümlü", "VERB": "fiil", "SYM": "sembol", "DET": "belirteç", "ADV": "zarf", "ADJ": "sıfat", "X": "diğer", "SCONJ": "yantümce", "NUM": "sayı", "PUNCT": "noktalama" }
@@ -399,14 +480,23 @@ class POSDataset(BaseDataset):
             target_texts.append(output)
         return {"input_text": input_texts, "target_text": target_texts}
     
+    def postprocess_data(self, examples):
+        raise NotImplementedError
+    
+    
 class UDBOUNDataset(POSDataset):
     DATASET_NAME = "boun"
-    DATASET_INFO =  {'train': 'tr_boun-ud-train.conllu', 'test': 'tr_boun-ud-test.conllu', 'validation': 'tr_boun-ud-dev.conllu'}
+    DATASET_RAW_INFO =  {'train': 'tr_boun-ud-train.conllu', 'test': 'tr_boun-ud-test.conllu', 'validation': 'tr_boun-ud-dev.conllu'}
+
+    def __init__(self, dataset_loc=None):
+        super().__init__(dataset_loc, self.DATASET_RAW_INFO)
 
 class UDIMSTDataset(POSDataset):
     DATASET_NAME = "imst"
-    DATASET_INFO =  {'train': 'tr_imst-ud-train.conllu', 'test': 'tr_imst-ud-test.conllu', 'validation': 'tr_imst-ud-dev.conllu'}
+    DATASET_RAW_INFO =  {'train': 'tr_imst-ud-train.conllu', 'test': 'tr_imst-ud-test.conllu', 'validation': 'tr_imst-ud-dev.conllu'}
 
+    def __init__(self, dataset_loc=None):
+        super().__init__(dataset_loc, self.DATASET_RAW_INFO)
 
 
 DATASET_MAPPING_NAMES = [
