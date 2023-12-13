@@ -439,7 +439,7 @@ class POSDataset(LocalDataset):
                         annotation_match = annotation_pattern.match(line)
                         if annotation_match:
                             annotation = '\n'.join(lines[i:])
-                            id_l, token_l, tag_l = [], []
+                            id_l, token_l, tag_l = [], [], []
                             for row in annotation.split('\n'):
                                 if row.strip() == '':
                                     break
