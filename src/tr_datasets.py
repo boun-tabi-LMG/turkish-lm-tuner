@@ -133,8 +133,10 @@ class NLI_TRDataset(BaseDataset):
                 # Returns a dictionary of DatasetDicts which is not compatible with other datasets but is faster
                 return combined_data 
         elif self.dataset_name == 'snli_tr':
-            snli_tr = NLI_TRDataset("snli_tr").load_dataset(split)
-            if split == 'train' or split is None:
+            snli_tr = super().load_dataset(split)
+            if split == 'train':
+                 snli_tr = snli_tr.filter(lambda example: example["label"] != -1)
+            elif split is None:
                 snli_tr["train"] = snli_tr["train"].filter(lambda example: example["label"] != -1)
             return snli_tr
         else:
