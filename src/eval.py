@@ -138,11 +138,11 @@ class EvaluatorForConditionalGeneration(BaseEvaluator):
         decoded_labels = self.postprocess_fn(decoded_labels)
 
         logger.info("Computing metrics")
+        logger.info("Decoded predictions: %s", decoded_preds[:5])
+        logger.info("Decoded labels: %s", decoded_labels[:5])
 
-        result = super().compute_metrics(preds, labels)
+        result = super().compute_metrics(decoded_preds, decoded_labels)
 
-        logger.info("Predictions: %s", preds[:5])
-        logger.info("Labels: %s", labels[:5])
         logger.info("Result: %s", result)      
 
         return result
