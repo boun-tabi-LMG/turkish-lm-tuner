@@ -166,7 +166,7 @@ class ExamsDataset(BaseDataset):
             return super().load_dataset(split)
         
     def preprocess_data(self, examples, task='qa'):
-        return self.preprocess_qa(examples) if task == 'qa' else self.preprocess_qg(examples)
+        return self.preprocess_question_answering(examples) if task == 'qa' else self.preprocess_question_generation(examples)
     
     def preprocess_question_answering(self, examples):
         input_texts, target_texts = [], []
