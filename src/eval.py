@@ -6,8 +6,9 @@ from transformers import (
 
 from omegaconf import DictConfig
 from dataset_processor import DatasetProcessor
+from metrics import load_task_metrics
+
 import hydra
-import evaluate
 import numpy as np
 import os
 import logging
@@ -20,19 +21,6 @@ formatter = logging.Formatter('%(levelname)s - %(asctime)s - %(name)s: %(message
 stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
 
-# local_rank = int(os.environ["LOCAL_RANK"])
-# TODO: Check their arguments
-bleu = evaluate.load("bleu")        # https://huggingface.co/spaces/evaluate-metric/bleu
-meteor = evaluate.load("meteor")    # https://huggingface.co/spaces/evaluate-metric/meteor
-rouge = evaluate.load("rouge")      # https://huggingface.co/spaces/evaluate-metric/rouge
-ter = evaluate.load("ter")          # https://huggingface.co/spaces/evaluate-metric/ter
-accuracy = evaluate.load("accuracy")
-precision = evaluate.load("precision")
-recall = evaluate.load('recall')
-f1 = evaluate.load("f1")
-pearsonr = evaluate.load("pearsonr")
-
-
 class BaseEvaluator:
     def __init__(self, model_save_path, tokenizer_path, dataset_name, task, test_params, postprocess_fn=None):
         self.model_save_path = model_save_path
@@ -42,6 +30,7 @@ class BaseEvaluator:
         self.test_params = test_params
         self.postprocess_fn = postprocess_fn
         self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
+        self.metrics = load_task_metrics(task)
 
     def initialize_model(self):
         raise NotImplementedError
@@ -68,6 +57,12 @@ class BaseEvaluator:
         logger.info("Predicting")
         results = trainer.predict(test_dataset)
         return results
+    
+    def compute_metrics(self, preds, labels):
+        scores = {}
+        for metric in self.metrics:
+            scores[metric] = self.metrics[metric].compute(preds, labels)
+        return scores
 
 class EvaluatorForClassification(BaseEvaluator):
 
@@ -90,11 +85,9 @@ class EvaluatorForClassification(BaseEvaluator):
         preds, labels = eval_preds
         preds = np.argmax(preds[0], axis=-1)
 
-        accuracy_score = accuracy.compute(predictions=preds, references=labels)
-        precision_score = precision.compute(predictions=preds, references=labels)
-        recall_score = recall.compute(predictions=preds, references=labels)
-        f1_score = f1.compute(predictions=preds, references=labels) # average= "macro", "micro", "weighted" in case of multiclass classification
-        result = {"accuracy": accuracy_score, "precision": precision_score, "recall": recall_score, "f1": f1_score}
+        logger.info("Computing metrics")
+
+        result = super().compute_metrics(preds, labels)
 
         logger.info("Predictions: %s", preds[:5])
         logger.info("Labels: %s", labels[:5])
@@ -144,22 +137,12 @@ class EvaluatorForConditionalGeneration(BaseEvaluator):
         decoded_labels = self.postprocess_fn(decoded_labels)
 
         logger.info("Computing metrics")
-        if self.task in ['summarization', "paraphrasing", "title_generation"]:
-            result = rouge.compute(predictions=decoded_preds, references=decoded_labels)
-            result = {key: value * 100 for key, value in result.items()}
-            prediction_lens = [np.count_nonzero(pred != self.tokenizer.pad_token_id) for pred in preds]
-            result["gen_len"] = np.mean(prediction_lens)
-            result = {k: round(v, 4) for k, v in result.items()}
-        elif self.task == "nli":
-            result = accuracy.compute(predictions=decoded_preds, references=decoded_labels)
-        elif self.task == "semantic_similarity":
-            result = pearsonr.compute(predictions=decoded_preds, references=decoded_labels)
-        
-        if self.task == 'paraphrasing':
-            meteor_score = meteor.compute(predictions=decoded_preds, references=decoded_labels)
-            bleu_score = bleu.compute(predictions=decoded_preds, references=decoded_labels)
-            ter_score = ter.compute(predictions=decoded_preds, references=decoded_labels, case_insensitive=True)
-            result = {**result, **meteor_score, **bleu_score, **ter_score}        
+
+        result = super().compute_metrics(preds, labels)
+
+        logger.info("Predictions: %s", preds[:5])
+        logger.info("Labels: %s", labels[:5])
+        logger.info("Result: %s", result)      
 
         return result
 
