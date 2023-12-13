@@ -24,9 +24,12 @@ def main(cfg: DictConfig):
     task_format = cfg.task_format
     task_mode = cfg.task_mode
     max_input_length = cfg.max_input_length
+    print('Max input length:', max_input_length)
     max_target_length = cfg.max_target_length
+    print('Max target length:', max_target_length)
     adafactor_scheduler = cfg.adafactor_scheduler
     training_params = cfg.training_params
+    print('Training parameters:', training_params)
     dataset_location = cfg.dataset_loc
     if "num_labels" in cfg.keys():
         num_labels = cfg.num_labels
