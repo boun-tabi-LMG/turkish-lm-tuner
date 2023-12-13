@@ -339,7 +339,7 @@ class MilliyetNERDataset(LocalDataset,NERDataset):
             else:
                 dataset_dict = {}
                 dataset_dict[split] = []
-                with open(data_file.replace('.json', '.txt'), 'r', encoding='utf-8') as f:
+                with open(data_file.with_suffix('.txt'), 'r', encoding='utf-8') as f:
                     content = f.read()
                 data = content.split('\n\n')
                 for example in data:
