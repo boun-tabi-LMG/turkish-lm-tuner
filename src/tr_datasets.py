@@ -116,7 +116,7 @@ class NLI_TRDataset(BaseDataset):
     def __init__(self, dataset_name=None):
         # dataset_name is either "nli_tr", "snli_tr" or "multinli_tr"
         super().__init__(dataset_name)
-        self.dataset_info = self.DATASET_INFO[0], dataset_name
+        self.dataset_info = (self.DATASET_INFO[0], dataset_name)
     
     def load_dataset(self, split=None):
         if self.dataset_name == "nli_tr":
@@ -436,7 +436,7 @@ def initialize_dataset(dataset_name, dataset_loc=None):
     for dataset_mapping_name in DATASET_MAPPING_NAMES:
         if dataset_name == dataset_mapping_name[0]:
             dataset_class = str_to_class(dataset_mapping_name[1])
-            if dataset_loc != '':
+            if dataset_loc != "" and dataset_loc is not None:
                 dataset = dataset_class(dataset_loc)
             else:
                 dataset = dataset_class(dataset_name)
