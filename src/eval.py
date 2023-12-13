@@ -61,7 +61,9 @@ class BaseEvaluator:
     def compute_metrics(self, preds, labels):
         scores = {}
         for metric in self.metrics:
-            scores[metric] = self.metrics[metric].compute(preds, labels)
+            metric_scores = self.metrics[metric].compute(preds, labels)
+            for key in metric_scores:
+                scores[f"{metric}_{key}"] = metric_scores[key]
         return scores
 
 class EvaluatorForClassification(BaseEvaluator):
