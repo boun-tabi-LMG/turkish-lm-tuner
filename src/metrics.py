@@ -151,6 +151,7 @@ def load_task_metrics(task):
 
     Returns:
         list: A list of metric class instances relevant to the task.
+    """
     if task == "classification":
         return load_metrics(["accuracy", "precision", "recall", "f1"])
     elif task in ["summarization", "paraphrasing", "title_generation"]:
@@ -161,3 +162,79 @@ def load_task_metrics(task):
         return load_metrics(["pearsonr"])
     else:
         raise NotImplementedError(f"Task {task} not implemented.")
+    
+
+import numpy as np
+
+class Evaluator:
+    """
+    A class for evaluating predictions using multiple metrics.
+
+    Attributes:
+        metrics (list): A list of metric instances.
+    """
+    def __init__(self, task=None, metrics=None):
+        """
+        Initializes the Evaluator class.
+
+        Args:
+            task (str, optional): The name of the task for which to load metrics. Defaults to None.
+            metrics (list, optional): A list of metric names to load. Defaults to None.
+
+        Raises:
+            ValueError: If neither task nor metrics are specified.
+        """
+        if task is not None: 
+            self.metrics = load_task_metrics(task)
+        else:
+            if metrics is None:
+                raise ValueError("Either task or metrics must be specified.")
+            self.metrics = load_metrics(metrics)
+    
+    def compute_metrics(self, preds, labels):
+        """
+        Computes the metrics for the given predictions and labels.
+
+        Args:
+            preds (list): A list of predictions.
+            labels (list): A list of ground truth labels.
+
+        Returns:
+            dict: A dictionary of metric scores.
+        """
+        scores = {}
+        for metric in self.metrics:
+            metric_scores = metric.compute(preds, labels)
+            scores.update(metric_scores)
+        return scores
+    
+    def compute_bootstrapped_metrics(self, preds, labels, num_samples=1000):
+        """
+        Computes bootstrapped metrics for uncertainty estimation.
+
+        Args:
+            preds (list): A list of predictions.
+            labels (list): A list of ground truth labels.
+            num_samples (int): The number of bootstrap samples to generate.
+
+        Returns:
+            tuple: A tuple containing two dictionaries, one for average scores and one for standard deviations.
+        """
+        scores = {metric_name: [] for metric_name in self.metrics}
+        for _ in range(num_samples):
+            # Generating indices for bootstrap samples
+            sample_indices = np.random.choice(len(preds), size=len(preds), replace=True)
+            sampled_preds = [preds[i] for i in sample_indices]
+            sampled_labels = [labels[i] for i in sample_indices]
+
+            # Computing metrics for the sampled data
+            for metric in self.metrics:
+                metric_scores = metric.compute(sampled_preds, sampled_labels)
+                for key, value in metric_scores.items():
+                    scores[key].append(value)
+
+        # Calculating average and standard deviation for the metrics
+        average_scores = {key: np.mean(values) for key, values in scores.items()}
+        std_scores = {key: np.std(values) for key, values in scores.items()}
+
+        return average_scores, std_scores
