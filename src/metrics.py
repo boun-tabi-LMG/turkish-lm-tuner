@@ -28,6 +28,27 @@ class F1(BaseMetric):
     def __init__(self):
         super().__init__("f1")
 
+class F1Macro(BaseMetric):
+    def __init__(self):
+        super().__init__("f1_macro")
+
+    def compute(self, preds, labels):
+        return super().compute(predictions=preds, references=labels, average="macro")
+    
+class F1Micro(BaseMetric):
+    def __init__(self):
+        super().__init__("f1_micro")
+
+    def compute(self, preds, labels):
+        return super().compute(predictions=preds, references=labels, average="micro")
+    
+class F1Weighted(BaseMetric):
+    def __init__(self):
+        super().__init__("f1_weighted")
+
+    def compute(self, preds, labels):
+        return super().compute(predictions=preds, references=labels, average="weighted")
+    
 class Pearsonr(BaseMetric):
     def __init__(self):
         super().__init__("pearsonr")
