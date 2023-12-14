@@ -7,12 +7,13 @@ from transformers import (
 from omegaconf import DictConfig
 from dataset_processor import DatasetProcessor
 from metrics import load_task_metrics
-
+import pandas as pd
 import hydra
 import numpy as np
 import os
 import logging
 import json
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -92,6 +93,14 @@ class EvaluatorForClassification(BaseEvaluator):
 
         logger.info("Predictions: %s", preds[:5])
         logger.info("Labels: %s", labels[:5])
+
+        predictions = pd.DataFrame(
+            {'Prediction': preds,
+             'Label': labels
+            })
+        
+        predictions.to_csv(os.path.join(self.test_params['output_dir'], 'predictions.csv'), index=False)
+
         logger.info("Result: %s", result)
 
         return result
@@ -134,12 +143,21 @@ class EvaluatorForConditionalGeneration(BaseEvaluator):
 
         logger.info("Postprocessing predictions and labels")
         # Get post-processing function for specific dataset and task
-        decoded_preds = self.postprocess_fn(decoded_preds) 
-        decoded_labels = self.postprocess_fn(decoded_labels)
+        processed_preds = self.postprocess_fn(decoded_preds) 
+        processed_labels = self.postprocess_fn(decoded_labels)
+
+        predictions = pd.DataFrame(
+            {'DecodedPrediction': decoded_preds,
+             'DecodedLabel': decoded_labels,
+             'Prediction': processed_preds, 
+             'Label': processed_labels})
+        
+        predictions.to_csv(os.path.join(self.test_params['output_dir'], 'predictions.csv'), index=False)
+
 
         logger.info("Computing metrics")
-        logger.info("Decoded predictions: %s", decoded_preds[:5])
-        logger.info("Decoded labels: %s", decoded_labels[:5])
+        logger.info("Decoded predictions: %s", processed_preds[:5])
+        logger.info("Decoded labels: %s", processed_labels[:5])
 
         result = super().compute_metrics(decoded_preds, decoded_labels)
 
