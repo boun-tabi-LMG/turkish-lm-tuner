@@ -1,6 +1,6 @@
 model_name: /stratch/bounllm/pretrained_checkpoints/ckpt-1.74M
 task_mode: '' # '[S2S]: ', '[NLU]: ', '[NLG]: '
-adafactor_scheduler: True
+adafactor_scheduler: False
 training_params:
   num_train_epochs: 10
   evaluation_strategy: epoch
