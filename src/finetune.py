@@ -41,9 +41,11 @@ def main(cfg: DictConfig):
     
     model_save_path = training_params['output_dir']
     try: 
+        logger.info("Loading existing dataset splits")
         eval_dataset = dataset_processor.load_and_preprocess_data(split='validation')
         train_dataset = train_set
     except:
+        logger.info("Creating random train and validation splits")
         train_set = train_set.train_test_split(test_size=0.1)
         train_dataset, eval_dataset = train_set["train"], train_set["test"]
     
