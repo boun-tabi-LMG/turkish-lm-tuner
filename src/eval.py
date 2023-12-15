@@ -159,7 +159,7 @@ class EvaluatorForConditionalGeneration(BaseEvaluator):
         logger.info("Decoded predictions: %s", processed_preds[:5])
         logger.info("Decoded labels: %s", processed_labels[:5])
 
-        result = super().compute_metrics(decoded_preds, decoded_labels)
+        result = super().compute_metrics(processed_preds, processed_labels)
 
         logger.info("Result: %s", result)      
 
