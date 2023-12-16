@@ -24,12 +24,12 @@ stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
 
 class BaseEvaluator:
-    def __init__(self, model_save_path, task, test_params, postprocess_fn=None):
-        self.model_save_path = model_save_path
+    def __init__(self, model_path, tokenizer_path, task, test_params, postprocess_fn=None):
+        self.model_path = model_path
         self.task = task 
         self.test_params = test_params
         self.postprocess_fn = postprocess_fn
-        self.tokenizer = AutoTokenizer.from_pretrained(model_save_path)
+        self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
         self.metrics = load_task_metrics(task)
 
     def initialize_model(self):
@@ -48,7 +48,7 @@ class BaseEvaluator:
 
     def evaluate_model(self, test_dataset, model=None):
         if not model:
-            logger.info("Loading model from %s", self.model_save_path)
+            logger.info("Loading model from %s", self.model_path)
             model = self.initialize_model()
 
         logger.info("Loading trainer")
@@ -106,14 +106,14 @@ class EvaluatorForClassification(BaseEvaluator):
     
 
 class EvaluatorForConditionalGeneration(BaseEvaluator):
-    def __init__(self, model_save_path, task, max_target_length, test_params, generation_params=None, postprocess_fn=None): 
-        super().__init__(model_save_path, task, test_params, postprocess_fn)
+    def __init__(self, model_path, tokenizer_path, task, max_target_length, test_params, generation_params=None, postprocess_fn=None): 
+        super().__init__(model_path, tokenizer_path, task, test_params, postprocess_fn)
         self.max_target_length = max_target_length 
         self.generation_params = generation_params
 
     def initialize_model(self):
         # If used without fine-tuning model should be loaded from the model save path
-        return AutoModelForSeq2SeqLM.from_pretrained(self.model_save_path)
+        return AutoModelForSeq2SeqLM.from_pretrained(self.model_path)
 
     def initialize_trainer(self, model): 
         if self.generation_params is None: 
@@ -171,6 +171,7 @@ class EvaluatorForConditionalGeneration(BaseEvaluator):
 @hydra.main(config_path="../generation_conf", config_name="default")
 def main(cfg: DictConfig):
     model_path = cfg.model_path
+    tokenizer_path = cfg.tokenizer_path
     dataset_name = cfg.dataset_name
     task = cfg.task
     task_format = cfg.task_format
@@ -192,10 +193,10 @@ def main(cfg: DictConfig):
 
     if task_format == 'conditional_generation':
         logger.info("Evaluating in conditional generation mode")
-        evaluator = EvaluatorForConditionalGeneration(model_path, task, max_target_length, test_params, generation_params, postprocess_fn)
+        evaluator = EvaluatorForConditionalGeneration(model_path, tokenizer_path, task, max_target_length, test_params, generation_params, postprocess_fn)
     elif task_format == 'classification':
         logger.info("Evaluating in classification mode")
-        evaluator = EvaluatorForClassification(model_path, task, test_params)
+        evaluator = EvaluatorForClassification(model_path, tokenizer_path, task, test_params)
 
   
     logger.info("Evaluating model")
