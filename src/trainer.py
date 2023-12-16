@@ -67,7 +67,7 @@ class BaseModelTrainer:
 
 
 class TrainerForConditionalGeneration(BaseModelTrainer):
-    def __init__(self, model_name, task, adafactor_scheduler, training_params, model_save_path, dataset_name, max_target_length, postprocess_fn):
+    def __init__(self, model_name, task, adafactor_scheduler, training_params, model_save_path, max_target_length, postprocess_fn):
         super().__init__(model_name, adafactor_scheduler, training_params)
         self.evaluator = EvaluatorForConditionalGeneration(model_save_path, model_name, task, max_target_length, training_params, postprocess_fn)
 
@@ -108,7 +108,7 @@ class TrainerForConditionalGeneration(BaseModelTrainer):
 
 
 class TrainerForClassification(BaseModelTrainer):
-    def __init__(self, model_name, task, adafactor_scheduler, training_params, model_save_path, dataset_name, num_labels):
+    def __init__(self, model_name, task, adafactor_scheduler, training_params, model_save_path, num_labels):
         super().__init__(model_name, adafactor_scheduler, training_params)
         self.num_labels = num_labels
         self.evaluator = EvaluatorForClassification(model_save_path, model_name, task, training_params)
