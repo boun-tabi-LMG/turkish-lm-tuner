@@ -106,7 +106,7 @@ class EvaluatorForClassification(BaseEvaluator):
     
 
 class EvaluatorForConditionalGeneration(BaseEvaluator):
-    def __init__(self, model_save_path, task, max_target_length, test_params, generation_params, postprocess_fn=None): 
+    def __init__(self, model_save_path, task, max_target_length, test_params, generation_params=None, postprocess_fn=None): 
         super().__init__(model_save_path, task, test_params, postprocess_fn)
         self.max_target_length = max_target_length 
         self.generation_params = generation_params
@@ -115,10 +115,12 @@ class EvaluatorForConditionalGeneration(BaseEvaluator):
         # If used without fine-tuning model should be loaded from the model save path
         return AutoModelForSeq2SeqLM.from_pretrained(self.model_save_path)
 
-    def initialize_trainer(self, model):
-        #generation_config = model.generation_config 
-        #generation_config.max_new_tokens = self.max_target_length
-        
+    def initialize_trainer(self, model): 
+        if self.generation_params is None: 
+            # Set default model parameters
+            generation_config = model.generation_config 
+            generation_config.max_new_tokens = self.max_target_length
+            
         generation_config = GenerationConfig(**self.generation_params)
         test_args = Seq2SeqTrainingArguments(
             generation_config=generation_config,
