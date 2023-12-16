@@ -2,6 +2,7 @@ from transformers import (
     AutoTokenizer, AutoModelForSeq2SeqLM, AutoModelForSequenceClassification,
     Seq2SeqTrainer, Seq2SeqTrainingArguments,
     Trainer, TrainingArguments,
+    GenerationConfig
 )
 
 from omegaconf import DictConfig
@@ -23,14 +24,13 @@ stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
 
 class BaseEvaluator:
-    def __init__(self, model_save_path, tokenizer_path, dataset_name, task, test_params, postprocess_fn=None):
+    def __init__(self, model_save_path, dataset_name, task, test_params, postprocess_fn=None):
         self.model_save_path = model_save_path
-        self.tokenizer_path = tokenizer_path
         self.dataset_name = dataset_name
         self.task = task 
         self.test_params = test_params
         self.postprocess_fn = postprocess_fn
-        self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
+        self.tokenizer = AutoTokenizer.from_pretrained(model_save_path)
         self.metrics = load_task_metrics(task)
 
     def initialize_model(self):
@@ -107,19 +107,20 @@ class EvaluatorForClassification(BaseEvaluator):
     
 
 class EvaluatorForConditionalGeneration(BaseEvaluator):
-    def __init__(self, model_save_path, tokenizer_path, dataset_name, task, max_target_length, test_params, postprocess_fn=None): # generation_params
-        super().__init__(model_save_path, tokenizer_path, dataset_name, task, test_params, postprocess_fn)
+    def __init__(self, model_save_path, dataset_name, task, max_target_length, test_params, generation_params, postprocess_fn=None): 
+        super().__init__(model_save_path, dataset_name, task, test_params, postprocess_fn)
         self.max_target_length = max_target_length 
-        #self.generation_params = generation_params
+        self.generation_params = generation_params
 
     def initialize_model(self):
         # If used without fine-tuning model should be loaded from the model save path
         return AutoModelForSeq2SeqLM.from_pretrained(self.model_save_path)
 
     def initialize_trainer(self, model):
-        generation_config = model.generation_config 
-        generation_config.max_new_tokens = self.max_target_length
-
+        #generation_config = model.generation_config 
+        #generation_config.max_new_tokens = self.max_target_length
+        
+        generation_config = GenerationConfig(**self.generation_params)
         test_args = Seq2SeqTrainingArguments(
             generation_config=generation_config,
             **self.test_params)
@@ -159,7 +160,7 @@ class EvaluatorForConditionalGeneration(BaseEvaluator):
         logger.info("Decoded predictions: %s", processed_preds[:5])
         logger.info("Decoded labels: %s", processed_labels[:5])
 
-        result = super().compute_metrics(decoded_preds, decoded_labels)
+        result = super().compute_metrics(processed_labels, processed_labels)
 
         logger.info("Result: %s", result)      
 
@@ -169,7 +170,6 @@ class EvaluatorForConditionalGeneration(BaseEvaluator):
 @hydra.main(config_path="../generation_conf", config_name="default")
 def main(cfg: DictConfig):
     model_path = cfg.model_path
-    model_name = cfg.model_name
     dataset_name = cfg.dataset_name
     task = cfg.task
     task_format = cfg.task_format
@@ -177,10 +177,11 @@ def main(cfg: DictConfig):
     max_input_length = cfg.max_input_length
     max_target_length = cfg.max_target_length
     test_params = cfg.test_params
+    generation_params = cfg.generation_params
     dataset_location = cfg.dataset_loc
 
     logger.info("Loading test dataset")
-    dataset_processor = DatasetProcessor(dataset_name, task, task_format, task_mode, model_name, max_input_length, max_target_length, dataset_location)
+    dataset_processor = DatasetProcessor(dataset_name, task, task_format, task_mode, model_path, max_input_length, max_target_length, dataset_location)
     test_dataset = dataset_processor.load_and_preprocess_data(split="test")  # Use split="test[:10]" to test for small sample
     postprocess_fn = dataset_processor.dataset.postprocess_data
 
@@ -190,10 +191,10 @@ def main(cfg: DictConfig):
 
     if task_format == 'conditional_generation':
         logger.info("Evaluating in conditional generation mode")
-        evaluator = EvaluatorForConditionalGeneration(model_path, model_name, dataset_name, task, max_target_length, test_params, postprocess_fn)
+        evaluator = EvaluatorForConditionalGeneration(model_path, dataset_name, task, max_target_length, test_params, generation_params, postprocess_fn)
     elif task_format == 'classification':
         logger.info("Evaluating in classification mode")
-        evaluator = EvaluatorForClassification(model_path, model_name, dataset_name, task, test_params)
+        evaluator = EvaluatorForClassification(model_path, dataset_name, task, test_params)
 
   
     logger.info("Evaluating model")
