@@ -6,6 +6,7 @@ task: summarization
 max_input_length: 768
 max_target_length: 128 
 model_path: /stratch/bounllm/finetuned-models/ul2tr/summarization/tr_news/
+tokenizer_path: /stratch/bounllm/pretrained_checkpoints/ckpt-1.74M
 test_params:
   per_device_eval_batch_size: 4 # 4 for ultramarine
   output_dir: /stratch/bounllm/finetuned-models/ul2tr/summarization/tr_news/
