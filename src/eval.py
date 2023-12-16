@@ -24,9 +24,8 @@ stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
 
 class BaseEvaluator:
-    def __init__(self, model_save_path, dataset_name, task, test_params, postprocess_fn=None):
+    def __init__(self, model_save_path, task, test_params, postprocess_fn=None):
         self.model_save_path = model_save_path
-        self.dataset_name = dataset_name
         self.task = task 
         self.test_params = test_params
         self.postprocess_fn = postprocess_fn
@@ -107,8 +106,8 @@ class EvaluatorForClassification(BaseEvaluator):
     
 
 class EvaluatorForConditionalGeneration(BaseEvaluator):
-    def __init__(self, model_save_path, dataset_name, task, max_target_length, test_params, generation_params, postprocess_fn=None): 
-        super().__init__(model_save_path, dataset_name, task, test_params, postprocess_fn)
+    def __init__(self, model_save_path, task, max_target_length, test_params, generation_params, postprocess_fn=None): 
+        super().__init__(model_save_path, task, test_params, postprocess_fn)
         self.max_target_length = max_target_length 
         self.generation_params = generation_params
 
@@ -191,10 +190,10 @@ def main(cfg: DictConfig):
 
     if task_format == 'conditional_generation':
         logger.info("Evaluating in conditional generation mode")
-        evaluator = EvaluatorForConditionalGeneration(model_path, dataset_name, task, max_target_length, test_params, generation_params, postprocess_fn)
+        evaluator = EvaluatorForConditionalGeneration(model_path, task, max_target_length, test_params, generation_params, postprocess_fn)
     elif task_format == 'classification':
         logger.info("Evaluating in classification mode")
-        evaluator = EvaluatorForClassification(model_path, dataset_name, task, test_params)
+        evaluator = EvaluatorForClassification(model_path, task, test_params)
 
   
     logger.info("Evaluating model")
