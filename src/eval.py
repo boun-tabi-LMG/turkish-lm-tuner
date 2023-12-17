@@ -116,12 +116,16 @@ class EvaluatorForConditionalGeneration(BaseEvaluator):
         return AutoModelForSeq2SeqLM.from_pretrained(self.model_path)
 
     def initialize_trainer(self, model): 
-        if self.generation_params is None: 
-            # Set default model parameters
-            generation_config = model.generation_config 
-            generation_config.max_new_tokens = self.max_target_length
+        # Set default model parameters
+        generation_config = model.generation_config 
+        generation_config.max_new_tokens = self.max_target_length
+
+        if self.generation_params: 
+            generation_config.update(**self.generation_params)
+
+        logger.info("Generation config: %s", generation_config)
             
-        generation_config = GenerationConfig(**self.generation_params)
+        #generation_config = GenerationConfig(**self.generation_params)
         test_args = Seq2SeqTrainingArguments(
             generation_config=generation_config,
             **self.test_params)
@@ -144,6 +148,7 @@ class EvaluatorForConditionalGeneration(BaseEvaluator):
         decoded_labels = self.tokenizer.batch_decode(labels, skip_special_tokens=True)
 
         logger.info("Postprocessing predictions and labels")
+
         # Get post-processing function for specific dataset and task
         processed_preds = self.postprocess_fn(decoded_preds) 
         processed_labels = self.postprocess_fn(decoded_labels)
@@ -189,7 +194,6 @@ def main(cfg: DictConfig):
 
     logger.info("test_dataset[0]: %s", test_dataset[0])
     logger.info("test_dataset: %s", test_dataset)
-    
 
     if task_format == 'conditional_generation':
         logger.info("Evaluating in conditional generation mode")
