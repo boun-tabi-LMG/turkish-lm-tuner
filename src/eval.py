@@ -2,23 +2,19 @@ from transformers import (
     AutoTokenizer, AutoModelForSeq2SeqLM, AutoModelForSequenceClassification,
     Seq2SeqTrainer, Seq2SeqTrainingArguments,
     Trainer, TrainingArguments,
+    GenerationConfig
 )
 
 from omegaconf import DictConfig
-from dataset import DatasetProcessor
+from dataset_processor import DatasetProcessor
+from metrics import load_task_metrics
+import pandas as pd
 import hydra
-import evaluate
 import numpy as np
 import os
-
-from utils import (
-    postprocess_text,
-    postprocess_nli,
-    postprocess_sts
-)
-
 import logging
 import json
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -27,27 +23,14 @@ formatter = logging.Formatter('%(levelname)s - %(asctime)s - %(name)s: %(message
 stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
 
-# local_rank = int(os.environ["LOCAL_RANK"])
-# TODO: Check their arguments
-bleu = evaluate.load("bleu")        # https://huggingface.co/spaces/evaluate-metric/bleu
-meteor = evaluate.load("meteor")    # https://huggingface.co/spaces/evaluate-metric/meteor
-rouge = evaluate.load("rouge")      # https://huggingface.co/spaces/evaluate-metric/rouge
-ter = evaluate.load("ter")          # https://huggingface.co/spaces/evaluate-metric/ter
-accuracy = evaluate.load("accuracy")
-precision = evaluate.load("precision")
-recall = evaluate.load('recall')
-f1 = evaluate.load("f1")
-pearsonr = evaluate.load("pearsonr")
-
-
 class BaseEvaluator:
-    def __init__(self, model_save_path, tokenizer_path, dataset_name, task, test_params):
-        self.model_save_path = model_save_path
-        self.tokenizer_path = tokenizer_path
-        self.dataset_name = dataset_name
+    def __init__(self, model_path, tokenizer_path, task, test_params, postprocess_fn=None):
+        self.model_path = model_path
         self.task = task 
         self.test_params = test_params
+        self.postprocess_fn = postprocess_fn
         self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
+        self.metrics = load_task_metrics(task)
 
     def initialize_model(self):
         raise NotImplementedError
@@ -65,7 +48,7 @@ class BaseEvaluator:
 
     def evaluate_model(self, test_dataset, model=None):
         if not model:
-            logger.info("Loading model from %s", self.model_save_path)
+            logger.info("Loading model from %s", self.model_path)
             model = self.initialize_model()
 
         logger.info("Loading trainer")
@@ -74,10 +57,15 @@ class BaseEvaluator:
         logger.info("Predicting")
         results = trainer.predict(test_dataset)
         return results
+    
+    def compute_metrics(self, preds, labels):
+        scores = {}
+        for metric in self.metrics:
+            metric_scores = metric.compute(preds, labels)
+            scores.update(metric_scores)
+        return scores
 
 class EvaluatorForClassification(BaseEvaluator):
-    def __init__(self, model_save_path, tokenizer_path, dataset_name, task, test_params):
-        super().__init__(model_save_path, tokenizer_path, dataset_name, task, test_params)
 
     def initialize_model(self):
         # If used without fine-tuning model should be loaded from the model save path
@@ -98,33 +86,46 @@ class EvaluatorForClassification(BaseEvaluator):
         preds, labels = eval_preds
         preds = np.argmax(preds[0], axis=-1)
 
-        accuracy_score = accuracy.compute(predictions=preds, references=labels)
-        precision_score = precision.compute(predictions=preds, references=labels)
-        recall_score = recall.compute(predictions=preds, references=labels)
-        f1_score = f1.compute(predictions=preds, references=labels) # average= "macro", "micro", "weighted" in case of multiclass classification
-        result = {"accuracy": accuracy_score, "precision": precision_score, "recall": recall_score, "f1": f1_score}
+        logger.info("Computing metrics")
+
+        result = super().compute_metrics(preds, labels)
 
         logger.info("Predictions: %s", preds[:5])
         logger.info("Labels: %s", labels[:5])
+
+        predictions = pd.DataFrame(
+            {'Prediction': preds,
+             'Label': labels
+            })
+        
+        predictions.to_csv(os.path.join(self.test_params['output_dir'], 'predictions.csv'), index=False)
+
         logger.info("Result: %s", result)
 
         return result
     
 
 class EvaluatorForConditionalGeneration(BaseEvaluator):
-    def __init__(self, model_save_path, tokenizer_path, dataset_name, task, max_target_length, test_params): # generation_params
-        super().__init__(model_save_path, tokenizer_path, dataset_name, task, test_params)
+    def __init__(self, model_path, tokenizer_path, task, max_target_length, test_params, generation_params=None, postprocess_fn=None): 
+        super().__init__(model_path, tokenizer_path, task, test_params, postprocess_fn)
         self.max_target_length = max_target_length 
-        #self.generation_params = generation_params
+        self.generation_params = generation_params
 
     def initialize_model(self):
         # If used without fine-tuning model should be loaded from the model save path
-        return AutoModelForSeq2SeqLM.from_pretrained(self.model_save_path)
+        return AutoModelForSeq2SeqLM.from_pretrained(self.model_path)
 
-    def initialize_trainer(self, model):
+    def initialize_trainer(self, model): 
+        # Set default model parameters
         generation_config = model.generation_config 
         generation_config.max_new_tokens = self.max_target_length
 
+        if self.generation_params: 
+            generation_config.update(**self.generation_params)
+
+        logger.info("Generation config: %s", generation_config)
+            
+        #generation_config = GenerationConfig(**self.generation_params)
         test_args = Seq2SeqTrainingArguments(
             generation_config=generation_config,
             **self.test_params)
@@ -136,25 +137,6 @@ class EvaluatorForConditionalGeneration(BaseEvaluator):
         )
         return trainer
   
-    def get_postprocess_function(self):
-        # Mapping of dataset_name and task to corresponding postprocess functions
-        postprocess_functions = {
-            ('exams', 'question_answering'): postprocess_text,
-            ('exams', 'question_generation'): postprocess_text,
-            ("xquad", "question_answering"): postprocess_text,
-            ("xquad", "question_generation"): postprocess_text,
-            ("mkqa", "question_answering"): postprocess_text,
-            ("mkqa", "question_generation"): postprocess_text,
-            ("wikiann", "ner"): postprocess_text,
-            ("xtreme", "ner"): postprocess_text,
-            ("stsb_tr", "semantic_similarity") : postprocess_sts,
-            ("nli_tr", "nli") : postprocess_nli,
-            ("snli_tr", "nli") : postprocess_nli,
-            ("multinli_tr", "nli") : postprocess_nli,
-            # ... add mappings for other dataset and task type combinations
-        }
-        return postprocess_functions.get((self.dataset_name, self.task), postprocess_text)
-    
     def compute_metrics(self, eval_preds):
         preds, labels = eval_preds
         if isinstance(preds, tuple):
@@ -166,27 +148,27 @@ class EvaluatorForConditionalGeneration(BaseEvaluator):
         decoded_labels = self.tokenizer.batch_decode(labels, skip_special_tokens=True)
 
         logger.info("Postprocessing predictions and labels")
+
         # Get post-processing function for specific dataset and task
-        postprocess_function = self.get_postprocess_function()
-        decoded_preds, decoded_labels = postprocess_function(decoded_preds, decoded_labels)
+        processed_preds = self.postprocess_fn(decoded_preds) 
+        processed_labels = self.postprocess_fn(decoded_labels)
+
+        predictions = pd.DataFrame(
+            {'DecodedPrediction': decoded_preds,
+             'DecodedLabel': decoded_labels,
+             'Prediction': processed_preds, 
+             'Label': processed_labels})
+        
+        predictions.to_csv(os.path.join(self.test_params['output_dir'], 'predictions.csv'), index=False)
+
 
         logger.info("Computing metrics")
-        if self.task in ['summarization', "paraphrasing", "title_generation"]:
-            result = rouge.compute(predictions=decoded_preds, references=decoded_labels)
-            result = {key: value * 100 for key, value in result.items()}
-            prediction_lens = [np.count_nonzero(pred != self.tokenizer.pad_token_id) for pred in preds]
-            result["gen_len"] = np.mean(prediction_lens)
-            result = {k: round(v, 4) for k, v in result.items()}
-        elif self.task == "nli":
-            result = accuracy.compute(predictions=decoded_preds, references=decoded_labels)
-        elif self.task == "semantic_similarity":
-            result = pearsonr.compute(predictions=decoded_preds, references=decoded_labels)
-        
-        if self.task == 'paraphrasing':
-            meteor_score = meteor.compute(predictions=decoded_preds, references=decoded_labels)
-            bleu_score = bleu.compute(predictions=decoded_preds, references=decoded_labels)
-            ter_score = ter.compute(predictions=decoded_preds, references=decoded_labels, case_insensitive=True)
-            result = {**result, **meteor_score, **bleu_score, **ter_score}        
+        logger.info("Decoded predictions: %s", processed_preds[:5])
+        logger.info("Decoded labels: %s", processed_labels[:5])
+
+        result = super().compute_metrics(processed_preds, processed_labels)
+
+        logger.info("Result: %s", result)      
 
         return result
 
@@ -194,7 +176,7 @@ class EvaluatorForConditionalGeneration(BaseEvaluator):
 @hydra.main(config_path="../generation_conf", config_name="default")
 def main(cfg: DictConfig):
     model_path = cfg.model_path
-    model_name = cfg.model_name
+    tokenizer_path = cfg.tokenizer_path
     dataset_name = cfg.dataset_name
     task = cfg.task
     task_format = cfg.task_format
@@ -202,26 +184,29 @@ def main(cfg: DictConfig):
     max_input_length = cfg.max_input_length
     max_target_length = cfg.max_target_length
     test_params = cfg.test_params
+    generation_params = cfg.generation_params
     dataset_location = cfg.dataset_loc
-    if task_format == 'conditional_generation':
-        logger.info("Evaluating in conditional generation mode")
-        evaluator = EvaluatorForConditionalGeneration(model_path, model_name, dataset_name, task, max_target_length, test_params)
-    elif task_format == 'classification':
-        logger.info("Evaluating in classification mode")
-        evaluator = EvaluatorForClassification(model_path, model_name, dataset_name, task, test_params)
 
     logger.info("Loading test dataset")
-    dataset_processor = DatasetProcessor(dataset_name, task, task_format, task_mode, model_name, max_input_length, max_target_length, dataset_location)
+    dataset_processor = DatasetProcessor(dataset_name, task, task_format, task_mode, model_path, max_input_length, max_target_length, dataset_location)
     test_dataset = dataset_processor.load_and_preprocess_data(split="test")  # Use split="test[:10]" to test for small sample
-    
+    postprocess_fn = dataset_processor.dataset.postprocess_data
+
     logger.info("test_dataset[0]: %s", test_dataset[0])
     logger.info("test_dataset: %s", test_dataset)
-    
 
+    if task_format == 'conditional_generation':
+        logger.info("Evaluating in conditional generation mode")
+        evaluator = EvaluatorForConditionalGeneration(model_path, tokenizer_path, task, max_target_length, test_params, generation_params, postprocess_fn)
+    elif task_format == 'classification':
+        logger.info("Evaluating in classification mode")
+        evaluator = EvaluatorForClassification(model_path, tokenizer_path, task, test_params)
+
+  
     logger.info("Evaluating model")
     results = evaluator.evaluate_model(test_dataset)
     logger.info("Result: %s", results)    
-    json.dump(results, open(os.path.join(test_params['output_dir'], "results.json"), "w"))
+    json.dump(results.metrics, open(os.path.join(test_params['output_dir'], "test_results.json"), "w"))
 
 
 if __name__ == "__main__":
