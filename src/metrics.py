@@ -60,21 +60,21 @@ class F1(BaseMetric):
 
 class F1Macro(BaseMetric):
     def __init__(self):
-        super().__init__("f1_macro")
+        super().__init__("f1")
 
     def compute(self, preds, labels):
         return super().compute(predictions=preds, references=labels, average="macro")
     
 class F1Micro(BaseMetric):
     def __init__(self):
-        super().__init__("f1_micro")
+        super().__init__("f1")
 
     def compute(self, preds, labels):
         return super().compute(predictions=preds, references=labels, average="micro")
     
 class F1Weighted(BaseMetric):
     def __init__(self):
-        super().__init__("f1_weighted")
+        super().__init__("f1")
 
     def compute(self, preds, labels):
         return super().compute(predictions=preds, references=labels, average="weighted")
