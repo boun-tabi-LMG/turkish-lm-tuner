@@ -511,8 +511,17 @@ class POSDataset(LocalDataset):
         return {"input_text": input_texts, "target_text": target_texts}
     
     def postprocess_data(self, examples):
-        raise NotImplementedError
-    
+        labels = []
+        for example in examples:
+            example = example.strip()
+            tokens = example.split(' ')
+            label_l = []
+            for token in tokens:
+                token_split = token.split('/')
+                label = token_split[-1]
+                label_l.append(label)
+            labels.append(label_l)
+        return labels    
     
 class UDBOUNDataset(POSDataset):
     DATASET_NAME = "boun"
