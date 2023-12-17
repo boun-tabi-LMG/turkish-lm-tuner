@@ -116,7 +116,8 @@ class STSb_TRDataset(LocalDataset):
 
 class NLI_TRDataset(BaseDataset):
     DATASET_INFO = ("nli_tr", None)
-    NLI_LABEL_DICT = {0: "gereklilik", 1: "nötr", 2:"çelişki"}
+    IN_LABEL_DICT = {0: "gereklilik", 1: "nötr", 2:"çelişki"}
+    OUT_LABEL_DICT = {v: k for k, v in IN_LABEL_DICT.items()}
     def __init__(self, dataset_name=None):
         # dataset_name is either "nli_tr", "snli_tr" or "multinli_tr"
         super().__init__(dataset_name)
@@ -124,27 +125,23 @@ class NLI_TRDataset(BaseDataset):
     
     def load_dataset(self, split=None):
         if self.dataset_name == "nli_tr":
-            mnli_tr = NLI_TRDataset("multinli_tr").load_dataset(split)
-            snli_tr = NLI_TRDataset("snli_tr").load_dataset(split)
-            if split is not None:
-                return datasets.concatenate_datasets([mnli_tr, snli_tr]) 
+            if split == "train":
+                mnli_tr = NLI_TRDataset("multinli_tr").load_dataset(split)
+                snli_tr = NLI_TRDataset("snli_tr").load_dataset(split)
+                print(mnli_tr)
+                print(snli_tr)
+                dataset = datasets.concatenate_datasets([mnli_tr, snli_tr]) 
             else:
-                combined_data = {}
-                for key in snli_tr.keys():
-                    combined_data[key] = datasets.concatenate_datasets([snli_tr[key], mnli_tr[key]]) 
-                # Returns DatasetDict object which is compatible with other datasets but takes a lot of time
-                # return datasets.Dataset.from_dict(combined_data)
-                # Returns a dictionary of DatasetDicts which is not compatible with other datasets but is faster
-                return combined_data 
+                dataset = NLI_TRDataset("snli_tr").load_dataset(split) 
         elif self.dataset_name == 'snli_tr':
-            snli_tr = super().load_dataset(split)
-            if split == 'train':
-                 snli_tr = snli_tr.filter(lambda example: example["label"] != -1)
-            elif split is None:
-                snli_tr["train"] = snli_tr["train"].filter(lambda example: example["label"] != -1)
-            return snli_tr
+            dataset = super().load_dataset(split)
+            """elif split is None:
+                snli_tr["train"] = snli_tr["train"].filter(lambda example: example["label"] != -1)"""
+        elif self.dataset_name == 'multinli_tr' and split == "test":
+            dataset = super().load_dataset(split="validation_mismatched")
         else:
-            return super().load_dataset(split)
+            dataset = super().load_dataset(split)
+        return dataset.filter(lambda example: example["label"] != -1)
         
     def preprocess_data(self, examples, skip_output_processing=False):
         
@@ -152,11 +149,11 @@ class NLI_TRDataset(BaseDataset):
         # If used with the classification mode, skip the output processing
         if skip_output_processing:
             return {"input_text": input, "label": examples["label"]}
-        output = [NLI_TRDataset.NLI_LABEL_DICT[ex] for ex in examples["label"]]
+        output = [NLI_TRDataset.IN_LABEL_DICT[ex] for ex in examples["label"]]
         return {"input_text": input, "target_text": output}
     
     def postprocess_data(self, examples):
-        return [NLI_TRDataset.NLI_LABEL_DICT.get(ex.strip(), -1) for ex in examples]
+        return [NLI_TRDataset.OUT_LABEL_DICT.get(ex.strip(), -1) for ex in examples]
 
 class ExamsDataset(BaseDataset):
     DATASET_NAME = "exams"
@@ -547,7 +544,6 @@ class UDIMSTDataset(POSDataset):
 
     def __init__(self, dataset_loc=None):
         super().__init__(dataset_loc, self.DATASET_RAW_INFO)
-
 
 DATASET_MAPPING_NAMES = [
         ("tr_news", "TRNewsDataset"),
