@@ -303,6 +303,8 @@ class NERDataset(BaseDataset):
                         if el.strip() == '':
                             continue
                         el_split = el.split(' ')
+                        if el_split[0] not in tokens or el_split[-1] not in tokens:
+                            continue
                         if len(el_split) == 1:
                             start = tokens.index(el_split[0])
                             label_l[start] = NERDataset.NER_label_int_dict[NERDataset.NER_label_translation_d[tag_type]]
