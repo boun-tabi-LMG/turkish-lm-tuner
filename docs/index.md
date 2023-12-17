@@ -10,7 +10,7 @@
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/turkish-lm-tuner)](https://pypi.org/project/turkish-lm-tuner/)
 [![Code license](https://img.shields.io/badge/Code%20License-MIT-green.svg)](https://github.com/boun-tabi-lmt/blob/main/LICENSE)
 [![GitHub Repo stars](https://img.shields.io/github/stars/boun-tabi-lmt/safe)](https://github.com/boun-tabi-lmt/safe/stargazers)
-[![arXiv](https://img.shields.io/badge/arxiv-custom-ID.svg)](https://arxiv.org/pdf/<arxiv-ID>.pdf)
+[![arXiv](https://img.shields.io/badge/arxiv-ID.svg)](https://arxiv.org/pdf/<arxiv-ID>.pdf)
 
 ## Overview 
 
@@ -24,9 +24,11 @@ You can install the library from PyPI.
 pip install turkish-lm-tuner
 ```
 
+
 ## Model Support
 
 Any Encoder or ConditionalGeneration model that is compatible with HuggingFace Transformers library can be used with Turkish LM Tuner. The following models are tested and supported.
+
 - [UL2TR](link to paper)
 - [mT5](link to paper)
 - [mBART](link to paper)
@@ -48,7 +50,7 @@ Any Encoder or ConditionalGeneration model that is compatible with HuggingFace T
 
 
 ## Usage
-The tutorials in the [documentation]() can help you get started with `turkish-lm-tuner`.
+The tutorials in the [documentation] can help you get started with `turkish-lm-tuner`.
 
 ## Examples
 
