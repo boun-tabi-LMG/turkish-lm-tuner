@@ -206,7 +206,7 @@ def main(cfg: DictConfig):
     logger.info("Evaluating model")
     results = evaluator.evaluate_model(test_dataset)
     logger.info("Result: %s", results)    
-    json.dump(results, open(os.path.join(test_params['output_dir'], "results.json"), "w"))
+    json.dump(results.metrics, open(os.path.join(test_params['output_dir'], "test_results.json"), "w"))
 
 
 if __name__ == "__main__":
