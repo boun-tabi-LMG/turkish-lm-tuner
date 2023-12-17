@@ -508,24 +508,41 @@ class TTC4900Dataset(ClassificationDataset):
     DATASET_NAME = "ttc4900"
     DATASET_INFO = "ttc4900" 
     IN_LABEL_DICT = {0: "siyaset", 1: "dünya", 2: "ekonomi", 3: "kültür", 4: "sağlık", 5: "spor", 6: "teknoloji"}
-    #OUT_LABEL_DICT = {v: k for k, v in IN_LABEL_DICT.items()}
 
     def __init__(self, dataset_name=None):
         super().__init__(dataset_name)
 
     def load_dataset(self, split=None):
-        dataset = super().load_dataset(split='train[:5]')
+        dataset = super().load_dataset(split='train')
         dataset = dataset.train_test_split(test_size=0.1, seed=25)
         return dataset[split]
 
     def preprocess_data(self, examples, skip_output_processing=False):
         # If used with the classification mode, don't process the output 
         if skip_output_processing:
-            print("******Skip output processing")
             return {"input_text": examples["text"], "label": examples["category"]}
-        print("******Pre-processing output")
         output = [self.IN_LABEL_DICT[ex] for ex in examples["category"]]
         return {"input_text": examples["text"], "target_text": output}
+
+class ProductDataset(ClassificationDataset):
+    DATASET_NAME = "turkish_product_reviews"
+    DATASET_INFO = "turkish_product_reviews" 
+    IN_LABEL_DICT = {0: "negatif", 1: "pozitif"}
+
+    def __init__(self, dataset_name=None):
+        super().__init__(dataset_name)
+
+    def load_dataset(self, split=None):
+        dataset = super().load_dataset(split='train')
+        dataset = dataset.train_test_split(test_size=0.1, seed=25)
+        return dataset[split]
+
+    def preprocess_data(self, examples, skip_output_processing=False):
+        # If used with the classification mode, don't process the output 
+        if skip_output_processing:
+            return {"input_text": examples["sentence"], "label": examples["sentiment"]}
+        output = [self.IN_LABEL_DICT[ex] for ex in examples["sentiment"]]
+        return {"input_text": examples["sentence"], "target_text": output}
     
 
 DATASET_MAPPING_NAMES = [
@@ -547,6 +564,7 @@ DATASET_MAPPING_NAMES = [
         ("imst", "UDIMSTDataset"),
         ("stsb_tr", "STSb_TRDataset"),
         ("ttc4900", "TTC4900Dataset"),
+        ("tr_product_reviews", "ProductDataset"),
     ]
 
 def str_to_class(classname):
