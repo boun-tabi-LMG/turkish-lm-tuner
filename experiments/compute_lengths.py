@@ -1,5 +1,5 @@
 from argparse import ArgumentParser
-from turkishlmtuner.dataset_processor import DatasetProcessor
+from turkish_lm_tuner.dataset_processor import DatasetProcessor
 
 if __name__ == '__main__':
     parser = ArgumentParser()
