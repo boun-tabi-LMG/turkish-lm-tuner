@@ -1,0 +1,16 @@
+defaults:
+  #- default_classification  
+  - default_cond_gen # switch to this line for Conditional Generation
+
+dataset_name: tr_product_reviews 
+task: classification
+max_input_length: 20
+max_target_length: 4
+num_labels: 2
+training_params:
+  per_device_train_batch_size: 32 # for ultramarine
+  per_device_eval_batch_size: 32 # for ultramarine
+  # Conditional generation mode: classification/cg/tr_product_reviews
+  # Classification mode: classification/tc/tr_product_reviews
+  output_dir: /stratch/bounllm/finetuned-models/ul2tr/classification/cg/tr_product_reviews
+
