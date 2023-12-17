@@ -128,8 +128,6 @@ class NLI_TRDataset(BaseDataset):
             if split == "train":
                 mnli_tr = NLI_TRDataset("multinli_tr").load_dataset(split)
                 snli_tr = NLI_TRDataset("snli_tr").load_dataset(split)
-                print(mnli_tr)
-                print(snli_tr)
                 dataset = datasets.concatenate_datasets([mnli_tr, snli_tr]) 
             else:
                 dataset = NLI_TRDataset("snli_tr").load_dataset(split) 
@@ -495,6 +493,41 @@ class UDIMSTDataset(POSDataset):
     def __init__(self, dataset_loc=None):
         super().__init__(dataset_loc, self.DATASET_RAW_INFO)
 
+class ClassificationDataset(BaseDataset):
+    IN_LABEL_DICT = None
+    OUT_LABEL_DICT = None
+
+    def __init__(self, dataset_name=None):
+        super().__init__(dataset_name)
+        self.OUT_LABEL_DICT = {v: k for k, v in self.IN_LABEL_DICT.items()}
+
+    def postprocess_data(self, examples):
+        return [self.OUT_LABEL_DICT.get(ex.strip(), -1) for ex in examples]
+
+class TTC4900Dataset(ClassificationDataset):
+    DATASET_NAME = "ttc4900"
+    DATASET_INFO = "ttc4900" 
+    IN_LABEL_DICT = {0: "siyaset", 1: "dünya", 2: "ekonomi", 3: "kültür", 4: "sağlık", 5: "spor", 6: "teknoloji"}
+    #OUT_LABEL_DICT = {v: k for k, v in IN_LABEL_DICT.items()}
+
+    def __init__(self, dataset_name=None):
+        super().__init__(dataset_name)
+
+    def load_dataset(self, split=None):
+        dataset = super().load_dataset(split='train[:5]')
+        dataset = dataset.train_test_split(test_size=0.1, seed=25)
+        return dataset[split]
+
+    def preprocess_data(self, examples, skip_output_processing=False):
+        # If used with the classification mode, don't process the output 
+        if skip_output_processing:
+            print("******Skip output processing")
+            return {"input_text": examples["text"], "label": examples["category"]}
+        print("******Pre-processing output")
+        output = [self.IN_LABEL_DICT[ex] for ex in examples["category"]]
+        return {"input_text": examples["text"], "target_text": output}
+    
+
 DATASET_MAPPING_NAMES = [
         ("tr_news", "TRNewsDataset"),
         ("mlsum", "MLSumDataset"),
@@ -513,6 +546,7 @@ DATASET_MAPPING_NAMES = [
         ("boun", "UDBOUNDataset"),
         ("imst", "UDIMSTDataset"),
         ("stsb_tr", "STSb_TRDataset"),
+        ("ttc4900", "TTC4900Dataset"),
     ]
 
 def str_to_class(classname):
