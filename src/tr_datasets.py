@@ -284,8 +284,36 @@ class MKQADataset(BaseDataset):
 class NERDataset(BaseDataset):
     NER_label_translation_d = {"Kişi": "PER", "Yer": "LOC", "Kuruluş": "ORG"}
     NER_label_int_dict = {"PER": 1, "LOC": 3, "ORG": 5}
+
     def postprocess_data(self, examples):
-        raise NotImplementedError
+        labels = []
+        for example in examples:
+            example = example.strip()
+            tokens = example.split(' ')
+            label_l = [0 for _ in range(len(tokens))]
+            if example == 'Bulunamadı.':
+                labels.append(label_l)
+            else:
+                type_split = example.split(' | ')
+                for type_el in type_split:
+                    el_split = type_el.split(': ')
+                    tag_type = el_split[0]
+                    el_l = el_split[1].split(', ')
+                    for el in el_l:
+                        if el.strip() == '':
+                            continue
+                        el_split = el.split(' ')
+                        if len(el_split) == 1:
+                            start = tokens.index(el_split[0])
+                            label_l[start] = NERDataset.NER_label_int_dict[NERDataset.NER_label_translation_d[tag_type]]
+                        else:
+                            start = tokens.index(el_split[0])
+                            label_l[start] = NERDataset.NER_label_int_dict[NERDataset.NER_label_translation_d[tag_type]]
+                            end = tokens.index(el_split[-1])
+                            for i in range(start+1, end+1):
+                                label_l[i] = NERDataset.NER_label_int_dict[NERDataset.NER_label_translation_d[tag_type]] + 1
+                labels.append(label_l)
+        return labels
 
 class WikiANNDataset(NERDataset):
     DATASET_NAME = "wikiann"
@@ -327,36 +355,6 @@ class WikiANNDataset(NERDataset):
             input_texts.append(input_text)
             target_texts.append(target_text)
         return {'input_text': input_texts, 'target_text': target_texts}
-
-    def postprocess_data(self, examples):
-        labels = []
-        for example in examples:
-            example = example.strip()
-            tokens = example.split(' ')
-            label_l = [0 for i in range(len(tokens))]
-            if example == 'Bulunamadı.':
-                labels.append(label_l)
-            else:
-                type_split = example.split(' | ')
-                for type_el in type_split:
-                    el_split = type_el.split(': ')
-                    tag_type = el_split[0]
-                    el_l = el_split[1].split(', ')
-                    for el in el_l:
-                        if el.strip() == '':
-                            continue
-                        el_split = el.split(' ')
-                        if len(el_split) == 1:
-                            start = tokens.index(el_split[0])
-                            label_l[start] = NERDataset.NER_label_int_dict[NERDataset.NER_label_translation_d[tag_type]]
-                        else:
-                            start = tokens.index(el_split[0])
-                            label_l[start] = NERDataset.NER_label_int_dict[NERDataset.NER_label_translation_d[tag_type]]
-                            end = tokens.index(el_split[-1])
-                            for i in range(start+1, end+1):
-                                label_l[i] = NERDataset.NER_label_int_dict[NERDataset.NER_label_translation_d[tag_type]] + 1
-                labels.append(label_l)
-        return labels
     
 class MilliyetNERDataset(LocalDataset,NERDataset):
     DATASET_NAME = "milliyet_ner"
