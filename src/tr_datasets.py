@@ -442,12 +442,15 @@ class POSDataset(LocalDataset):
 
     def __init__(self, dataset_loc=None, dataset_raw_info=None):
         super().__init__(dataset_loc)
-
+        if dataset_raw_info is not None:
+            self.DATASET_RAW_INFO = dataset_raw_info
+    
+    def load_dataset(self, split='train'):
         md_pattern = re.compile('^# (.+?) = (.+?)$')
         annotation_pattern = re.compile('(.+\t){9}.+')
-        for split, filename in dataset_raw_info.items():
+        for split_t, filename in self.DATASET_RAW_INFO.items():
             data_file = Path(self.dataset_loc) / filename
-            output_file = Path(self.dataset_loc) / self.DATASET_INFO[split]
+            output_file = Path(self.dataset_loc) / self.DATASET_INFO[split_t]
             if output_file.exists():
                 continue
             else:
@@ -480,7 +483,7 @@ class POSDataset(LocalDataset):
                                 id_l.append(id_t)
                                 token_l.append(token)
                                 tag_l.append(tag)
-                            d_t['split'] = split
+                            d_t['split'] = split_t
                             d_t['tokens'] = token_l
                             d_t['tags'] = tag_l
                             d_t['sent_id'] = sent_id
@@ -489,6 +492,7 @@ class POSDataset(LocalDataset):
                         data_l.append(d_t)
                 with open(output_file, 'w', encoding='utf-8') as f:
                     json.dump(data_l, f, ensure_ascii=False)
+        return super().load_dataset(split)
     
     def preprocess_data(self, examples):
         pos_d_tr = { "ADP": "edat", "AUX": "yardımcı", "PRON": "zamir", "NOUN": "isim", "PROPN": "özel", "INTJ": "ünlem", "PART": "tanımcık", "CCONJ": "eşgüdümlü", "VERB": "fiil", "SYM": "sembol", "DET": "belirteç", "ADV": "zarf", "ADJ": "sıfat", "X": "diğer", "SCONJ": "yantümce", "NUM": "sayı", "PUNCT": "noktalama" }
