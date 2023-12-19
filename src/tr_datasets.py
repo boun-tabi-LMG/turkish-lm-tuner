@@ -445,7 +445,7 @@ class POSDataset(LocalDataset):
         if dataset_raw_info is not None:
             self.DATASET_RAW_INFO = dataset_raw_info
     
-    def load_dataset(self, split='train'):
+    def load_dataset(self, split=None):
         md_pattern = re.compile('^# (.+?) = (.+?)$')
         annotation_pattern = re.compile('(.+\t){9}.+')
         for split_t, filename in self.DATASET_RAW_INFO.items():
@@ -462,6 +462,7 @@ class POSDataset(LocalDataset):
                     lines = sent.split('\n')
                     sent_id = ''
                     d_t = {}
+                    id_l, token_l, tag_l = [], [], []
                     for i, line in enumerate(lines):
                         md_match = md_pattern.match(line)
                         if md_match:
@@ -474,12 +475,13 @@ class POSDataset(LocalDataset):
                         annotation_match = annotation_pattern.match(line)
                         if annotation_match:
                             annotation = '\n'.join(lines[i:])
-                            id_l, token_l, tag_l = [], [], []
                             for row in annotation.split('\n'):
                                 if row.strip() == '':
                                     break
                                 fields = row.split('\t')
                                 id_t, token, tag = fields[0], fields[1], fields[3]
+                                if '-' in id_t:
+                                    continue
                                 id_l.append(id_t)
                                 token_l.append(token)
                                 tag_l.append(tag)
@@ -488,10 +490,9 @@ class POSDataset(LocalDataset):
                             d_t['tags'] = tag_l
                             d_t['sent_id'] = sent_id
                             d_t['ids'] = id_l
-                    if d_t:
-                        data_l.append(d_t)
-                with open(output_file, 'w', encoding='utf-8') as f:
-                    json.dump(data_l, f, ensure_ascii=False)
+                            with open(output_file, 'a', encoding='utf-8') as f:
+                                f.write(json.dumps(d_t))
+                            break
         return super().load_dataset(split)
     
     def preprocess_data(self, examples):
