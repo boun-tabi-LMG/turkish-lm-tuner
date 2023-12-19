@@ -1,8 +1,18 @@
 from tr_datasets import initialize_dataset, DATASET_MAPPING_NAMES
+import argparse
 
-dataset_name = "boun"
+parser = argparse.ArgumentParser()
+parser.add_argument("--dataset_name", type=str)
+parser.add_argument("--dataset_loc", type=str)
+args = parser.parse_args()
 
-dataset = initialize_dataset(dataset_name, dataset_loc=None)
+dataset_name = args.dataset_name
+print(dataset_name)
+
+dataset_loc = args.dataset_loc
+print(dataset_loc)
+
+dataset = initialize_dataset(dataset_name, dataset_loc)
 
 for split in ["train", "validation", "test"]:
     print(dataset.load_dataset(split)[0])
