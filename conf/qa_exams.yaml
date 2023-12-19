@@ -3,8 +3,8 @@ defaults:
 
 dataset_name: exams
 task: question_answering
-max_input_length: 200
-max_target_length: 50
+max_input_length: 256
+max_target_length: 64
 training_params:
   num_train_epochs: 10
   per_device_train_batch_size: 16 # worked in ultramarine
