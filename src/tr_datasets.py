@@ -442,8 +442,7 @@ class POSDataset(LocalDataset):
 
     def __init__(self, dataset_loc=None, dataset_raw_info=None):
         super().__init__(dataset_loc)
-        if dataset_raw_info is not None:
-            self.DATASET_RAW_INFO = dataset_raw_info
+        self.DATASET_RAW_INFO = dataset_raw_info
     
     def load_dataset(self, split=None):
         md_pattern = re.compile('^# (.+?) = (.+?)$')

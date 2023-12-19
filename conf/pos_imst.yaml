@@ -4,10 +4,10 @@ defaults:
 dataset_loc: "/stratch/bounllm/supervised/tr_imst-ud"
 dataset_name: imst
 task: pos_tagging
-max_input_length: 60
-max_target_length: 210
+max_input_length: 64
+max_target_length: 256
 training_params:
   num_train_epochs: 10
   per_device_train_batch_size: 16 # worked in ultramarine
   per_device_eval_batch_size: 16 # worked in ultramarine
-  output_dir: ./t5_pos_imst
+  output_dir: /stratch/bounllm/finetuned-models/ul2tr/pos/imst
