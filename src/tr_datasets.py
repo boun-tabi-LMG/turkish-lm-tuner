@@ -364,13 +364,13 @@ class MilliyetNERDataset(LocalDataset,NERDataset):
 
     def __init__(self, dataset_loc):
         super().__init__(dataset_loc)
-        for split, filename in self.dataset_info.items():
+
+    def load_dataset(self, split=None):
+        for split_t, filename in self.dataset_info.items():
             data_file = Path(self.dataset_loc) / filename
             if data_file.exists():
                 continue
             else:
-                dataset_dict = {}
-                dataset_dict[split] = []
                 with open(data_file.with_suffix('.txt'), 'r', encoding='utf-8') as f:
                     content = f.read()
                 data = content.split('\n\n')
@@ -387,9 +387,9 @@ class MilliyetNERDataset(LocalDataset,NERDataset):
                         tokens.append(token)
                         tags.append(tag)
                     el = {'tokens': tokens, 'tags': tags}
-                    dataset_dict[split].append(el)
-                with open(data_file, 'w', encoding='utf-8') as f:
-                    json.dump(dataset_dict[split], f, ensure_ascii=False)
+                    with open(data_file, 'a', encoding='utf-8') as f:
+                        f.write(json.dumps(el) + '\n')
+        return super().load_dataset(split)
  
     def preprocess_data(self, examples):
         input_texts, target_texts = [], []
@@ -490,7 +490,7 @@ class POSDataset(LocalDataset):
                             d_t['sent_id'] = sent_id
                             d_t['ids'] = id_l
                             with open(output_file, 'a', encoding='utf-8') as f:
-                                f.write(json.dumps(d_t))
+                                f.write(json.dumps(d_t) + '\n')
                             break
         return super().load_dataset(split)
     
@@ -558,7 +558,7 @@ DATASET_MAPPING_NAMES = [
         ("tquad", "TQUADDataset"),
         ("mkqa", "MKQADataset"),
         ("wikiann", "WikiANNDataset"),
-        ("milliyet_ner", "MilliyetNERDataset"),
+        ("milliyet", "MilliyetNERDataset"),
         ("boun", "UDBOUNDataset"),
         ("imst", "UDIMSTDataset"),
         ("stsb_tr", "STSb_TRDataset"),
