@@ -504,6 +504,9 @@ class ClassificationDataset(BaseDataset):
     def postprocess_data(self, examples):
         return [self.OUT_LABEL_DICT.get(ex.strip(), -1) for ex in examples]
 
+    def load_dataset(self, split=None):
+        return super().load_dataset(split)    
+
 class TTC4900Dataset(ClassificationDataset):
     DATASET_NAME = "ttc4900"
     DATASET_INFO = "ttc4900" 
@@ -513,9 +516,7 @@ class TTC4900Dataset(ClassificationDataset):
         super().__init__(dataset_name)
 
     def load_dataset(self, split=None):
-        dataset = super().load_dataset(split='train')
-        dataset = dataset.train_test_split(test_size=0.1, seed=25)
-        return dataset[split]
+        return super().load_dataset(split)
 
     def preprocess_data(self, examples, skip_output_processing=False):
         # If used with the classification mode, don't process the output 
@@ -533,9 +534,7 @@ class ProductDataset(ClassificationDataset):
         super().__init__(dataset_name)
 
     def load_dataset(self, split=None):
-        dataset = super().load_dataset(split='train')
-        dataset = dataset.train_test_split(test_size=0.1, seed=25)
-        return dataset[split]
+        return super().load_dataset(split)
 
     def preprocess_data(self, examples, skip_output_processing=False):
         # If used with the classification mode, don't process the output 

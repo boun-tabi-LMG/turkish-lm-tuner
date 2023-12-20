@@ -40,16 +40,38 @@ def main(cfg: DictConfig):
     postprocess_fn = dataset_processor.dataset.postprocess_data
     
     model_save_path = training_params['output_dir']
+    try:
+        logger.info("Loading existing test split")
+        test_dataset = dataset_processor.load_and_preprocess_data(split="test")
+        train_dataset = train_set
+        test_exists = True
+    except ValueError:
+        logger.info("No existing test split!")
+        test_exists = False
+
     try: 
-        logger.info("Loading existing dataset splits")
+        logger.info("Loading existing validation split")
         eval_dataset = dataset_processor.load_and_preprocess_data(split='validation')
         train_dataset = train_set
-    except:
-        logger.info("Creating random train and validation splits")
-        train_set = train_set.train_test_split(test_size=0.1)
-        train_dataset, eval_dataset = train_set["train"], train_set["test"]
-    
-    test_dataset = dataset_processor.load_and_preprocess_data(split="test")
+        val_exists = True
+    except ValueError:
+        logger.info("No existing validation split!")
+        val_exists = False
+
+    if not val_exists and not test_exists:
+        logger.info("Creating random train, validation and test splits")
+        train_set = train_set.train_test_split(test_size=0.2, seed=25)
+        train_dataset, eval_test_dataset = train_set["train"], train_set["test"] 
+        eval_test_dataset = eval_test_dataset.train_test_split(test_size=0.5, seed=25)
+        eval_dataset, test_dataset = eval_test_dataset["train"], eval_test_dataset["test"] 
+    elif not val_exists:
+        logger.info("Creating random train, validation splits")
+        train_set = train_set.train_test_split(test_size=0.1, seed=25)
+        train_dataset, eval_dataset = train_set["train"], train_set["test"] 
+    elif not test_exists:
+        logger.info("Creating random train, test splits")
+        train_set = train_set.train_test_split(test_size=0.1, seed=25)
+        train_dataset, test_dataset = train_set["train"], train_set["test"] 
 
     logger.info("Training set size: %d", len(train_dataset))
     logger.info("Validation set size: %d", len(eval_dataset))
