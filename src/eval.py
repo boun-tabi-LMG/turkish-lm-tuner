@@ -61,10 +61,7 @@ class BaseEvaluator:
     def compute_metrics(self, preds, labels):
         scores = {}
         for metric in self.metrics:
-            try:
-                metric_scores = metric.compute(preds, labels)
-            except: # for multi-class classification tasks
-                metric_scores = metric.compute(preds, labels, average="weighted")
+            metric_scores = metric.compute(preds, labels)
             scores.update(metric_scores)
         return scores
 
