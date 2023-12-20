@@ -167,7 +167,9 @@ def load_task_metrics(task):
         return load_metrics(["accuracy", "precision", "recall", "f1"])
     elif task == "pos_tagging":
         return load_metrics(["accuracy", "precision", "recall", "f1"])
-    elif task == "question_answering" or task == "question_generation":
+    elif task == "question_answering":
+        return load_metrics(["rouge", "bleu", "meteor", "ter", "f1"])
+    elif task == "question_generation":
         return load_metrics(["rouge", "bleu", "meteor", "ter"])
     else:
         raise NotImplementedError(f"Task {task} not implemented.")
