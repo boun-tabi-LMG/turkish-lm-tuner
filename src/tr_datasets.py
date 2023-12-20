@@ -606,6 +606,31 @@ class ProductDataset(ClassificationDataset):
         print("Deduplicating data")
         return super().deduplicate_data(dataset, "sentence")  
 
+class SentimentTweetDataset(ClassificationDataset):
+    DATASET_NAME = "sentiment_tweet"
+    DATASET_INFO = {'train': 'formatted_train.csv', 'test': 'formatted_test.csv'}
+    IN_LABEL_DICT = {0: "olumsuz", 1: "nötr", 2: "olumlu"}
+
+    def __init__(self, dataset_loc):
+        BaseDataset.__init__(self)
+        self.dataset_loc = dataset_loc
+
+    def preprocess_data(self, examples, skip_output_processing=False):
+        # If used with the classification mode, don't process the output 
+        if skip_output_processing:
+            return {"input_text": examples["text"], "label": examples["label"]}
+        output = [self.IN_LABEL_DICT[ex] for ex in examples["label"]]
+        return {"input_text": examples["text"], "target_text": output}
+    
+    def postprocess_data(self, examples):
+        return [self.OUT_LABEL_DICT.get(ex.strip(), -1) for ex in examples]
+
+    def load_dataset(self, split=None):
+        dataset = LocalDataset.load_dataset(self, split)
+        #dataset = datasets.load_dataset(self.dataset_loc, data_files=self.dataset_info, split=split)
+        print("Deduplicating data")
+        return super().deduplicate_data(dataset, "text")  
+
 DATASET_MAPPING_NAMES = [
         ("tr_news", "TRNewsDataset"),
         ("mlsum", "MLSumDataset"),
@@ -626,6 +651,7 @@ DATASET_MAPPING_NAMES = [
         ("stsb_tr", "STSb_TRDataset"),
         ("ttc4900", "TTC4900Dataset"),
         ("tr_product_reviews", "ProductDataset"),
+        ("17bintweet_sentiment", "SentimentTweetDataset"),
     ]
 
 def str_to_class(classname):
