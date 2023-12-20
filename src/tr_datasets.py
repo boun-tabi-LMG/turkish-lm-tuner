@@ -254,7 +254,7 @@ class MKQADataset(BaseDataset):
 
     def load_dataset(self, split=None):
         dataset = datasets.load_dataset('mkqa')
-        split_dataset = dataset['train'].train_test_split(test_size=0.1)
+        split_dataset = dataset['train'].train_test_split(test_size=0.1, seed=42)
         return split_dataset[split]
 
     def preprocess_data(self, examples, task='qa'):
