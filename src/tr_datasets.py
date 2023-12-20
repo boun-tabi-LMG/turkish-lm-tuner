@@ -100,7 +100,7 @@ class LocalDataset(BaseDataset):
 class STSb_TRDataset(LocalDataset):
     DATASET_NAME = "stsb_tr"
     DATASET_INFO = {'train': 'stsb_tr_train.tsv', 'test': 'stsb_tr_test.tsv', 'validation': 'stsb_tr_dev.tsv'}
-    
+
     def preprocess_data(self, examples):
         input = [f"ilk cümle: {examples['sentence1'][i]} ikinci cümle: {examples['sentence2'][i]}" for i in range(len(examples["sentence1"]))]
         output = [str(ex) for ex in examples["score"]]
@@ -565,9 +565,6 @@ class TTC4900Dataset(ClassificationDataset):
     def __init__(self, dataset_name=None):
         super().__init__(dataset_name)
 
-    def load_dataset(self, split=None):
-        return super().load_dataset(split)
-
     def preprocess_data(self, examples, skip_output_processing=False):
         # If used with the classification mode, don't process the output 
         if skip_output_processing:
@@ -582,9 +579,6 @@ class ProductDataset(ClassificationDataset):
 
     def __init__(self, dataset_name=None):
         super().__init__(dataset_name)
-
-    def load_dataset(self, split=None):
-        return super().load_dataset(split)
 
     def preprocess_data(self, examples, skip_output_processing=False):
         # If used with the classification mode, don't process the output 
