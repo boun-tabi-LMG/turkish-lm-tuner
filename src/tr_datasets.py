@@ -612,7 +612,7 @@ class SentimentTweetDataset(ClassificationDataset):
     IN_LABEL_DICT = {0: "olumsuz", 1: "nötr", 2: "olumlu"}
 
     def __init__(self, dataset_loc):
-        BaseDataset.__init__(self)
+        super().__init__(self)
         self.dataset_loc = dataset_loc
 
     def preprocess_data(self, examples, skip_output_processing=False):
