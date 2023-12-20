@@ -32,6 +32,15 @@ class BaseDataset:
     def postprocess_data(self, examples):
         return [ex.strip() for ex in examples]
 
+    def deduplicate_data(self, dataset, input_column):
+        df = dataset.to_pandas()
+        df = df.drop_duplicates(subset=[input_column])
+        dedup_dataset = datasets.Dataset.from_pandas(df)
+        drop_columns = [col for col in dedup_dataset.column_names if col not in dataset.column_names]
+        dedup_dataset = dedup_dataset.map(remove_columns=drop_columns)
+        return dedup_dataset
+
+
 class TRNewsDataset(BaseDataset): 
     DATASET_NAME = "tr_news"
     DATASET_INFO = "batubayk/TR-News"
@@ -506,7 +515,7 @@ class ClassificationDataset(BaseDataset):
 
     def load_dataset(self, split=None):
         return super().load_dataset(split)    
-
+         
 class TTC4900Dataset(ClassificationDataset):
     DATASET_NAME = "ttc4900"
     DATASET_INFO = "ttc4900" 
@@ -521,6 +530,11 @@ class TTC4900Dataset(ClassificationDataset):
             return {"input_text": examples["text"], "label": examples["category"]}
         output = [self.IN_LABEL_DICT[ex] for ex in examples["category"]]
         return {"input_text": examples["text"], "target_text": output}
+
+    def load_dataset(self, split=None):
+        dataset = super().load_dataset(split)   
+        print("Deduplicating data")
+        return super().deduplicate_data(dataset, "text")  
 
 class ProductDataset(ClassificationDataset):
     DATASET_NAME = "turkish_product_reviews"
@@ -537,6 +551,10 @@ class ProductDataset(ClassificationDataset):
         output = [self.IN_LABEL_DICT[ex] for ex in examples["sentiment"]]
         return {"input_text": examples["sentence"], "target_text": output}
     
+    def load_dataset(self, split=None):
+        dataset = super().load_dataset(split)   
+        print("Deduplicating data")
+        return super().deduplicate_data(dataset, "sentence")  
 
 DATASET_MAPPING_NAMES = [
         ("tr_news", "TRNewsDataset"),
