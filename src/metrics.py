@@ -49,10 +49,24 @@ class Accuracy(BaseMetric):
 class Precision(BaseMetric):
     def __init__(self):
         super().__init__("precision")
+
+class PrecisionWeighted(BaseMetric):
+    def __init__(self):
+        super().__init__("precision")
+
+    def compute(self, preds, labels):
+        return self.metric.compute(predictions=preds, references=labels, average="weighted")
     
 class Recall(BaseMetric):
     def __init__(self):
         super().__init__("recall")
+
+class RecallWeighted(BaseMetric):
+    def __init__(self):
+        super().__init__("recall")
+
+    def compute(self, preds, labels):
+        return self.metric.compute(predictions=preds, references=labels, average="weighted")
 
 class F1(BaseMetric):
     def __init__(self):
@@ -60,24 +74,24 @@ class F1(BaseMetric):
 
 class F1Macro(BaseMetric):
     def __init__(self):
-        super().__init__("f1_macro")
+        super().__init__("f1")
 
     def compute(self, preds, labels):
-        return super().compute(predictions=preds, references=labels, average="macro")
+        return self.metric.compute(predictions=preds, references=labels, average="macro")
     
 class F1Micro(BaseMetric):
     def __init__(self):
-        super().__init__("f1_micro")
+        super().__init__("f1")
 
     def compute(self, preds, labels):
-        return super().compute(predictions=preds, references=labels, average="micro")
+        return self.metric.compute(predictions=preds, references=labels, average="micro")
     
 class F1Weighted(BaseMetric):
     def __init__(self):
-        super().__init__("f1_weighted")
+        super().__init__("f1")
 
     def compute(self, preds, labels):
-        return super().compute(predictions=preds, references=labels, average="weighted")
+        return self.metric.compute(predictions=preds, references=labels, average="weighted")
     
 class Pearsonr(BaseMetric):
     def __init__(self):
@@ -103,7 +117,9 @@ class TER(BaseMetric):
 METRIC_MAPPING_NAMES = [
         ("accuracy", "Accuracy"),
         ("precision", "Precision"),
+        ("precision_weighted", "PrecisionWeighted"),
         ("recall", "Recall"),
+        ("recall_weighted", "RecallWeighted"),
         ("f1", "F1"),
         ("f1_macro", "F1Macro"),
         ("f1_micro", "F1Micro"),
@@ -156,7 +172,7 @@ def load_task_metrics(task):
         list: A list of metric class instances relevant to the task.
     """
     if task == "classification":
-        return load_metrics(["accuracy", "precision", "recall", "f1"])
+        return load_metrics(["accuracy", "precision_weighted", "recall_weighted", "f1_weighted"])
     elif task in ["summarization", "paraphrasing", "title_generation"]:
         return load_metrics(["rouge", "bleu", "meteor", "ter"])
     elif task == "nli":

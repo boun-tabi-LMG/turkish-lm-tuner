@@ -32,6 +32,15 @@ class BaseDataset:
     def postprocess_data(self, examples):
         return [ex.strip() for ex in examples]
 
+    def deduplicate_data(self, dataset, input_column):
+        df = dataset.to_pandas()
+        df = df.drop_duplicates(subset=[input_column])
+        dedup_dataset = datasets.Dataset.from_pandas(df)
+        drop_columns = [col for col in dedup_dataset.column_names if col not in dataset.column_names]
+        dedup_dataset = dedup_dataset.map(remove_columns=drop_columns)
+        return dedup_dataset
+
+
 class TRNewsDataset(BaseDataset): 
     DATASET_NAME = "tr_news"
     DATASET_INFO = "batubayk/TR-News"
@@ -100,7 +109,7 @@ class LocalDataset(BaseDataset):
 class STSb_TRDataset(LocalDataset):
     DATASET_NAME = "stsb_tr"
     DATASET_INFO = {'train': 'stsb_tr_train.tsv', 'test': 'stsb_tr_test.tsv', 'validation': 'stsb_tr_dev.tsv'}
-    
+
     def preprocess_data(self, examples):
         input = [f"ilk cümle: {examples['sentence1'][i]} ikinci cümle: {examples['sentence2'][i]}" for i in range(len(examples["sentence1"]))]
         output = [str(ex) for ex in examples["score"]]
@@ -116,7 +125,8 @@ class STSb_TRDataset(LocalDataset):
 
 class NLI_TRDataset(BaseDataset):
     DATASET_INFO = ("nli_tr", None)
-    NLI_LABEL_DICT = {0: "gereklilik", 1: "nötr", 2:"çelişki"}
+    IN_LABEL_DICT = {0: "gereklilik", 1: "nötr", 2:"çelişki"}
+    OUT_LABEL_DICT = {v: k for k, v in IN_LABEL_DICT.items()}
     def __init__(self, dataset_name=None):
         # dataset_name is either "nli_tr", "snli_tr" or "multinli_tr"
         super().__init__(dataset_name)
@@ -124,27 +134,21 @@ class NLI_TRDataset(BaseDataset):
     
     def load_dataset(self, split=None):
         if self.dataset_name == "nli_tr":
-            mnli_tr = NLI_TRDataset("multinli_tr").load_dataset(split)
-            snli_tr = NLI_TRDataset("snli_tr").load_dataset(split)
-            if split is not None:
-                return datasets.concatenate_datasets([mnli_tr, snli_tr]) 
+            if split == "train":
+                mnli_tr = NLI_TRDataset("multinli_tr").load_dataset(split)
+                snli_tr = NLI_TRDataset("snli_tr").load_dataset(split)
+                dataset = datasets.concatenate_datasets([mnli_tr, snli_tr]) 
             else:
-                combined_data = {}
-                for key in snli_tr.keys():
-                    combined_data[key] = datasets.concatenate_datasets([snli_tr[key], mnli_tr[key]]) 
-                # Returns DatasetDict object which is compatible with other datasets but takes a lot of time
-                # return datasets.Dataset.from_dict(combined_data)
-                # Returns a dictionary of DatasetDicts which is not compatible with other datasets but is faster
-                return combined_data 
+                dataset = NLI_TRDataset("snli_tr").load_dataset(split) 
         elif self.dataset_name == 'snli_tr':
-            snli_tr = super().load_dataset(split)
-            if split == 'train':
-                 snli_tr = snli_tr.filter(lambda example: example["label"] != -1)
-            elif split is None:
-                snli_tr["train"] = snli_tr["train"].filter(lambda example: example["label"] != -1)
-            return snli_tr
+            dataset = super().load_dataset(split)
+            """elif split is None:
+                snli_tr["train"] = snli_tr["train"].filter(lambda example: example["label"] != -1)"""
+        elif self.dataset_name == 'multinli_tr' and split == "test":
+            dataset = super().load_dataset(split="validation_mismatched")
         else:
-            return super().load_dataset(split)
+            dataset = super().load_dataset(split)
+        return dataset.filter(lambda example: example["label"] != -1)
         
     def preprocess_data(self, examples, skip_output_processing=False):
         
@@ -152,11 +156,11 @@ class NLI_TRDataset(BaseDataset):
         # If used with the classification mode, skip the output processing
         if skip_output_processing:
             return {"input_text": input, "label": examples["label"]}
-        output = [NLI_TRDataset.NLI_LABEL_DICT[ex] for ex in examples["label"]]
+        output = [NLI_TRDataset.IN_LABEL_DICT[ex] for ex in examples["label"]]
         return {"input_text": input, "target_text": output}
     
     def postprocess_data(self, examples):
-        return [NLI_TRDataset.NLI_LABEL_DICT.get(ex.strip(), -1) for ex in examples]
+        return [NLI_TRDataset.OUT_LABEL_DICT.get(ex.strip(), -1) for ex in examples]
 
 class ExamsDataset(BaseDataset):
     DATASET_NAME = "exams"
@@ -498,6 +502,84 @@ class UDIMSTDataset(POSDataset):
     def __init__(self, dataset_loc=None):
         super().__init__(dataset_loc, self.DATASET_RAW_INFO)
 
+class ClassificationDataset(BaseDataset):
+    IN_LABEL_DICT = None
+    OUT_LABEL_DICT = None
+
+    def __init__(self, dataset_name=None):
+        super().__init__(dataset_name)
+        self.OUT_LABEL_DICT = {v: k for k, v in self.IN_LABEL_DICT.items()}
+
+    def postprocess_data(self, examples):
+        return [self.OUT_LABEL_DICT.get(ex.strip(), -1) for ex in examples]
+
+    def load_dataset(self, split=None):
+        return super().load_dataset(split)    
+         
+class TTC4900Dataset(ClassificationDataset):
+    DATASET_NAME = "ttc4900"
+    DATASET_INFO = "ttc4900" 
+    IN_LABEL_DICT = {0: "siyaset", 1: "dünya", 2: "ekonomi", 3: "kültür", 4: "sağlık", 5: "spor", 6: "teknoloji"}
+
+    def __init__(self, dataset_name=None):
+        super().__init__(dataset_name)
+
+    def preprocess_data(self, examples, skip_output_processing=False):
+        # If used with the classification mode, don't process the output 
+        if skip_output_processing:
+            return {"input_text": examples["text"], "label": examples["category"]}
+        output = [self.IN_LABEL_DICT[ex] for ex in examples["category"]]
+        return {"input_text": examples["text"], "target_text": output}
+
+    def load_dataset(self, split=None):
+        dataset = super().load_dataset(split)   
+        print("Deduplicating data")
+        return super().deduplicate_data(dataset, "text")  
+
+class ProductDataset(ClassificationDataset):
+    DATASET_NAME = "turkish_product_reviews"
+    DATASET_INFO = "turkish_product_reviews" 
+    IN_LABEL_DICT = {0: "negatif", 1: "pozitif"}
+
+    def __init__(self, dataset_name=None):
+        super().__init__(dataset_name)
+
+    def preprocess_data(self, examples, skip_output_processing=False):
+        # If used with the classification mode, don't process the output 
+        if skip_output_processing:
+            return {"input_text": examples["sentence"], "label": examples["sentiment"]}
+        output = [self.IN_LABEL_DICT[ex] for ex in examples["sentiment"]]
+        return {"input_text": examples["sentence"], "target_text": output}
+    
+    def load_dataset(self, split=None):
+        dataset = super().load_dataset(split)   
+        print("Deduplicating data")
+        return super().deduplicate_data(dataset, "sentence")  
+
+class SentimentTweetDataset(ClassificationDataset):
+    DATASET_NAME = "sentiment_tweet"
+    DATASET_INFO = {'train': 'formatted_train.csv', 'test': 'formatted_test.csv'}
+    IN_LABEL_DICT = {0: "olumsuz", 1: "nötr", 2: "olumlu"}
+
+    def __init__(self, dataset_loc):
+        super().__init__(self)
+        self.dataset_loc = dataset_loc
+
+    def preprocess_data(self, examples, skip_output_processing=False):
+        # If used with the classification mode, don't process the output 
+        if skip_output_processing:
+            return {"input_text": examples["text"], "label": examples["label"]}
+        output = [self.IN_LABEL_DICT[ex] for ex in examples["label"]]
+        return {"input_text": examples["text"], "target_text": output}
+    
+    def postprocess_data(self, examples):
+        return [self.OUT_LABEL_DICT.get(ex.strip(), -1) for ex in examples]
+
+    def load_dataset(self, split=None):
+        dataset = LocalDataset.load_dataset(self, split)
+        #dataset = datasets.load_dataset(self.dataset_loc, data_files=self.dataset_info, split=split)
+        print("Deduplicating data")
+        return super().deduplicate_data(dataset, "text")  
 
 DATASET_MAPPING_NAMES = [
         ("tr_news", "TRNewsDataset"),
@@ -517,6 +599,9 @@ DATASET_MAPPING_NAMES = [
         ("boun", "UDBOUNDataset"),
         ("imst", "UDIMSTDataset"),
         ("stsb_tr", "STSb_TRDataset"),
+        ("ttc4900", "TTC4900Dataset"),
+        ("tr_product_reviews", "ProductDataset"),
+        ("17bintweet_sentiment", "SentimentTweetDataset"),
     ]
 
 def str_to_class(classname):

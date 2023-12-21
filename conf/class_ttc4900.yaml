@@ -1,0 +1,17 @@
+defaults:
+  #- default_classification  
+  - default_cond_gen # switch to this line for Conditional Generation
+
+dataset_name: ttc4900 
+task: classification
+max_input_length: 1450
+max_target_length: 8
+num_labels: 7
+training_params:
+  per_device_train_batch_size: 2 # for ultramarine
+  per_device_eval_batch_size: 2 # for ultramarine
+  # Conditional generation mode: classification/cg/ttc4900
+  # Classification mode: classification/tc/ttc4900
+  output_dir: /stratch/bounllm/finetuned-models/ul2tr/classification/cg/ttc4900
+
+
