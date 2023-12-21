@@ -113,6 +113,10 @@ class TER(BaseMetric):
     def __init__(self):
         super().__init__("ter")
 
+class SQUAD(BaseMetric):
+    def __init__(self):
+        super().__init__("squad")
+
 
 METRIC_MAPPING_NAMES = [
         ("accuracy", "Accuracy"),
@@ -129,6 +133,7 @@ METRIC_MAPPING_NAMES = [
         ("meteor", "METEOR"),
         ("rouge", "ROUGE"),
         ("ter", "TER"),
+        ("squad", "SQUAD")
     ]
 
 def str_to_class(classname):
@@ -179,6 +184,14 @@ def load_task_metrics(task):
         return load_metrics(["accuracy"])
     elif task == "semantic_similarity":
         return load_metrics(["pearsonr"])
+    elif task == "ner":
+        return load_metrics(["accuracy", "precision", "recall", "f1"])
+    elif task == "pos_tagging":
+        return load_metrics(["accuracy", "precision", "recall", "f1"])
+    elif task == "question_answering":
+        return load_metrics(["squad"])
+    elif task == "question_generation":
+        return load_metrics(["rouge", "bleu", "meteor", "ter"])
     else:
         raise NotImplementedError(f"Task {task} not implemented.")
     

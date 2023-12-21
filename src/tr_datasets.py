@@ -256,6 +256,11 @@ class MKQADataset(BaseDataset):
     DATASET_NAME = "mkqa"
     DATASET_INFO = "mkqa"    
 
+    def load_dataset(self, split=None):
+        dataset = datasets.load_dataset('mkqa')
+        split_dataset = dataset['train'].train_test_split(test_size=0.1, seed=42)
+        return split_dataset[split]
+
     def preprocess_data(self, examples, task='qa'):
         return self.preprocess_question_answering(examples) if task == 'qa' else self.preprocess_question_generation(examples)
     
@@ -286,8 +291,40 @@ class MKQADataset(BaseDataset):
         return {"input_text": input_texts, "target_text": target_texts}
 
 class NERDataset(BaseDataset):
+    NER_label_translation_d = {"Kişi": "PER", "Yer": "LOC", "Kuruluş": "ORG"}
+    NER_label_int_dict = {"PER": 1, "LOC": 3, "ORG": 5}
+
     def postprocess_data(self, examples):
-        raise NotImplementedError
+        labels = []
+        for example in examples:
+            example = example.strip()
+            tokens = example.split(' ')
+            label_l = [0 for _ in range(len(tokens))]
+            if example == 'Bulunamadı.':
+                labels.append(label_l)
+            else:
+                type_split = example.split(' | ')
+                for type_el in type_split:
+                    el_split = type_el.split(': ')
+                    tag_type = el_split[0]
+                    el_l = el_split[1].split(', ')
+                    for el in el_l:
+                        if el.strip() == '':
+                            continue
+                        el_split = el.split(' ')
+                        if el_split[0] not in tokens or el_split[-1] not in tokens:
+                            continue
+                        if len(el_split) == 1:
+                            start = tokens.index(el_split[0])
+                            label_l[start] = NERDataset.NER_label_int_dict[NERDataset.NER_label_translation_d[tag_type]]
+                        else:
+                            start = tokens.index(el_split[0])
+                            label_l[start] = NERDataset.NER_label_int_dict[NERDataset.NER_label_translation_d[tag_type]]
+                            end = tokens.index(el_split[-1])
+                            for i in range(start+1, end+1):
+                                label_l[i] = NERDataset.NER_label_int_dict[NERDataset.NER_label_translation_d[tag_type]] + 1
+                labels.append(label_l)
+        return labels
 
 class WikiANNDataset(NERDataset):
     DATASET_NAME = "wikiann"
@@ -336,13 +373,13 @@ class MilliyetNERDataset(LocalDataset,NERDataset):
 
     def __init__(self, dataset_loc):
         super().__init__(dataset_loc)
-        for split, filename in self.dataset_info.items():
+
+    def load_dataset(self, split=None):
+        for split_t, filename in self.dataset_info.items():
             data_file = Path(self.dataset_loc) / filename
             if data_file.exists():
                 continue
             else:
-                dataset_dict = {}
-                dataset_dict[split] = []
                 with open(data_file.with_suffix('.txt'), 'r', encoding='utf-8') as f:
                     content = f.read()
                 data = content.split('\n\n')
@@ -359,9 +396,9 @@ class MilliyetNERDataset(LocalDataset,NERDataset):
                         tokens.append(token)
                         tags.append(tag)
                     el = {'tokens': tokens, 'tags': tags}
-                    dataset_dict[split].append(el)
-                with open(data_file, 'w', encoding='utf-8') as f:
-                    json.dump(dataset_dict[split], f, ensure_ascii=False)
+                    with open(data_file, 'a', encoding='utf-8') as f:
+                        f.write(json.dumps(el) + '\n')
+        return super().load_dataset(split)
  
     def preprocess_data(self, examples):
         input_texts, target_texts = [], []
@@ -414,12 +451,14 @@ class POSDataset(LocalDataset):
 
     def __init__(self, dataset_loc=None, dataset_raw_info=None):
         super().__init__(dataset_loc)
-
+        self.DATASET_RAW_INFO = dataset_raw_info
+    
+    def load_dataset(self, split=None):
         md_pattern = re.compile('^# (.+?) = (.+?)$')
         annotation_pattern = re.compile('(.+\t){9}.+')
-        for split, filename in dataset_raw_info.items():
+        for split_t, filename in self.DATASET_RAW_INFO.items():
             data_file = Path(self.dataset_loc) / filename
-            output_file = Path(self.dataset_loc) / self.DATASET_INFO[split]
+            output_file = Path(self.dataset_loc) / self.DATASET_INFO[split_t]
             if output_file.exists():
                 continue
             else:
@@ -431,6 +470,7 @@ class POSDataset(LocalDataset):
                     lines = sent.split('\n')
                     sent_id = ''
                     d_t = {}
+                    id_l, token_l, tag_l = [], [], []
                     for i, line in enumerate(lines):
                         md_match = md_pattern.match(line)
                         if md_match:
@@ -443,24 +483,25 @@ class POSDataset(LocalDataset):
                         annotation_match = annotation_pattern.match(line)
                         if annotation_match:
                             annotation = '\n'.join(lines[i:])
-                            id_l, token_l, tag_l = [], [], []
                             for row in annotation.split('\n'):
                                 if row.strip() == '':
                                     break
                                 fields = row.split('\t')
                                 id_t, token, tag = fields[0], fields[1], fields[3]
+                                if '-' in id_t:
+                                    continue
                                 id_l.append(id_t)
                                 token_l.append(token)
                                 tag_l.append(tag)
-                            d_t['split'] = split
+                            d_t['split'] = split_t
                             d_t['tokens'] = token_l
                             d_t['tags'] = tag_l
                             d_t['sent_id'] = sent_id
                             d_t['ids'] = id_l
-                    if d_t:
-                        data_l.append(d_t)
-                with open(output_file, 'w', encoding='utf-8') as f:
-                    json.dump(data_l, f, ensure_ascii=False)
+                            with open(output_file, 'a', encoding='utf-8') as f:
+                                f.write(json.dumps(d_t) + '\n')
+                            break
+        return super().load_dataset(split)
     
     def preprocess_data(self, examples):
         pos_d_tr = { "ADP": "edat", "AUX": "yardımcı", "PRON": "zamir", "NOUN": "isim", "PROPN": "özel", "INTJ": "ünlem", "PART": "tanımcık", "CCONJ": "eşgüdümlü", "VERB": "fiil", "SYM": "sembol", "DET": "belirteç", "ADV": "zarf", "ADJ": "sıfat", "X": "diğer", "SCONJ": "yantümce", "NUM": "sayı", "PUNCT": "noktalama" }
@@ -485,8 +526,17 @@ class POSDataset(LocalDataset):
         return {"input_text": input_texts, "target_text": target_texts}
     
     def postprocess_data(self, examples):
-        raise NotImplementedError
-    
+        labels = []
+        for example in examples:
+            example = example.strip()
+            tokens = example.split(' ')
+            label_l = []
+            for token in tokens:
+                token_split = token.split('/')
+                label = token_split[-1]
+                label_l.append(label)
+            labels.append(label_l)
+        return labels    
     
 class UDBOUNDataset(POSDataset):
     DATASET_NAME = "boun"
@@ -595,7 +645,7 @@ DATASET_MAPPING_NAMES = [
         ("tquad", "TQUADDataset"),
         ("mkqa", "MKQADataset"),
         ("wikiann", "WikiANNDataset"),
-        ("milliyet_ner", "MilliyetNERDataset"),
+        ("milliyet", "MilliyetNERDataset"),
         ("boun", "UDBOUNDataset"),
         ("imst", "UDIMSTDataset"),
         ("stsb_tr", "STSb_TRDataset"),
