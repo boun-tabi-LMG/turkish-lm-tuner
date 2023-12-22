@@ -1,0 +1,98 @@
+site_name: "Turkish LM Tuner"
+site_description: "Turkish LM Tuner: a new library for tuning Turkish Language Models"
+site_url: "https://github.com/boun-tabi-lmt/turkish-lm-tuner"
+repo_url: "https://github.com/boun-tabi-lmt/turkish-lm-tuner"
+repo_name: "boun-tabi-lmt/turkish-lm-tuner"
+copyright: Copyright 2023 BOUN TABILAB LMT
+
+remote_branch: "gh-pages"
+docs_dir: "docs"
+use_directory_urls: false
+strict: true
+
+nav:
+  - Overview: index.md
+  - Tutorials:
+      - Getting Started: tutorials/getting-started.ipynb
+      - Finetuning: tutorials/finetuning.ipynb
+      - Inference: tutorials/inference.ipynb
+      - Evaluation: tutorials/evaluation.ipynb
+
+  - License: license.md
+
+theme:
+  name:  mkdocs
+  features:
+    - navigation.expand
+  name: material
+  features:
+    - navigation.expand
+
+markdown_extensions:
+  - admonition
+  - markdown_include.include
+  - pymdownx.emoji
+  - pymdownx.highlight
+  - pymdownx.magiclink
+  - pymdownx.superfences
+  - pymdownx.tabbed
+  - pymdownx.tasklist
+  - pymdownx.details
+  # For `tab_length=2` in the markdown extension
+  # See https://github.com/mkdocs/mkdocs/issues/545
+  - mdx_truly_sane_lists
+  - toc:
+      permalink: true
+
+watch:
+  - turkish_lm_tuner/
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          import:
+            - https://docs.python.org/3/objects.inv
+          setup_commands:
+            - import sys
+            - import turkish_lm_tuner
+            - sys.path.append("docs")
+            - sys.path.append("turkish_lm_tuner")
+          selection:
+            new_path_syntax: true
+          rendering:
+            show_root_heading: false
+            heading_level: 2
+            show_if_no_docstring: true
+        options:
+          docstring_options:
+            ignore_init_summary: false
+          docstring_section_style: list
+          merge_init_into_class: true
+          show_root_heading: false
+          show_root_full_path: false
+          show_signature_annotations: true
+          show_symbol_type_heading: true
+          show_symbol_type_toc: true
+          signature_crossrefs: true
+
+  - mkdocs-jupyter:
+      execute: False
+      remove_tag_config:
+        remove_cell_tags: [remove_cell]
+        remove_all_outputs_tags: [remove_output]
+        remove_input_tags: [remove_input]
+
+  - mike:
+      version_selector: true
+
+extra:
+  version:
+    provider: mike
+
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/boun-tabi-lmt
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/turkishlmtuner/

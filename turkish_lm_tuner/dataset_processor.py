@@ -9,7 +9,7 @@ formatter = logging.Formatter('%(levelname)s - %(asctime)s - %(name)s: %(message
 stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
 
-from tr_datasets import initialize_dataset
+from .tr_datasets import initialize_dataset
 
 class DatasetProcessor:
     def __init__(self, dataset_name, task, task_format, task_mode, tokenizer_name, max_input_length, max_target_length, dataset_loc=""):
@@ -73,8 +73,8 @@ class DatasetProcessor:
         for stat_name, func in stats.items():
             input_stat = func(input_lengths)
             target_stat = func(target_lengths)
-            print(f"{stat_name} input length: {input_stat}")
-            print(f"{stat_name} target length: {target_stat}")
+            logger.info(f"{stat_name} input length: {input_stat}")
+            logger.info(f"{stat_name} target length: {target_stat}")
 
     def prepend_prefix(self, examples):
         return [f'{self.task_mode}{ex}' for ex in examples]

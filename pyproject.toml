@@ -1,0 +1,114 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "turkish-lm-tuner"
+description = "Implementation of the Turkish LM Tuner"
+dynamic = ["version"]
+authors = [{ name = "Gökçe Uludoğan", email = "gokceuludogan@gmail.com" }, {name="Zeynep Yirmibeşoğlu Balal", email="yirmibesogluz@gmail.com"}, {name="Furkan Akkurt", email="furkanakkurt9285@gmail.com"}]
+readme = "README.md"
+license = { text = "Apache-2.0" }
+requires-python = ">=3.9"
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Natural Language Processing",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Natural Language :: Turkish",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+
+keywords = ["nlp", "turkish", "language models", "finetuning"]
+dependencies = [
+    "tqdm",
+    "hydra-core",
+    "numpy",
+    "pandas",
+    "scikit-learn",
+    "torch>=2.0",
+    "transformers>=4.35",
+    "datasets",
+    "tokenizers",
+    "sentencepiece",
+    "accelerate",
+    "safetensors",
+    "evaluate",
+    "wandb",
+    "huggingface-hub",
+    "absl-py",
+    "rouge-score",
+    "sacrebleu"
+]
+
+#                                                                                                                                                                                                                  [project.urls.docs]
+
+[project.urls]
+"Source Code" = "https://github.com/boun-tabi-lmt/turkish-lm-tuner"
+"Bug Tracker" = "https://github.com/boun-tabi-lmt/turkish-lm-tuner/issues"
+Documentation = "https://turkish-lm-tuner-docs.boun-tabi-lmt.github.io/"
+
+
+[project.scripts]
+# safe-train = "safe.trainer.cli:main"
+
+[tool.setuptools]
+include-package-data = true
+zip-safe = false
+license-files = ["LICENSE"]
+
+[tool.setuptools_scm]
+fallback_version = "dev"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["turkish_lm_tuner", "turkish_lm_tuner.*"]
+exclude = []
+namespaces = true
+
+[tool.black]
+line-length = 100
+target-version = ['py310', 'py311']
+include = '\.pyi?$'
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "--verbose --color yes"
+testpaths = ["tests"]
+
+[tool.ruff.pycodestyle]
+max-doc-length = 150
+
+[tool.ruff]
+line-length = 120
+# Enable Pyflakes `E` and `F` codes by default.
+select = [
+    "E",
+    "W", # see: https://pypi.org/project/pycodestyle
+    "F", # see: https://pypi.org/project/pyflakes
+]
+extend-select = [
+    "C4",  # see: https://pypi.org/project/flake8-comprehensions
+    "SIM", # see: https://pypi.org/project/flake8-simplify
+    "RET", # see: https://pypi.org/project/flake8-return
+    "PT",  # see: https://pypi.org/project/flake8-pytest-style
+]
+ignore = [
+    "E731", # Do not assign a lambda expression, use a def
+    "S108",
+    "F401",
+    "S105",
+    "E501",
+    "E722",
+]
+# Exclude a variety of commonly ignored directories.
+exclude = [".git", "docs", "_notebooks"]
+ignore-init-module-imports = true
