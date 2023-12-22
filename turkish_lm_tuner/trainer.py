@@ -67,9 +67,9 @@ class BaseModelTrainer:
 
 
 class TrainerForConditionalGeneration(BaseModelTrainer):
-    def __init__(self, model_name, task, adafactor_scheduler, training_params, model_save_path, max_target_length, postprocess_fn):
+    def __init__(self, model_name, task, adafactor_scheduler, training_params, model_save_path, max_input_length, max_target_length, postprocess_fn):
         super().__init__(model_name, adafactor_scheduler, training_params)
-        self.evaluator = EvaluatorForConditionalGeneration(model_save_path, model_name, task, max_target_length, training_params, postprocess_fn=postprocess_fn)
+        self.evaluator = EvaluatorForConditionalGeneration(model_save_path, model_name, task, max_input_length, max_target_length, training_params, postprocess_fn=postprocess_fn)
 
     def initialize_model(self):
         return AutoModelForSeq2SeqLM.from_pretrained(self.model_name)
