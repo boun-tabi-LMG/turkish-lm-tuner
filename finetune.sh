@@ -15,7 +15,7 @@ echo $1
 source /opt/python3/venv/base/bin/activate
 
 pip install torch --index-url https://download.pytorch.org/whl/cu118
-cd ~/t5-tuner
+cd ~/turkish-lm-tuner
 pip install -r requirements.txt
 pip install wandb
 # For Single-GPU Training
