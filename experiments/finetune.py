@@ -62,7 +62,7 @@ def main(cfg: DictConfig):
 
     if task_format == 'conditional_generation':
         logger.info("******Conditional Generation Mode******")
-        model_trainer = TrainerForConditionalGeneration(model_name, task, adafactor_scheduler, training_params, model_save_path, max_target_length, postprocess_fn)
+        model_trainer = TrainerForConditionalGeneration(model_name, task, adafactor_scheduler, training_params, model_save_path, max_input_length, max_target_length, postprocess_fn)
     elif task_format == 'classification':
         logger.info("******Classification Mode******")
         model_trainer = TrainerForClassification(model_name, task, adafactor_scheduler, training_params, model_save_path, num_labels)
