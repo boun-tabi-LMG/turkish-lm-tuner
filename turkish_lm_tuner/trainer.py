@@ -69,6 +69,8 @@ class BaseModelTrainer:
 class TrainerForConditionalGeneration(BaseModelTrainer):
     def __init__(self, model_name, task, adafactor_scheduler, training_params, model_save_path, max_input_length, max_target_length, postprocess_fn):
         super().__init__(model_name, adafactor_scheduler, training_params)
+        self.max_input_length = max_input_length
+        self.max_target_length = max_target_length
         self.evaluator = EvaluatorForConditionalGeneration(model_save_path, model_name, task, max_input_length, max_target_length, training_params, postprocess_fn=postprocess_fn)
 
     def initialize_model(self):
@@ -77,15 +79,22 @@ class TrainerForConditionalGeneration(BaseModelTrainer):
     def train_and_evaluate(self, train_dataset, eval_dataset, test_dataset):
         logger.info("Training in conditional generation mode")
 
+        model = self.initialize_model()
+        optimizer, lr_scheduler = self.create_optimizer(model)
+
+        generation_config = model.generation_config 
+        generation_config.max_length = self.max_input_length
+        generation_config.max_new_tokens = self.max_target_length
+
+        logger.info("Generation config: %s", generation_config)
+
         training_args = Seq2SeqTrainingArguments(
             metric_for_best_model='eval_loss',
             load_best_model_at_end=True,
             greater_is_better=False,
+            generation_config=generation_config,
             **self.training_params)
         logger.info("Training arguments: %s", training_args)
-
-        model = self.initialize_model()
-        optimizer, lr_scheduler = self.create_optimizer(model)
 
         trainer = Seq2SeqTrainer(
             model=model,
