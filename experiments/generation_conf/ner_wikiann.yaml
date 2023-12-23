@@ -1,0 +1,12 @@
+defaults:
+  - default_cond_gen
+
+dataset_name: wikiann
+task: ner
+max_input_length: 60
+max_target_length: 40
+tokenizer_path: /stratch/bounllm/pretrained_checkpoints/ckpt-1.74M
+model_path: /stratch/bounllm/finetuned-models/ul2tr/summarization/tr_news
+test_params:
+  per_device_eval_batch_size: 32 # for ultramarine
+  output_dir: /stratch/bounllm/finetuned-models/ul2tr/ner/wikiann
