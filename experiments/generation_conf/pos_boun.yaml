@@ -3,7 +3,7 @@ defaults:
 
 dataset_loc: "/stratch/bounllm/supervised/tr_boun-ud"
 dataset_name: boun
-task: pos
+task: pos_tagging
 max_input_length: 90
 max_target_length: 300
 tokenizer_path: /stratch/bounllm/pretrained_checkpoints/ckpt-1.74M
