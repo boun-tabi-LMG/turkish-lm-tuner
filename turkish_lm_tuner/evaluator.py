@@ -102,8 +102,9 @@ class EvaluatorForClassification(BaseEvaluator):
     
 
 class EvaluatorForConditionalGeneration(BaseEvaluator):
-    def __init__(self, model_path, tokenizer_path, task, max_target_length, test_params, generation_params=None, postprocess_fn=None): 
+    def __init__(self, model_path, tokenizer_path, task, max_input_length, max_target_length, test_params, generation_params=None, postprocess_fn=None): 
         super().__init__(model_path, tokenizer_path, task, test_params, postprocess_fn)
+        self.max_input_length = max_input_length
         self.max_target_length = max_target_length 
         self.generation_params = generation_params
 
@@ -114,6 +115,7 @@ class EvaluatorForConditionalGeneration(BaseEvaluator):
     def initialize_trainer(self, model): 
         # Set default model parameters
         generation_config = model.generation_config 
+        generation_config.max_length = self.max_input_length
         generation_config.max_new_tokens = self.max_target_length
 
         if self.generation_params: 
