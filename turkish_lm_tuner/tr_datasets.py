@@ -162,7 +162,13 @@ class NLI_TRDataset(BaseDataset):
     def postprocess_data(self, examples):
         return [NLI_TRDataset.OUT_LABEL_DICT.get(ex.strip(), -1) for ex in examples]
 
-class ExamsDataset(BaseDataset):
+class QADataset(BaseDataset):
+    DATASET_NAME = "qa"
+
+    def postprocess_data(self, examples):
+        return [ex.strip() for ex in examples]
+
+class ExamsDataset(QADataset):
     DATASET_NAME = "exams"
     DATASET_INFO = ("exams", "crosslingual_tr")
 
@@ -210,7 +216,7 @@ class ExamsDataset(BaseDataset):
             target_texts.append(answer)
         return {"input_text": target_texts, 'target_text': input_texts}
 
-class TQUADDataset(LocalDataset):
+class TQUADDataset(LocalDataset, QADataset):
     DATASET_NAME = "tquad"
     DATASET_INFO = {'train': 'train-v0.1.json', 'test': 'dev-v0.1.json'}
 
@@ -252,7 +258,7 @@ class TQUADDataset(LocalDataset):
                     target_texts.append(target_text)
         return {"input_text": input_texts, "target_text": target_texts}
     
-class MKQADataset(BaseDataset):
+class MKQADataset(QADataset):
     DATASET_NAME = "mkqa"
     DATASET_INFO = "mkqa"    
 
@@ -296,6 +302,9 @@ class NERDataset(BaseDataset):
 
     def postprocess_data(self, examples):
         labels = []
+        # would be good to have actual token lengths instead of splitting by space
+        # this way predictions are not same length as labels
+        # same problem with POS
         for example in examples:
             example = example.strip()
             tokens = example.split(' ')
@@ -450,6 +459,8 @@ class MilliyetNERDataset(LocalDataset,NERDataset):
 class POSDataset(LocalDataset):
     DATASET_NAME = "pos"
     DATASET_INFO = {'train': 'train.json', 'test': 'test.json', 'validation': 'dev.json'}
+    POS_TR_DICT = { "ADP": "edat", "AUX": "yardımcı", "PRON": "zamir", "NOUN": "isim", "PROPN": "özel", "INTJ": "ünlem", "PART": "tanımcık", "CCONJ": "eşgüdümlü", "VERB": "fiil", "SYM": "sembol", "DET": "belirteç", "ADV": "zarf", "ADJ": "sıfat", "X": "diğer", "SCONJ": "yantümce", "NUM": "sayı", "PUNCT": "noktalama" }
+    POS_INT_DICT = {"edat": 0, "yardımcı": 1, "zamir": 2, "isim": 3, "özel": 4, "ünlem": 5, "tanımcık": 6, "eşgüdümlü": 7, "fiil": 8, "sembol": 9, "belirteç": 10, "zarf": 11, "sıfat": 12, "diğer": 13, "yantümce": 14, "sayı": 15, "noktalama": 16}
 
     def __init__(self, dataset_loc=None, dataset_raw_info=None):
         super().__init__(dataset_loc)
@@ -506,7 +517,6 @@ class POSDataset(LocalDataset):
         return super().load_dataset(split)
     
     def preprocess_data(self, examples):
-        pos_d_tr = { "ADP": "edat", "AUX": "yardımcı", "PRON": "zamir", "NOUN": "isim", "PROPN": "özel", "INTJ": "ünlem", "PART": "tanımcık", "CCONJ": "eşgüdümlü", "VERB": "fiil", "SYM": "sembol", "DET": "belirteç", "ADV": "zarf", "ADJ": "sıfat", "X": "diğer", "SCONJ": "yantümce", "NUM": "sayı", "PUNCT": "noktalama" }
         input_texts, target_texts = [], []
         for ids, tokens, tags in zip(examples['ids'], examples['tokens'], examples['tags']):
             tag_l = []
@@ -517,9 +527,9 @@ class POSDataset(LocalDataset):
                     if pos == '_':
                         continue
                     if split_token == 1:
-                        tag_l.append('-{}/{}'.format(form, pos_d_tr[pos]))
+                        tag_l.append('-{}/{}'.format(form, POSDataset.POS_TR_DICT[pos]))
                     else:
-                        tag_l.append('{}/{}'.format(form, pos_d_tr[pos]))
+                        tag_l.append('{}/{}'.format(form, POSDataset.POS_TR_DICT[pos]))
                     if split_token != 0:
                         split_token -= 1
             output = ' '.join(tag_l)
