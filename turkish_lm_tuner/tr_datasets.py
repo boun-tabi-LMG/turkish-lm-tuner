@@ -305,6 +305,8 @@ class NERDataset(BaseDataset):
             else:
                 type_split = example.split(' | ')
                 for type_el in type_split:
+                    if ': ' not in type_el:
+                        continue
                     el_split = type_el.split(': ')
                     tag_type = el_split[0]
                     el_l = el_split[1].split(', ')
@@ -375,7 +377,7 @@ class MilliyetNERDataset(LocalDataset,NERDataset):
         super().__init__(dataset_loc)
 
     def load_dataset(self, split=None):
-        for split_t, filename in self.dataset_info.items():
+        for _, filename in self.dataset_info.items():
             data_file = Path(self.dataset_loc) / filename
             if data_file.exists():
                 continue
