@@ -4,10 +4,11 @@ from transformers import (
     AutoModelForSeq2SeqLM,
     Trainer, Seq2SeqTrainer, 
     TrainingArguments, Seq2SeqTrainingArguments,
-    EarlyStoppingCallback
-
+    EarlyStoppingCallback,
+    AutoConfig
 )
 from transformers.optimization import Adafactor, AdafactorSchedule
+from .t5_classifier import T5ForSequenceClassification
 
 from .evaluator import (
     EvaluatorForClassification,
@@ -120,10 +121,18 @@ class TrainerForClassification(BaseModelTrainer):
     def __init__(self, model_name, task, adafactor_scheduler, training_params, model_save_path, num_labels):
         super().__init__(model_name, adafactor_scheduler, training_params)
         self.num_labels = num_labels
+        self.task = task
         self.evaluator = EvaluatorForClassification(model_save_path, model_name, task, training_params)
 
     def initialize_model(self):
-        return AutoModelForSequenceClassification.from_pretrained(self.model_name, num_labels=self.num_labels)
+        config = AutoConfig.from_pretrained(self.model_name)
+        if config.model_type == "t5":
+            if self.task == "classification":
+                return T5ForSequenceClassification(self.model_name, config, self.num_labels, "single_label_classification")
+            else:
+                return T5ForSequenceClassification(self.model_name, config, 1, "regression")
+        else:
+            return AutoModelForSequenceClassification.from_pretrained(self.model_name, num_labels=self.num_labels)
     
     def train_and_evaluate(self, train_dataset, eval_dataset, test_dataset):
         logger.info("Training in classification mode")
