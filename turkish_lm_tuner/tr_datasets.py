@@ -110,8 +110,11 @@ class STSb_TRDataset(LocalDataset):
     DATASET_NAME = "stsb_tr"
     DATASET_INFO = {'train': 'stsb_tr_train.tsv', 'test': 'stsb_tr_test.tsv', 'validation': 'stsb_tr_dev.tsv'}
 
-    def preprocess_data(self, examples):
+    def preprocess_data(self, examples, skip_output_processing=False):
         input = [f"ilk cümle: {examples['sentence1'][i]} ikinci cümle: {examples['sentence2'][i]}" for i in range(len(examples["sentence1"]))]
+        # If used with the classification mode, skip the output processing
+        if skip_output_processing:
+            return {"input_text": input, "label": examples["score"]}
         output = [str(ex) for ex in examples["score"]]
         return {"input_text": input, "target_text": output}
     
