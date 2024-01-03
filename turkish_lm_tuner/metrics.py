@@ -136,7 +136,8 @@ METRIC_MAPPING_NAMES = [
         ("meteor", "METEOR"),
         ("rouge", "ROUGE"),
         ("ter", "TER"),
-        ("squad", "SQUAD")
+        ("squad", "SQUAD"),
+        ("seqeval", "SeqEval")
     ]
 
 def str_to_class(classname):
