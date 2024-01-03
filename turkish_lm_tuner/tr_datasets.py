@@ -166,7 +166,7 @@ class QADataset(BaseDataset):
     DATASET_NAME = "qa"
 
     def postprocess_data(self, examples):
-        return [ex.strip() for ex in examples]
+        return [{'prediction_text': ex.strip()} for ex in examples] # is id necessary?
 
 class ExamsDataset(QADataset):
     DATASET_NAME = "exams"
@@ -197,7 +197,8 @@ class ExamsDataset(QADataset):
                 continue
             input_texts.append(question_str)
             target_texts.append(answer)
-        return {"input_text": input_texts, 'target_text': target_texts}
+        return {"input_text": input_texts, 'target_text': target_texts} # does target_text need to be a string? SQuAD expects in the format
+            # {"answers": {"answer_start": [97], "text": ["1976"]}, "id": "56e10a3be3433e1400422b22"}
     
     def preprocess_question_generation(self, examples):
         input_texts, target_texts = [], []
