@@ -327,13 +327,13 @@ class NERDataset(BaseDataset):
                             continue
                         if len(el_split) == 1:
                             start = tokens.index(el_split[0])
-                            label_l[start] = NERDataset.NER_label_int_dict[NERDataset.NER_label_translation_d[tag_type]]
+                            label_l[start] = str(NERDataset.NER_label_int_dict[NERDataset.NER_label_translation_d[tag_type]])
                         else:
                             start = tokens.index(el_split[0])
-                            label_l[start] = NERDataset.NER_label_int_dict[NERDataset.NER_label_translation_d[tag_type]]
+                            label_l[start] = str(NERDataset.NER_label_int_dict[NERDataset.NER_label_translation_d[tag_type]])
                             end = tokens.index(el_split[-1])
                             for i in range(start+1, end+1):
-                                label_l[i] = NERDataset.NER_label_int_dict[NERDataset.NER_label_translation_d[tag_type]] + 1
+                                label_l[i] = str(NERDataset.NER_label_int_dict[NERDataset.NER_label_translation_d[tag_type]] + 1)
                 labels.append(label_l)
         return labels
 
