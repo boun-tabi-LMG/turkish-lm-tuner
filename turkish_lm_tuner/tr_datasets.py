@@ -542,15 +542,18 @@ class POSDataset(LocalDataset):
     
     def postprocess_data(self, examples, inputs):
         labels = []
-        for example in examples:
+        for input_t, example in zip(inputs, examples):
             example = example.strip()
-            input_tokens = inputs.split(' ')
+            input_tokens = input_t.split(' ')
             tokens = example.split(' ')
             label_l = ['0' for i in range(len(input_tokens))]
             for i, token in enumerate(tokens):
+                if i >= len(label_l):
+                    break
                 token_split = token.split('/')
-                label = token_split[-1]
-                label_l[i] = label
+                label = token_split[-1].strip()
+                if label != '':
+                    label_l[i] = label
             labels.append(label_l)
         return labels    
     
