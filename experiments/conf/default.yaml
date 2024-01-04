@@ -10,7 +10,7 @@ training_params:
   remove_unused_columns: False
   push_to_hub: False
   report_to: wandb
-  optimizer_params:
-    optimizer_type: adafactor # adafactor or adam
-    scheduler: False # 'linear' for adam
+optimizer_params:
+  optimizer_type: adafactor # adafactor or adam
+  scheduler: False # 'linear' for adam
 dataset_loc: ""
