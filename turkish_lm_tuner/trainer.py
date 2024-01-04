@@ -96,6 +96,10 @@ class TrainerForConditionalGeneration(BaseModelTrainer):
             **self.training_params)
         logger.info("Training arguments: %s", training_args)
 
+        # make datasets smaller for debugging
+        train_dataset = train_dataset.select(range(10))
+        eval_dataset = eval_dataset.select(range(10))
+
         trainer = Seq2SeqTrainer(
             model=model,
             args=training_args,

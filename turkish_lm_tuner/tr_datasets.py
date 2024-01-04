@@ -301,12 +301,9 @@ class NERDataset(BaseDataset):
     NER_label_translation_d = {"Kişi": "PER", "Yer": "LOC", "Kuruluş": "ORG"}
     NER_label_int_dict = {"PER": 1, "LOC": 3, "ORG": 5}
 
-    def postprocess_data(self, examples):
+    def postprocess_data(self, examples, inputs):
         labels = []
-        # would be good to have actual token lengths instead of splitting by space
-        # this way predictions are not same length as labels
-        # same problem with POS
-        for example in examples:
+        for example, input_t in zip(examples, inputs):
             example = example.strip()
             tokens = example.split(' ')
             label_l = [0 for _ in range(len(tokens))]
@@ -318,7 +315,9 @@ class NERDataset(BaseDataset):
                     if ': ' not in type_el:
                         continue
                     el_split = type_el.split(': ')
-                    tag_type = el_split[0]
+                    tag_type = el_split[0].strip()
+                    if tag_type not in NERDataset.NER_label_translation_d:
+                        continue
                     el_l = el_split[1].split(', ')
                     for el in el_l:
                         if el.strip() == '':
@@ -538,7 +537,7 @@ class POSDataset(LocalDataset):
             target_texts.append(output)
         return {"input_text": input_texts, "target_text": target_texts}
     
-    def postprocess_data(self, examples):
+    def postprocess_data(self, examples, inputs):
         labels = []
         for example in examples:
             example = example.strip()
