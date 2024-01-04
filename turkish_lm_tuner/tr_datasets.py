@@ -305,8 +305,8 @@ class NERDataset(BaseDataset):
         labels = []
         for example, input_t in zip(examples, inputs):
             example = example.strip()
-            tokens = example.split(' ')
-            label_l = [0 for _ in range(len(tokens))]
+            input_tokens = input_t.split(' ')
+            label_l = ['0' for _ in range(len(input_tokens))]
             if example == 'Bulunamadı.':
                 labels.append(label_l)
             else:
@@ -318,20 +318,23 @@ class NERDataset(BaseDataset):
                     tag_type = el_split[0].strip()
                     if tag_type not in NERDataset.NER_label_translation_d:
                         continue
-                    el_l = el_split[1].split(', ')
+                    if ', ' not in el_split[1]:
+                        el_l = [el_split[1]]
+                    else:
+                        el_l = el_split[1].split(', ')
                     for el in el_l:
                         if el.strip() == '':
                             continue
                         el_split = el.split(' ')
-                        if el_split[0] not in tokens or el_split[-1] not in tokens:
+                        if el_split[0] not in input_tokens or el_split[-1] not in input_tokens:
                             continue
                         if len(el_split) == 1:
-                            start = tokens.index(el_split[0])
+                            start = input_tokens.index(el_split[0])
                             label_l[start] = str(NERDataset.NER_label_int_dict[NERDataset.NER_label_translation_d[tag_type]])
                         else:
-                            start = tokens.index(el_split[0])
+                            start = input_tokens.index(el_split[0])
                             label_l[start] = str(NERDataset.NER_label_int_dict[NERDataset.NER_label_translation_d[tag_type]])
-                            end = tokens.index(el_split[-1])
+                            end = input_tokens.index(el_split[-1])
                             for i in range(start+1, end+1):
                                 label_l[i] = str(NERDataset.NER_label_int_dict[NERDataset.NER_label_translation_d[tag_type]] + 1)
                 labels.append(label_l)
@@ -541,12 +544,13 @@ class POSDataset(LocalDataset):
         labels = []
         for example in examples:
             example = example.strip()
+            input_tokens = inputs.split(' ')
             tokens = example.split(' ')
-            label_l = []
-            for token in tokens:
+            label_l = ['0' for i in range(len(input_tokens))]
+            for i, token in enumerate(tokens):
                 token_split = token.split('/')
                 label = token_split[-1]
-                label_l.append(label)
+                label_l[i] = label
             labels.append(label_l)
         return labels    
     
