@@ -11,3 +11,4 @@ model_path: /stratch/bounllm/finetuned-models/ul2tr/summarization/tr_news
 test_params:
   per_device_eval_batch_size: 16 # worked in ultramarine
   output_dir: /stratch/bounllm/finetuned-models/ul2tr/pos/imst
+  include_inputs_for_metrics: true
