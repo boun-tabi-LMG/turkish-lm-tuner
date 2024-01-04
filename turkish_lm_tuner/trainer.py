@@ -74,12 +74,15 @@ class BaseModelTrainer:
             'betas': (0.9, 0.999),
             'eps': 1e-08
         }
-      
+        default_scheduler_params = {
+            'num_warmup_steps': 0,
+            'num_training_steps': 0
+        }
         # Override default params with user-provided params
         params = {**default_params, **self.optimizer_params}
         logger.info("Using Adam optimizer")
         optimizer = AdamW(model.parameters(), **params)
-        lr_scheduler = get_scheduler(self.optimizer_params['scheduler'], optimizer)
+        lr_scheduler = get_scheduler(self.optimizer_params['scheduler'], optimizer, **default_scheduler_params)
         return optimizer, lr_scheduler
     
     def create_optimizer(self, model):
@@ -87,8 +90,8 @@ class BaseModelTrainer:
         optimizer_type = self.optimizer_params['optimizer_type'].lower()        
         if optimizer_type == 'adafactor':
             return self.create_adafactor_optimizer(model)
-        elif optimizer_type == 'adam':
-            return self.create_adam_optimizer(model)
+        # elif optimizer_type == 'adam':
+        #     return self.create_adam_optimizer(model)
         else:
             logger.info("Optimizer and scheduler not specified. Continuing with the default parameters.")
             return (None, None)

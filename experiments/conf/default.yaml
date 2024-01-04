@@ -12,5 +12,5 @@ training_params:
   report_to: wandb
   optimizer_params:
     optimizer_type: adafactor # adafactor or adam
-    scheduler: False # 'linear' for AdamW
+    scheduler: False # 'linear' for adam
 dataset_loc: ""
