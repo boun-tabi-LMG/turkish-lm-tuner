@@ -64,7 +64,7 @@ class BaseEvaluator:
 class EvaluatorForClassification(BaseEvaluator):
 
     def initialize_model(self):
-        # If used without fine-tuning model should be loaded from the model save path
+        # If used without fine-tuning, model should be loaded from the model save path
         return AutoModelForSequenceClassification.from_pretrained(self.model_path)
 
     def initialize_trainer(self, model):
@@ -128,11 +128,18 @@ class EvaluatorForConditionalGeneration(BaseEvaluator):
             generation_config=generation_config,
             **self.test_params)
         
-        trainer = Seq2SeqTrainer(
-            model=model,
-            args=test_args,
-            compute_metrics=self.compute_metrics,
-        )
+        if test_args.include_inputs_for_metrics:
+            trainer = Seq2SeqTrainer(
+                model=model,
+                args=test_args,
+                compute_metrics=self.compute_metrics_w_inputs,
+            )
+        else:
+            trainer = Seq2SeqTrainer(
+                model=model,
+                args=test_args,
+                compute_metrics=self.compute_metrics,
+            )
         return trainer
   
     def compute_metrics(self, eval_preds):
@@ -170,3 +177,36 @@ class EvaluatorForConditionalGeneration(BaseEvaluator):
 
         return result
 
+    def compute_metrics_w_inputs(self, eval_preds, inputs):
+        preds, labels = eval_preds
+        if isinstance(preds, tuple):
+            preds = preds[0]
+        # Replace -100s used for padding as we can't decode them
+        preds = np.where(preds != -100, preds, self.tokenizer.pad_token_id)
+        decoded_preds = self.tokenizer.batch_decode(preds, skip_special_tokens=True)
+        labels = np.where(labels != -100, labels, self.tokenizer.pad_token_id)
+        decoded_labels = self.tokenizer.batch_decode(labels, skip_special_tokens=True)
+
+        logger.info("Postprocessing predictions and labels")
+
+        # Get post-processing function for specific dataset and task
+        processed_preds = self.postprocess_fn(decoded_preds, inputs)
+        processed_labels = self.postprocess_fn(decoded_labels, inputs)
+
+        predictions = pd.DataFrame(
+            {'DecodedPrediction': decoded_preds,
+             'DecodedLabel': decoded_labels,
+             'Prediction': processed_preds, 
+             'Label': processed_labels})
+        
+        predictions.to_csv(os.path.join(self.test_params['output_dir'], 'predictions.csv'), index=False)
+
+        logger.info("Computing metrics")
+        logger.info("Decoded predictions: %s", processed_preds[:5])
+        logger.info("Decoded labels: %s", processed_labels[:5])
+
+        result = super().compute_metrics(processed_preds, processed_labels)
+
+        logger.info("Result: %s", result)      
+
+        return result
