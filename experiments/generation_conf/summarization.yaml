@@ -12,10 +12,5 @@ test_params:
   output_dir: /stratch/bounllm/finetuned-models/ul2tr/summarization/tr_news/
   bf16: true
 generation_params:
-  early_stopping: true
   length_penalty: 2.0
-  max_length: 200
-  min_length: 30
   no_repeat_ngram_size: 3
-  num_beams: 4
-

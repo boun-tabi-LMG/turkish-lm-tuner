@@ -29,7 +29,7 @@ def main(cfg: DictConfig):
     dataset_location = cfg.dataset_loc
 
     logger.info("Loading test dataset")
-    dataset_processor = DatasetProcessor(dataset_name, task, task_format, task_mode, model_path, max_input_length, max_target_length, dataset_location)
+    dataset_processor = DatasetProcessor(dataset_name, task, task_format, task_mode, tokenizer_path, max_input_length, max_target_length, dataset_location)
     test_dataset = dataset_processor.load_and_preprocess_data(split="test")  # Use split="test[:10]" to test for small sample
     postprocess_fn = dataset_processor.dataset.postprocess_data
 
@@ -48,7 +48,7 @@ def main(cfg: DictConfig):
     logger.info("Evaluating model")
     results = evaluator.evaluate_model(test_dataset)
     logger.info("Result: %s", results)    
-    json.dump(results, open(os.path.join(test_params['output_dir'], "results.json"), "w"))
+    json.dump(results.metrics, open(os.path.join(test_params['output_dir'], "results.json"), "w"))
 
 
 if __name__ == "__main__":
