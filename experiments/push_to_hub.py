@@ -25,9 +25,13 @@ for model_dir in path.iterdir():
         for dataset in task.iterdir():
             model_name = 'turna' if model_dir.name == 'ul2tr' else model_dir.name
             repo = f'{organization}/{model_name}_{task.name}_{dataset.name}'
-            repo_url = create_repo(repo, private=True, token=HF_AUTH_TOKEN)
-            print(f'{repo_url} has been successfully created.')
-            model = AutoModel.from_pretrained(dataset)
-            model.push_to_hub(repo, private=True, token=HF_AUTH_TOKEN)
-            tokenizer = AutoTokenizer.from_pretrained(tokenizer_mapping[model_dir.name])
-            tokenizer.push_to_hub(repo, private=True, token=HF_AUTH_TOKEN)
+            try: 
+                repo_url = create_repo(repo, private=True, token=HF_AUTH_TOKEN)
+                print(f'{repo_url} has been successfully created.')
+                model = AutoModel.from_pretrained(dataset)
+                model.push_to_hub(repo, private=True, token=HF_AUTH_TOKEN)
+                tokenizer = AutoTokenizer.from_pretrained(tokenizer_mapping[model_dir.name])
+                tokenizer.push_to_hub(repo, private=True, token=HF_AUTH_TOKEN)
+
+            except Exception as e:
+                print(f'Error during pushing {dataset}. Either repo exists or a problem occurred during uploding files, check error: {e}')
