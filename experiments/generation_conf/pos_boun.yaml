@@ -7,7 +7,7 @@ task: pos_tagging
 max_input_length: 90
 max_target_length: 300
 tokenizer_path: /stratch/bounllm/pretrained_checkpoints/ckpt-1.74M
-model_path: /stratch/bounllm/finetuned-models/ul2tr/summarization/tr_news
+model_path: /stratch/bounllm/finetuned-models/ul2tr/pos/boun
 test_params:
   per_device_eval_batch_size: 8 # worked in ultramarine
   output_dir: /stratch/bounllm/finetuned-models/ul2tr/pos/boun
