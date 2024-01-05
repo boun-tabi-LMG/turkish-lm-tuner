@@ -1,0 +1,17 @@
+defaults:
+  - default_cond_gen
+
+dataset_name: tr_news
+task: title_generation
+max_input_length: 256
+max_target_length: 64
+
+model_path: /stratch/bounllm/finetuned-models/ul2tr/title_generation/tr_news/
+tokenizer_path: /stratch/bounllm/pretrained_checkpoints/ckpt-1.74M
+test_params:
+  per_device_eval_batch_size: 8 # 4 for ultramarine
+  output_dir: /stratch/bounllm/finetuned-models/ul2tr/title_generation/tr_news/
+generation_params:
+  length_penalty: 2.0
+  no_repeat_ngram_size: 3
+
