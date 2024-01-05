@@ -21,6 +21,12 @@ pip install -e .
 
 #python experiments/eval.py --config-name $1
 
+declare -A tokenizer_mapping=(
+    ['ul2tr']='/stratch/bounllm/pretrained_checkpoints/ckpt-1.74M/'
+    ['mbart']='facebook/mbart-large-cc25'
+    ['mt5-large']='google/mt5-large'
+)
+
 BASE_PATH=/stratch/bounllm/finetuned-models
 TASK_NAME=paraphrasing
 
@@ -28,11 +34,13 @@ TASK_NAME=paraphrasing
 run_evaluation() {
     local model_name=$1
     local dataset_name=$2
+    local tokenizer_path=${tokenizer_mapping[$model_name]}
 
     python experiments/eval.py --config-name $TASK_NAME \
         dataset_name=$dataset_name \
         model_path=$BASE_PATH/$model_name/$TASK_NAME/$dataset_name \
-        test_params.output_dir=$BASE_PATH/$model_name/$TASK_NAME/$dataset_name
+        test_params.output_dir=$BASE_PATH/$model_name/$TASK_NAME/$dataset_name \
+        tokenizer_path=$tokenizer_path
 }
 
 models=("ul2tr" "mt5-large" "mbart")
