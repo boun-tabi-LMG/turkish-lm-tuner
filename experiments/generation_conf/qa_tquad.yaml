@@ -7,7 +7,7 @@ task: question_answering
 max_input_length: 1350
 max_target_length: 40
 tokenizer_path: /stratch/bounllm/pretrained_checkpoints/ckpt-1.74M
-model_path: /stratch/bounllm/finetuned-models/ul2tr/summarization/tr_news
+model_path: /stratch/bounllm/finetuned-models/ul2tr/qa/tquad
 test_params:
   per_device_eval_batch_size: 2 # worked in ultramarine
   output_dir: /stratch/bounllm/finetuned-models/ul2tr/qa/tquad
