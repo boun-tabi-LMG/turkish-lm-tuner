@@ -44,7 +44,7 @@ run_evaluation() {
 }
 
 models=("ul2tr" "mt5-large" "mbart")
-datasets=("tatoeba" "ost")
+datasets=("tatoeba" "opensubtitles")
 
 for model in "${models[@]}"; do
     for dataset in "${datasets[@]}"; do
