@@ -26,13 +26,19 @@ declare -A tokenizer_mapping=(
 BASE_PATH=/stratch/bounllm/finetuned-models
 TASK_NAME=$1
 
+CONFIG_NAME=$TASK_NAME
+
 # Function to run the evaluation
 run_evaluation() {
     local model_name=$1
     local dataset_name=$2
     local tokenizer_path=${tokenizer_mapping[$model_name]}
 
-    python experiments/eval.py --config-name $TASK_NAME \
+    if [ $TASK_NAME == "ner" || $TASK_NAME == "pos" ]; then
+        CONFIG_NAME=$TASK_NAME"_"$dataset_name
+    fi
+    
+    python experiments/eval.py --config-name $CONFIG_NAME \
         dataset_name=$dataset_name \
         model_path=$BASE_PATH/$model_name/$TASK_NAME/$dataset_name \
         test_params.output_dir=$BASE_PATH/$model_name/$TASK_NAME/$dataset_name \
@@ -44,7 +50,7 @@ if [ $TASK_NAME == "paraphrasing" ]; then
     datasets=("tatoeba" "opensubtitles")
 elif [ $TASK_NAME == "ner" ]; then
     datasets=("wikiann" "milliyet")
-elif [ $TASK_NAME == "pos_tagging" ]; then
+elif [ $TASK_NAME == "pos" ]; then
     datasets=("boun" "imst")
 elif [ $TASK_NAME == "question_answering" || $TASK_NAME == "question_generation" ]; then
     datasets=("exams" "mkqa" "tquad")
