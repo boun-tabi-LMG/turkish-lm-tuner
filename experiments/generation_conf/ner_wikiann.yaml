@@ -8,6 +8,6 @@ max_target_length: 40
 tokenizer_path: /stratch/bounllm/pretrained_checkpoints/ckpt-1.74M
 model_path: /stratch/bounllm/finetuned-models/ul2tr/ner/wikiann
 test_params:
-  per_device_eval_batch_size: 64 # for ultramarine
+  per_device_eval_batch_size: 4
   output_dir: /stratch/bounllm/finetuned-models/ul2tr/ner/wikiann
   include_inputs_for_metrics: true
