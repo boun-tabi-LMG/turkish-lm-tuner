@@ -10,8 +10,6 @@
 #SBATCH --cpus-per-gpu=8
 #SBATCH --mem-per-gpu=40G
 
-echo $1
-
 source /opt/python3/venv/base/bin/activate
 
 cd ~/turkish-lm-tuner
@@ -26,18 +24,16 @@ declare -A tokenizer_mapping=(
 BASE_PATH=/stratch/bounllm/finetuned-models
 TASK_NAME=$1
 
-CONFIG_NAME=$TASK_NAME
-
 # Function to run the evaluation
 run_evaluation() {
     local model_name=$1
     local dataset_name=$2
     local tokenizer_path=${tokenizer_mapping[$model_name]}
 
-    if [ $TASK_NAME == "ner" || $TASK_NAME == "pos" ]; then
+    if [ $TASK_NAME == "ner" ] || [ $TASK_NAME == "pos" ]; then
         CONFIG_NAME=$TASK_NAME"_"$dataset_name
     fi
-    
+
     python experiments/eval.py --config-name $CONFIG_NAME \
         dataset_name=$dataset_name \
         model_path=$BASE_PATH/$model_name/$TASK_NAME/$dataset_name \
