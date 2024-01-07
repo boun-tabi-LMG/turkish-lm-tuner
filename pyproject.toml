@@ -46,7 +46,8 @@ dependencies = [
     "huggingface-hub",
     "absl-py",
     "rouge-score",
-    "sacrebleu"
+    "sacrebleu",
+    "seqeval"
 ]
 
 #                                                                                                                                                                                                                  [project.urls.docs]

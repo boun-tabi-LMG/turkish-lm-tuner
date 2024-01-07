@@ -127,6 +127,10 @@ class TrainerForConditionalGeneration(BaseModelTrainer):
             **self.training_params)
         logger.info("Training arguments: %s", training_args)
 
+        # make datasets smaller for debugging
+        # train_dataset = train_dataset.select(range(10))
+        # eval_dataset = eval_dataset.select(range(10))
+
         trainer = Seq2SeqTrainer(
             model=model,
             args=training_args,
@@ -134,8 +138,7 @@ class TrainerForConditionalGeneration(BaseModelTrainer):
             eval_dataset=eval_dataset,
             compute_metrics=self.evaluator.compute_metrics,
             optimizers=(optimizer, lr_scheduler),
-            callbacks = [EarlyStoppingCallback(early_stopping_patience=3)],
-
+            callbacks = [EarlyStoppingCallback(early_stopping_patience=3)]
         )
 
         trainer.train()
@@ -176,7 +179,7 @@ class TrainerForClassification(BaseModelTrainer):
             eval_dataset=eval_dataset,
             compute_metrics=self.evaluator.compute_metrics,
             optimizers=(optimizer, lr_scheduler),
-            callbacks = [EarlyStoppingCallback(early_stopping_patience=3)],
+            callbacks = [EarlyStoppingCallback(early_stopping_patience=3)]
         )
         trainer.train()
         results = trainer.evaluate(test_dataset)

@@ -14,7 +14,7 @@ tokenizer_mapping = {
 }
 
 # List of completed tasks
-completed_tasks = ['summarization', 'paraphrasing', 'title_generation', 'semantic_similarity', 'nli']
+completed_tasks = ['ner', 'pos']
 
 # Organization name
 organization = "boun-tabi-LMG"

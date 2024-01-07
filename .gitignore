@@ -1,3 +1,5 @@
+wandb/
+.vscode/
 *.swp
 outs/
 outputs/
