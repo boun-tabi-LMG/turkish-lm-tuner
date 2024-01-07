@@ -148,12 +148,11 @@ class EvaluatorForConditionalGeneration(BaseEvaluator):
         decoded_preds = self.tokenizer.batch_decode(preds, skip_special_tokens=True)
         labels = np.where(labels != -100, labels, self.tokenizer.pad_token_id)
         decoded_labels = self.tokenizer.batch_decode(labels, skip_special_tokens=True)
-        decoded_inputs = self.tokenizer.batch_decode(inputs, skip_special_tokens=True)
-
         logger.info("Postprocessing predictions and labels")
 
         # Get post-processing function for specific dataset and task
         if inputs is not None:
+            decoded_inputs = self.tokenizer.batch_decode(inputs, skip_special_tokens=True)
             processed_preds = self.postprocess_fn(decoded_preds, decoded_inputs)
             processed_labels = self.postprocess_fn(decoded_labels, decoded_inputs)
         else:
