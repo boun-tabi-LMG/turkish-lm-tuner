@@ -40,13 +40,13 @@ run_evaluation() {
 }
 
 models=("ul2tr" "mt5-large" "mbart")
-if [ TASK_NAME == "paraphrasing" ]; then
+if [ $TASK_NAME == "paraphrasing" ]; then
     datasets=("tatoeba" "opensubtitles")
-elif [ TASK_NAME == "ner" ]; then
+elif [ $TASK_NAME == "ner" ]; then
     datasets=("wikiann" "milliyet")
-elif [ TASK_NAME == "pos_tagging" ]; then
+elif [ $TASK_NAME == "pos_tagging" ]; then
     datasets=("boun" "imst")
-elif [ TASK_NAME == "question_answering" || TASK_NAME == "question_generation" ]; then
+elif [ $TASK_NAME == "question_answering" || $TASK_NAME == "question_generation" ]; then
     datasets=("exams" "mkqa" "tquad")
 fi
 
