@@ -29,9 +29,11 @@ def main(cfg: DictConfig):
     logger.info(f'Max input length: {max_input_length}')
     max_target_length = cfg.max_target_length
     logger.info(f'Max target length: {max_target_length}')
-    adafactor_scheduler = cfg.adafactor_scheduler
     training_params = cfg.training_params
     logger.info(f'Training parameters: {training_params}')
+    optimizer_params = cfg.optimizer_params
+    logger.info(f'Optimizer parameters: {optimizer_params}')
+
     dataset_location = cfg.dataset_loc
     if "num_labels" in cfg.keys():
         num_labels = cfg.num_labels
@@ -84,10 +86,10 @@ def main(cfg: DictConfig):
 
     if task_format == 'conditional_generation':
         logger.info("******Conditional Generation Mode******")
-        model_trainer = TrainerForConditionalGeneration(model_name, task, adafactor_scheduler, training_params, model_save_path, max_input_length, max_target_length, postprocess_fn)
+        model_trainer = TrainerForConditionalGeneration(model_name, task, training_params, optimizer_params, model_save_path, max_input_length, max_target_length, postprocess_fn)
     elif task_format == 'classification':
         logger.info("******Classification Mode******")
-        model_trainer = TrainerForClassification(model_name, task, adafactor_scheduler, training_params, model_save_path, num_labels)
+        model_trainer = TrainerForClassification(model_name, task, training_params, optimizer_params, model_save_path, num_labels)
 
     trainer, model = model_trainer.train_and_evaluate(train_dataset, eval_dataset, test_dataset)
 

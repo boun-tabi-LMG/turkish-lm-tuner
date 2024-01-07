@@ -7,13 +7,13 @@ from transformers import (
     EarlyStoppingCallback,
     AutoConfig
 )
-from transformers.optimization import Adafactor, AdafactorSchedule
-from .t5_classifier import T5ForSequenceClassification
-
+from transformers.optimization import Adafactor, AdafactorSchedule, AdamW
+from transformers import get_scheduler
 from .evaluator import (
     EvaluatorForClassification,
     EvaluatorForConditionalGeneration
 )
+from .t5_classifier import T5ForSequenceClassification
 import json 
 import os
 
@@ -28,48 +28,79 @@ stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
 
 class BaseModelTrainer:
-    def __init__(self, model_name, adafactor_scheduler, training_params):
+    def __init__(self, model_name, training_params=None, optimizer_params=None):
         self.model_name = model_name
-        self.adafactor_scheduler = adafactor_scheduler
+        self.optimizer_params = optimizer_params if optimizer_params is not None else {'optimizer_type': 'adafactor', 'scheduler': False}
         self.training_params = training_params
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
 
     def initialize_model(self):
         raise NotImplementedError
-
-    def create_optimizer(self, model):
-        logger.info("Creating optimizer")
-        if self.adafactor_scheduler:
+    
+    def create_adafactor_optimizer(self, model):
+        if self.optimizer_params['scheduler']:
             logger.info("Using Adafactor with scheduler")
-            optimizer = Adafactor(
-                model.parameters(),
-                scale_parameter=True,
-                relative_step=True,
-                warmup_init=True,
-                lr=None
-            )
+            default_params = {
+                'scale_parameter': True,
+                'relative_step': True,
+                'warmup_init': True,
+                'lr': None
+            }
+            # Override default params with user-provided params
+            params = {**default_params, **self.optimizer_params}
+            optimizer = Adafactor(model.parameters(), **params)
             lr_scheduler = AdafactorSchedule(optimizer)
         else:
             logger.info("Using Adafactor without scheduler")
-            optimizer = Adafactor(
-                model.parameters(),
-                lr=1e-3,
-                eps=(1e-30, 1e-3),
-                clip_threshold=1.0,
-                decay_rate=-0.8,
-                beta1=None,
-                weight_decay=0.0,
-                relative_step=False,
-                scale_parameter=False,
-                warmup_init=False
-            )
+            default_params = {
+                'lr': 1e-3,
+                'eps': (1e-30, 1e-3),
+                'clip_threshold': 1.0,
+                'decay_rate': -0.8,
+                'beta1': None,
+                'weight_decay': 0.0,
+                'relative_step': False,
+                'scale_parameter': False,
+                'warmup_init': False
+            }
+            # Override default params with user-provided params
+            params = {**default_params, **self.optimizer_params}
+            optimizer = Adafactor(model.parameters(), **params)
             lr_scheduler = None
         return optimizer, lr_scheduler
 
+    def create_adam_optimizer(self, model):
+        default_params = {
+            'lr': 1e-5, 
+            'betas': (0.9, 0.999),
+            'eps': 1e-08
+        }
+        default_scheduler_params = {
+            'num_warmup_steps': 0,
+            'num_training_steps': 0
+        }
+        # Override default params with user-provided params
+        params = {**default_params, **self.optimizer_params}
+        logger.info("Using Adam optimizer")
+        optimizer = AdamW(model.parameters(), **params)
+        lr_scheduler = get_scheduler(self.optimizer_params['scheduler'], optimizer, **default_scheduler_params)
+        return optimizer, lr_scheduler
+    
+    def create_optimizer(self, model):
+        logger.info("Creating optimizer")
+        optimizer_type = self.optimizer_params['optimizer_type'].lower()        
+        if optimizer_type == 'adafactor':
+            return self.create_adafactor_optimizer(model)
+        # elif optimizer_type == 'adam':
+        #     return self.create_adam_optimizer(model)
+        else:
+            logger.info("Optimizer and scheduler not specified. Continuing with the default parameters.")
+            return (None, None)
+
 
 class TrainerForConditionalGeneration(BaseModelTrainer):
-    def __init__(self, model_name, task, adafactor_scheduler, training_params, model_save_path, max_input_length, max_target_length, postprocess_fn):
-        super().__init__(model_name, adafactor_scheduler, training_params)
+    def __init__(self, model_name, task, training_params, optimizer_params, model_save_path, max_input_length, max_target_length, postprocess_fn):
+        super().__init__(model_name, training_params, optimizer_params)
         self.max_input_length = max_input_length
         self.max_target_length = max_target_length
         self.evaluator = EvaluatorForConditionalGeneration(model_save_path, model_name, task, max_input_length, max_target_length, training_params, postprocess_fn=postprocess_fn)
@@ -118,8 +149,8 @@ class TrainerForConditionalGeneration(BaseModelTrainer):
 
 
 class TrainerForClassification(BaseModelTrainer):
-    def __init__(self, model_name, task, adafactor_scheduler, training_params, model_save_path, num_labels):
-        super().__init__(model_name, adafactor_scheduler, training_params)
+    def __init__(self, model_name, task, training_params, optimizer_params, model_save_path, num_labels):
+        super().__init__(model_name, training_params, optimizer_params)
         self.num_labels = num_labels
         self.task = task
         self.evaluator = EvaluatorForClassification(model_save_path, model_name, task, training_params)
