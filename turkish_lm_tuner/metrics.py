@@ -125,23 +125,6 @@ class SeqEval(BaseMetric):
     def __init__(self):
         super().__init__("seqeval")
 
-
-class SeqEvalForClassification(BaseMetric):
-    def __init__(self):
-        super().__init__("seqeval")
-
-    def compute(self, preds, labels):
-        true_predictions = [
-            [str(p) for (p, l) in zip(prediction, label) if l != -100]
-            for prediction, label in zip(preds, labels)
-        ]
-        true_labels = [
-            [str(l) for (p, l) in zip(prediction, label) if l != -100]
-            for prediction, label in zip(preds, labels)
-        ]
-        return self.metric.compute(predictions=true_predictions, references=true_labels)
-
-
 METRIC_MAPPING_NAMES = [
         ("accuracy", "Accuracy"),
         ("precision", "Precision"),
@@ -158,8 +141,7 @@ METRIC_MAPPING_NAMES = [
         ("rouge", "ROUGE"),
         ("ter", "TER"),
         ("squad", "SQUAD"),
-        ("seqeval", "SeqEval"),
-        ("seqeval_classification", "SeqEvalForClassification")
+        ("seqeval", "SeqEval")
     ]
 
 def str_to_class(classname):
