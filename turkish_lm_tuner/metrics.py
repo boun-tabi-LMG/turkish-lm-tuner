@@ -117,6 +117,9 @@ class SQUAD(BaseMetric):
     def __init__(self):
         super().__init__("squad")
 
+class SeqEval(BaseMetric):
+    def __init__(self):
+        super().__init__("seqeval")
 
 METRIC_MAPPING_NAMES = [
         ("accuracy", "Accuracy"),
@@ -133,7 +136,8 @@ METRIC_MAPPING_NAMES = [
         ("meteor", "METEOR"),
         ("rouge", "ROUGE"),
         ("ter", "TER"),
-        ("squad", "SQUAD")
+        ("squad", "SQUAD"),
+        ("seqeval", "SeqEval")
     ]
 
 def str_to_class(classname):
@@ -185,9 +189,9 @@ def load_task_metrics(task):
     elif task == "semantic_similarity":
         return load_metrics(["pearsonr"])
     elif task == "ner":
-        return load_metrics(["accuracy", "precision", "recall", "f1"])
+        return load_metrics(["seqeval"])
     elif task == "pos_tagging":
-        return load_metrics(["accuracy", "precision", "recall", "f1"])
+        return load_metrics(["seqeval"])
     elif task == "question_answering":
         return load_metrics(["squad"])
     elif task == "question_generation":
