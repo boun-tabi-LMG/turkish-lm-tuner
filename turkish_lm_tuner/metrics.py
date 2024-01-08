@@ -117,6 +117,15 @@ class SQUAD(BaseMetric):
     def __init__(self):
         super().__init__("squad")
 
+    def compute(self, preds, labels, **kwargs):
+        for i in range(len(labels)):
+            label_t = labels[i]
+            labels[i] = {'prediction_text': label_t.strip(), 'id': '0'}
+        for i in range(len(preds)):
+            pred_t = preds[i]
+            preds[i] = {"answers": {"answer_start": [0], "text": [pred_t]}, "id": "0"}
+        return self.metric.compute(predictions=preds, references=labels, **kwargs)
+
 class SeqEval(BaseMetric):
     def __init__(self):
         super().__init__("seqeval")
