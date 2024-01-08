@@ -165,7 +165,13 @@ class NLI_TRDataset(BaseDataset):
     def postprocess_data(self, examples):
         return [NLI_TRDataset.OUT_LABEL_DICT.get(ex.strip(), -1) for ex in examples]
 
-class ExamsDataset(BaseDataset):
+class QADataset(BaseDataset):
+    DATASET_NAME = "qa"
+
+    def postprocess_data(self, examples):
+        return [{'prediction_text': ex.strip()} for ex in examples] # is id necessary?
+
+class ExamsDataset(QADataset):
     DATASET_NAME = "exams"
     DATASET_INFO = ("exams", "crosslingual_tr")
 
@@ -194,7 +200,8 @@ class ExamsDataset(BaseDataset):
                 continue
             input_texts.append(question_str)
             target_texts.append(answer)
-        return {"input_text": input_texts, 'target_text': target_texts}
+        return {"input_text": input_texts, 'target_text': target_texts} # does target_text need to be a string? SQuAD expects in the format
+            # {"answers": {"answer_start": [97], "text": ["1976"]}, "id": "56e10a3be3433e1400422b22"}
     
     def preprocess_question_generation(self, examples):
         input_texts, target_texts = [], []
@@ -213,7 +220,7 @@ class ExamsDataset(BaseDataset):
             target_texts.append(answer)
         return {"input_text": target_texts, 'target_text': input_texts}
 
-class TQUADDataset(LocalDataset):
+class TQUADDataset(LocalDataset, QADataset):
     DATASET_NAME = "tquad"
     DATASET_INFO = {'train': 'train-v0.1.json', 'test': 'dev-v0.1.json'}
 
@@ -255,7 +262,7 @@ class TQUADDataset(LocalDataset):
                     target_texts.append(target_text)
         return {"input_text": input_texts, "target_text": target_texts}
     
-class MKQADataset(BaseDataset):
+class MKQADataset(QADataset):
     DATASET_NAME = "mkqa"
     DATASET_INFO = "mkqa"    
 
@@ -318,35 +325,42 @@ class NERDataset(BaseDataset):
 
         return {"input_text": inputs, "label": labels}
     
-    def postprocess_data(self, examples):
+    def postprocess_data(self, examples, inputs):
         labels = []
-        for example in examples:
+        for example, input_t in zip(examples, inputs):
             example = example.strip()
-            tokens = example.split(' ')
-            label_l = [0 for _ in range(len(tokens))]
+            input_tokens = input_t.split(' ')
+            label_l = ['0' for _ in range(len(input_tokens))]
             if example == 'Bulunamadı.':
                 labels.append(label_l)
             else:
                 type_split = example.split(' | ')
                 for type_el in type_split:
+                    if ': ' not in type_el:
+                        continue
                     el_split = type_el.split(': ')
-                    tag_type = el_split[0]
-                    el_l = el_split[1].split(', ')
+                    tag_type = el_split[0].strip()
+                    if tag_type not in NERDataset.NER_label_translation_d:
+                        continue
+                    if ', ' not in el_split[1]:
+                        el_l = [el_split[1]]
+                    else:
+                        el_l = el_split[1].split(', ')
                     for el in el_l:
                         if el.strip() == '':
                             continue
                         el_split = el.split(' ')
-                        if el_split[0] not in tokens or el_split[-1] not in tokens:
+                        if el_split[0] not in input_tokens or el_split[-1] not in input_tokens:
                             continue
                         if len(el_split) == 1:
-                            start = tokens.index(el_split[0])
-                            label_l[start] = NERDataset.NER_label_int_dict[NERDataset.NER_label_translation_d[tag_type]]
+                            start = input_tokens.index(el_split[0])
+                            label_l[start] = str(NERDataset.NER_label_int_dict[NERDataset.NER_label_translation_d[tag_type]])
                         else:
-                            start = tokens.index(el_split[0])
-                            label_l[start] = NERDataset.NER_label_int_dict[NERDataset.NER_label_translation_d[tag_type]]
-                            end = tokens.index(el_split[-1])
+                            start = input_tokens.index(el_split[0])
+                            label_l[start] = str(NERDataset.NER_label_int_dict[NERDataset.NER_label_translation_d[tag_type]])
+                            end = input_tokens.index(el_split[-1])
                             for i in range(start+1, end+1):
-                                label_l[i] = NERDataset.NER_label_int_dict[NERDataset.NER_label_translation_d[tag_type]] + 1
+                                label_l[i] = str(NERDataset.NER_label_int_dict[NERDataset.NER_label_translation_d[tag_type]] + 1)
                 labels.append(label_l)
         return labels
 
@@ -401,7 +415,7 @@ class MilliyetNERDataset(LocalDataset,NERDataset):
         super().__init__(dataset_loc)
 
     def load_dataset(self, split=None):
-        for split_t, filename in self.dataset_info.items():
+        for _, filename in self.dataset_info.items():
             data_file = Path(self.dataset_loc) / filename
             if data_file.exists():
                 continue
@@ -476,6 +490,8 @@ class MilliyetNERDataset(LocalDataset,NERDataset):
 class POSDataset(LocalDataset):
     DATASET_NAME = "pos"
     DATASET_INFO = {'train': 'train.json', 'test': 'test.json', 'validation': 'dev.json'}
+    POS_TR_DICT = { "ADP": "edat", "AUX": "yardımcı", "PRON": "zamir", "NOUN": "isim", "PROPN": "özel", "INTJ": "ünlem", "PART": "tanımcık", "CCONJ": "eşgüdümlü", "VERB": "fiil", "SYM": "sembol", "DET": "belirteç", "ADV": "zarf", "ADJ": "sıfat", "X": "diğer", "SCONJ": "yantümce", "NUM": "sayı", "PUNCT": "noktalama" }
+    POS_INT_DICT = {"edat": 0, "yardımcı": 1, "zamir": 2, "isim": 3, "özel": 4, "ünlem": 5, "tanımcık": 6, "eşgüdümlü": 7, "fiil": 8, "sembol": 9, "belirteç": 10, "zarf": 11, "sıfat": 12, "diğer": 13, "yantümce": 14, "sayı": 15, "noktalama": 16}
 
     def __init__(self, dataset_loc=None, dataset_raw_info=None):
         super().__init__(dataset_loc)
@@ -532,7 +548,6 @@ class POSDataset(LocalDataset):
         return super().load_dataset(split)
     
     def preprocess_data(self, examples):
-        pos_d_tr = { "ADP": "edat", "AUX": "yardımcı", "PRON": "zamir", "NOUN": "isim", "PROPN": "özel", "INTJ": "ünlem", "PART": "tanımcık", "CCONJ": "eşgüdümlü", "VERB": "fiil", "SYM": "sembol", "DET": "belirteç", "ADV": "zarf", "ADJ": "sıfat", "X": "diğer", "SCONJ": "yantümce", "NUM": "sayı", "PUNCT": "noktalama" }
         input_texts, target_texts = [], []
         for ids, tokens, tags in zip(examples['ids'], examples['tokens'], examples['tags']):
             tag_l = []
@@ -543,9 +558,9 @@ class POSDataset(LocalDataset):
                     if pos == '_':
                         continue
                     if split_token == 1:
-                        tag_l.append('-{}/{}'.format(form, pos_d_tr[pos]))
+                        tag_l.append('-{}/{}'.format(form, POSDataset.POS_TR_DICT[pos]))
                     else:
-                        tag_l.append('{}/{}'.format(form, pos_d_tr[pos]))
+                        tag_l.append('{}/{}'.format(form, POSDataset.POS_TR_DICT[pos]))
                     if split_token != 0:
                         split_token -= 1
             output = ' '.join(tag_l)
@@ -553,16 +568,20 @@ class POSDataset(LocalDataset):
             target_texts.append(output)
         return {"input_text": input_texts, "target_text": target_texts}
     
-    def postprocess_data(self, examples):
+    def postprocess_data(self, examples, inputs):
         labels = []
-        for example in examples:
+        for input_t, example in zip(inputs, examples):
             example = example.strip()
+            input_tokens = input_t.split(' ')
             tokens = example.split(' ')
-            label_l = []
-            for token in tokens:
+            label_l = ['0' for i in range(len(input_tokens))]
+            for i, token in enumerate(tokens):
+                if i >= len(label_l):
+                    break
                 token_split = token.split('/')
-                label = token_split[-1]
-                label_l.append(label)
+                label = token_split[-1].strip()
+                if label != '':
+                    label_l[i] = label
             labels.append(label_l)
         return labels    
     

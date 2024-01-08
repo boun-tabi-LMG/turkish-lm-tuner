@@ -5,8 +5,8 @@ dataset_name: exams
 task: question_generation
 max_input_length: 50
 max_target_length: 200
-training_params:
-  num_train_epochs: 10
-  per_device_train_batch_size: 16 # worked in ultramarine
+tokenizer_path: /stratch/bounllm/pretrained_checkpoints/ckpt-1.74M
+model_path: /stratch/bounllm/finetuned-models/ul2tr/qg/exams
+test_params:
   per_device_eval_batch_size: 16 # worked in ultramarine
   output_dir: /stratch/bounllm/finetuned-models/ul2tr/qg/exams

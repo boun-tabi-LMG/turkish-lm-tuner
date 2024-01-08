@@ -117,6 +117,9 @@ class SQUAD(BaseMetric):
     def __init__(self):
         super().__init__("squad")
 
+class SeqEval(BaseMetric):
+    def __init__(self):
+        super().__init__("seqeval")
 
 class SeqEval(BaseMetric):
     def __init__(self):

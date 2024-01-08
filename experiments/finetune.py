@@ -31,7 +31,10 @@ def main(cfg: DictConfig):
     logger.info(f'Max target length: {max_target_length}')
     training_params = cfg.training_params
     logger.info(f'Training parameters: {training_params}')
-    optimizer_params = cfg.optimizer_params
+    if "optimizer_params" in cfg:
+        optimizer_params = cfg.optimizer_params
+    else:
+        optimizer_params = None
     logger.info(f'Optimizer parameters: {optimizer_params}')
 
     dataset_location = cfg.dataset_loc
