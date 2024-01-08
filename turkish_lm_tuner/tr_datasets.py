@@ -297,6 +297,27 @@ class NERDataset(BaseDataset):
     NER_label_translation_d = {"Kişi": "PER", "Yer": "LOC", "Kuruluş": "ORG"}
     NER_label_int_dict = {"PER": 1, "LOC": 3, "ORG": 5}
 
+    def preprocess_data(self, examples, tokenizer):
+        tokenized_inputs = tokenizer(examples["tokens"], truncation=True, is_split_into_words=True)
+        inputs = []
+        labels = []
+        for i, label in enumerate(examples[f"ner_tags"]):
+            word_ids = tokenized_inputs.word_ids(batch_index=i)  # Map tokens to their respective word.
+            previous_word_idx = None
+            label_ids = []
+            for word_idx in word_ids:  # Set the special tokens to -100.
+                if word_idx is None:
+                    label_ids.append(-100)
+                elif word_idx != previous_word_idx:  # Only label the first token of a given word.
+                    label_ids.append(label[word_idx])
+                else:
+                    label_ids.append(-100)
+                previous_word_idx = word_idx
+            labels.append(label_ids)
+            inputs.append(" ".join(examples["tokens"][i]).strip())
+
+        return {"input_text": inputs, "label": labels}
+    
     def postprocess_data(self, examples):
         labels = []
         for example in examples:
@@ -333,7 +354,9 @@ class WikiANNDataset(NERDataset):
     DATASET_NAME = "wikiann"
     DATASET_INFO = ("wikiann", "tr")
 
-    def preprocess_data(self, examples):
+    def preprocess_data(self, examples, skip_output_processing=False, tokenizer=None):
+        if skip_output_processing:
+            return super().preprocess_data(examples, tokenizer)
         input_texts = []
         target_texts = []
         for tokens, spans in zip(examples['tokens'], examples['spans']):
@@ -398,14 +421,16 @@ class MilliyetNERDataset(LocalDataset,NERDataset):
                         token, tag = line.split(' ')
                         tokens.append(token)
                         tags.append(tag)
-                    el = {'tokens': tokens, 'tags': tags}
+                    el = {'tokens': tokens, 'ner_tags': tags}
                     with open(data_file, 'a', encoding='utf-8') as f:
                         f.write(json.dumps(el) + '\n')
         return super().load_dataset(split)
  
-    def preprocess_data(self, examples):
+    def preprocess_data(self, examples, skip_output_processing=False, tokenizer=None):
+        if skip_output_processing:
+            return super().preprocess_data(examples, tokenizer)
         input_texts, target_texts = [], []
-        for tokens, tags in zip(examples['tokens'], examples['tags']):
+        for tokens, tags in zip(examples['tokens'], examples['ner_tags']):
             token_str, tag_type = '', ''
             tag_dict = {}
             for j, tag in enumerate(tags):
