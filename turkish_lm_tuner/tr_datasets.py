@@ -199,7 +199,7 @@ class QADataset(BaseDataset):
     DATASET_NAME = "qa"
 
     def postprocess_data(self, examples):
-        return [{'prediction_text': ex.strip()} for ex in examples] # is id necessary?
+        return [{'prediction_text': ex.strip(), 'id': 0} for ex in examples] # is id necessary?
 
 class ExamsDataset(QADataset):
     DATASET_NAME = "exams"
@@ -229,9 +229,8 @@ class ExamsDataset(QADataset):
             if not answer:
                 continue
             input_texts.append(question_str)
-            target_texts.append(answer)
-        return {"input_text": input_texts, 'target_text': target_texts} # does target_text need to be a string? SQuAD expects in the format
-            # {"answers": {"answer_start": [97], "text": ["1976"]}, "id": "56e10a3be3433e1400422b22"}
+            target_texts.append({'answers': {'answer_start': [0], 'text': [answer]}, 'id': '0'})
+        return {"input_text": input_texts, 'target_text': target_texts}
     
     def preprocess_question_generation(self, examples):
         input_texts, target_texts = [], []
@@ -273,7 +272,7 @@ class TQUADDataset(LocalDataset, QADataset):
                     input_text = f"Bağlam: {context} | Soru: {question}"
                     target_text = answer
                     input_texts.append(input_text)
-                    target_texts.append(target_text)
+                    target_texts.append({"answers": {"answer_start": [0], "text": [target_text]}, "id": "0"})
         return {"input_text": input_texts, "target_text": target_texts}
     
     def preprocess_question_generation(self, examples):
@@ -311,10 +310,10 @@ class MKQADataset(QADataset):
             answer = answers['tr'][0]['text']
             if not answer:
                 input_texts.append(query)
-                target_texts.append('')
+                target_texts.append({'answers': {'answer_start': [0], 'text': ['']}, 'id': '0'})
                 continue
             input_texts.append(query)
-            target_texts.append(answer)
+            target_texts.append({"answers": {"answer_start": [0], "text": [answer]}, "id": "0"})
         return {"input_text": input_texts, "target_text": target_texts}
 
     def preprocess_question_generation(self, examples):
