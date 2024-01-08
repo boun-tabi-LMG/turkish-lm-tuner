@@ -252,7 +252,7 @@ class TQUADDataset(LocalDataset, QADataset):
                     input_text = f"Bağlam: {context} | Soru: {question}"
                     target_text = answer
                     input_texts.append(input_text)
-                    target_texts.append({"answers": {"answer_start": [0], "text": [target_text]}, "id": "0"})
+                    target_texts.append(target_text)
         return {"input_text": input_texts, "target_text": target_texts}
    
 class MKQADataset(QADataset):
@@ -269,10 +269,10 @@ class MKQADataset(QADataset):
             answer = answers['tr'][0]['text']
             if not answer:
                 input_texts.append(query)
-                target_texts.append({'answers': {'answer_start': [0], 'text': ['']}, 'id': '0'})
+                target_texts.append('')
                 continue
             input_texts.append(query)
-            target_texts.append({"answers": {"answer_start": [0], "text": [answer]}, "id": "0"})
+            target_texts.append(answer)
         return {"input_text": input_texts, "target_text": target_texts}
 
 class NERDataset(BaseDataset):
@@ -580,6 +580,7 @@ class POSDataset(LocalDataset):
     
     def postprocess_data(self, examples, inputs):
         labels = []
+        references = []
         for input_t, example in zip(inputs, examples):
             example = example.strip()
             input_tokens = input_t.split(' ')
