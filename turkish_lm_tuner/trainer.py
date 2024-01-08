@@ -160,6 +160,8 @@ class TrainerForClassification(BaseModelTrainer):
         if config.model_type == "t5":
             if self.task == "classification":
                 return T5ForSequenceClassification(self.model_name, config, self.num_labels, "single_label_classification")
+            elif self.task == "ner":
+                return T5ForSequenceClassification(self.model_name, config, self.num_labels, "multi_label_classification")
             else:
                 return T5ForSequenceClassification(self.model_name, config, 1, "regression")
         else:
