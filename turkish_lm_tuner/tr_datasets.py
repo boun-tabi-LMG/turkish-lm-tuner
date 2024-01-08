@@ -252,7 +252,7 @@ class TQUADDataset(LocalDataset, QADataset):
                     input_text = f"Bağlam: {context} | Soru: {question}"
                     target_text = answer
                     input_texts.append(input_text)
-                    target_texts.append(target_text)
+                    target_texts.append({"answers": {"answer_start": [0], "text": [target_text]}, "id": "0"})
         return {"input_text": input_texts, "target_text": target_texts}
    
 class MKQADataset(QADataset):
@@ -269,10 +269,10 @@ class MKQADataset(QADataset):
             answer = answers['tr'][0]['text']
             if not answer:
                 input_texts.append(query)
-                target_texts.append('')
+                target_texts.append({'answers': {'answer_start': [0], 'text': ['']}, 'id': '0'})
                 continue
             input_texts.append(query)
-            target_texts.append(answer)
+            target_texts.append({"answers": {"answer_start": [0], "text": [answer]}, "id": "0"})
         return {"input_text": input_texts, "target_text": target_texts}
 
 class NERDataset(BaseDataset):
