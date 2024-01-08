@@ -34,11 +34,13 @@ run_evaluation() {
         CONFIG_NAME=$TASK_NAME"_"$dataset_name
     fi
 
+    echo 'running' $CONFIG_NAME
     python experiments/eval.py --config-name $CONFIG_NAME \
         dataset_name=$dataset_name \
         model_path=$BASE_PATH/$model_name/$TASK_NAME/$dataset_name \
         test_params.output_dir=$BASE_PATH/$model_name/$TASK_NAME/$dataset_name \
         tokenizer_path=$tokenizer_path
+    echo $CONFIG_NAME 'done'
 }
 
 models=("ul2tr" "mt5-large" "mbart")
