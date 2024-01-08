@@ -299,9 +299,7 @@ class MKQADataset(QADataset):
     DATASET_INFO = "mkqa"    
 
     def load_dataset(self, split=None):
-        dataset = datasets.load_dataset('mkqa')
-        split_dataset = dataset['train'].train_test_split(test_size=0.1, seed=42)
-        return split_dataset[split]
+        return datasets.load_dataset('mkqa')
 
     def preprocess_data(self, examples, task='qa'):
         return self.preprocess_question_answering(examples) if task == 'qa' else self.preprocess_question_generation(examples)

@@ -14,7 +14,7 @@ tokenizer_mapping = {
 }
 
 # List of completed tasks
-completed_tasks = ['ner', 'pos']
+completed_tasks = ['pos']
 
 # Organization name
 organization = "boun-tabi-LMG"
