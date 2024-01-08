@@ -199,7 +199,7 @@ class QADataset(BaseDataset):
     DATASET_NAME = "qa"
 
     def postprocess_data(self, examples):
-        return [{'prediction_text': ex.strip(), 'id': 0} for ex in examples] # is id necessary?
+        return [ex.strip() for ex in examples]
 
 class ExamsDataset(QADataset):
     DATASET_NAME = "exams"
@@ -212,27 +212,7 @@ class ExamsDataset(QADataset):
         else:
             return super().load_dataset(split)
         
-    def preprocess_data(self, examples, task='qa'):
-        return self.preprocess_question_answering(examples) if task == 'qa' else self.preprocess_question_generation(examples)
-    
-    def preprocess_question_answering(self, examples):
-        input_texts, target_texts = [], []
-        for question, answer_key in zip(examples["question"], examples["answerKey"]):
-            question_str = question["stem"]
-            choices = question["choices"]
-            if answer_key not in choices['label']:
-                input_texts.append(question_str)
-                target_texts.append('')
-                continue
-            answer_order = choices['label'].index(answer_key)
-            answer = choices['text'][answer_order]
-            if not answer:
-                continue
-            input_texts.append(question_str)
-            target_texts.append({'answers': {'answer_start': [0], 'text': [answer]}, 'id': '0'})
-        return {"input_text": input_texts, 'target_text': target_texts}
-    
-    def preprocess_question_generation(self, examples):
+    def preprocess_data(self, examples):
         input_texts, target_texts = [], []
         for question, answer_key in zip(examples["question"], examples["answerKey"]):
             question_str = question["stem"]
@@ -247,8 +227,8 @@ class ExamsDataset(QADataset):
                 continue
             input_texts.append(question_str)
             target_texts.append(answer)
-        return {"input_text": target_texts, 'target_text': input_texts}
-
+        return {"input_text": input_texts, 'target_text': target_texts}
+    
 class TQUADDataset(LocalDataset, QADataset):
     DATASET_NAME = "tquad"
     DATASET_INFO = {'train': 'train-v0.1.json', 'test': 'dev-v0.1.json'}
@@ -256,10 +236,7 @@ class TQUADDataset(LocalDataset, QADataset):
     def load_dataset(self, split=None):
         return super().load_dataset(split, field='data')
     
-    def preprocess_data(self, examples, task='qa'):
-        return self.preprocess_question_answering(examples) if task == 'qa' else self.preprocess_question_generation(examples)
-    
-    def preprocess_question_answering(self, examples):
+    def preprocess_data(self, examples):
         input_texts, target_texts = [], []
         for paragraphs in examples['paragraphs']:
             for paragraph in paragraphs:
@@ -272,59 +249,27 @@ class TQUADDataset(LocalDataset, QADataset):
                     input_text = f"Bağlam: {context} | Soru: {question}"
                     target_text = answer
                     input_texts.append(input_text)
-                    target_texts.append({"answers": {"answer_start": [0], "text": [target_text]}, "id": "0"})
-        return {"input_text": input_texts, "target_text": target_texts}
-    
-    def preprocess_question_generation(self, examples):
-        input_texts, target_texts = [], []
-        for paragraphs in examples['paragraphs']:
-            for paragraph in paragraphs:
-                qas = paragraph['qas']
-                context = paragraph['context'].strip()
-                for qa in qas:
-                    question = qa['question'].strip()
-                    answers = qa['answers']
-                    answer = answers[0]['text'].strip()
-                    input_text = f"Bağlam: {context} | Cevap: {answer}"
-                    target_text = question
-                    input_texts.append(input_text)
                     target_texts.append(target_text)
         return {"input_text": input_texts, "target_text": target_texts}
-    
+   
 class MKQADataset(QADataset):
     DATASET_NAME = "mkqa"
     DATASET_INFO = "mkqa"    
 
-    def load_dataset(self, split=None):
-        return datasets.load_dataset('mkqa')
+    def load_dataset(self, split='train'):
+        return datasets.load_dataset('mkqa', split='train')
 
-    def preprocess_data(self, examples, task='qa'):
-        return self.preprocess_question_answering(examples) if task == 'qa' else self.preprocess_question_generation(examples)
-    
-    def preprocess_question_answering(self, examples):
+    def preprocess_data(self, examples):
         input_texts, target_texts = [], []
         for queries, answers in zip(examples['queries'], examples['answers']):
             query = queries['tr']
             answer = answers['tr'][0]['text']
             if not answer:
                 input_texts.append(query)
-                target_texts.append({'answers': {'answer_start': [0], 'text': ['']}, 'id': '0'})
+                target_texts.append('')
                 continue
             input_texts.append(query)
-            target_texts.append({"answers": {"answer_start": [0], "text": [answer]}, "id": "0"})
-        return {"input_text": input_texts, "target_text": target_texts}
-
-    def preprocess_question_generation(self, examples):
-        input_texts, target_texts = [], []
-        for queries, answers in zip(examples['queries'], examples['answers']):
-            query = queries['tr']
-            answer = answers['tr'][0]['text']
-            if not answer:
-                input_texts.append('')
-                target_texts.append(query)
-                continue
-            input_texts.append(answer)
-            target_texts.append(query)
+            target_texts.append(answer)
         return {"input_text": input_texts, "target_text": target_texts}
 
 class NERDataset(BaseDataset):
@@ -572,6 +517,7 @@ class POSDataset(LocalDataset):
     
     def postprocess_data(self, examples, inputs):
         labels = []
+        references = []
         for input_t, example in zip(inputs, examples):
             example = example.strip()
             input_tokens = input_t.split(' ')
