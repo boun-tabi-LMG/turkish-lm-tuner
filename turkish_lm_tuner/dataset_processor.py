@@ -36,7 +36,10 @@ class DatasetProcessor:
         column_names = [col for col in column_names if col not in ['input_text', 'target_text', 'label']]
         
         if self.task_format == "classification":
-            processed_dataset = data.map(preprocess_function, remove_columns=column_names, batched=True, fn_kwargs={"skip_output_processing": True})
+            if self.task == 'ner': 
+                processed_dataset = data.map(preprocess_function, remove_columns=column_names, batched=True, fn_kwargs={"skip_output_processing": True, "tokenizer": self.tokenizer})
+            else:
+                processed_dataset = data.map(preprocess_function, remove_columns=column_names, batched=True, fn_kwargs={"skip_output_processing": True})
         else:
             processed_dataset = data.map(preprocess_function, remove_columns=column_names, batched=True)
         
