@@ -46,7 +46,7 @@ class TRNewsDataset(BaseDataset):
     DATASET_INFO = "batubayk/TR-News"
     
     def preprocess_data(self, examples):
-        return {"input_text": examples["content"], "target_text": examples["summary"]}
+        return {"input_text": examples["content"], "target_text": examples["abstract"]}
 
 class MLSumDataset(BaseDataset):
     DATASET_NAME = "mlsum"
