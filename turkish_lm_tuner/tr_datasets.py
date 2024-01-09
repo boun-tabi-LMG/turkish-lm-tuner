@@ -322,7 +322,7 @@ class NERDataset(BaseDataset):
                 previous_word_idx = word_idx
             labels.append(label_ids)
             inputs.append(" ".join(examples["tokens"][i]).strip())
-        tokenized_inputs["label_ids"] = labels
+        tokenized_inputs["labels"] = labels
         return tokenized_inputs
     
     def postprocess_data(self, examples, inputs):

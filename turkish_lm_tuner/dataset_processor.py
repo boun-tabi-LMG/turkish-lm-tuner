@@ -93,8 +93,8 @@ class DatasetProcessor:
 
     def tokenize_function(self, examples):
         if "input_ids" in examples:
-            examples["input_ids"] = [inputs + [self.tokenizer.pad_token_id] * (self.max_input_length - len(inputs)) if len(inputs) < self.max_input_length else inputs[:self.max_input_length] for inputs in examples["input_ids"]]
-            examples["label_ids"] = [label + [-100] * (self.max_input_length - len(label)) if len(label) < self.max_input_length else label[:self.max_input_length] for label in examples["label_ids"]]
+            #examples["input_ids"] = [inputs + [self.tokenizer.pad_token_id] * (self.max_input_length - len(inputs)) if len(inputs) < self.max_input_length else inputs[:self.max_input_length] for inputs in examples["input_ids"]]
+            #examples["label_ids"] = [label + [-100] * (self.max_input_length - len(label)) if len(label) < self.max_input_length else label[:self.max_input_length] for label in examples["label_ids"]]
             return examples
         
         if self.task_format == 'conditional_generation':
