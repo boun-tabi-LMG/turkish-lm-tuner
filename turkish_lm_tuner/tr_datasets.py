@@ -303,7 +303,15 @@ class MKQADataset(QADataset):
 class NERDataset(BaseDataset):
     NER_label_translation_d = {"Kişi": "PER", "Yer": "LOC", "Kuruluş": "ORG"}
     NER_label_int_dict = {"PER": 1, "LOC": 3, "ORG": 5}
-
+    NER_BIO_mapping = {
+        "O": 0,
+        "B-PERSON": 1,
+        "I-PERSON": 2,
+        "B-LOCATION": 3,
+        "I-LOCATION": 4,
+        "B-ORGANIZATION": 5,
+        "I-ORGANIZATION": 6,
+    }
     def preprocess_data(self, examples, tokenizer):
         tokenized_inputs = tokenizer(examples["tokens"], truncation=True, is_split_into_words=True)
         inputs = []
@@ -316,7 +324,7 @@ class NERDataset(BaseDataset):
                 if word_idx is None:
                     label_ids.append(-100)
                 elif word_idx != previous_word_idx:  # Only label the first token of a given word.
-                    label_ids.append(label[word_idx])
+                    label_ids.append(NERDataset.NER_BIO_MAPPING[label[word_idx]] if isinstance(label[word_idx], str) else label[word_idx])
                 else:
                     label_ids.append(-100)
                 previous_word_idx = word_idx
