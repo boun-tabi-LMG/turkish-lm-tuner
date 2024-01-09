@@ -324,7 +324,7 @@ class NERDataset(BaseDataset):
                 if word_idx is None:
                     label_ids.append(-100)
                 elif word_idx != previous_word_idx:  # Only label the first token of a given word.
-                    label_ids.append(NERDataset.NER_BIO_MAPPING[label[word_idx]] if isinstance(label[word_idx], str) else label[word_idx])
+                    label_ids.append(NERDataset.NER_BIO_mapping[label[word_idx]] if isinstance(label[word_idx], str) else label[word_idx])
                 else:
                     label_ids.append(-100)
                 previous_word_idx = word_idx
