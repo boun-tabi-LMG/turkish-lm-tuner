@@ -33,13 +33,8 @@ from turkish_lm_tuner.tr_datasets import WikiANNDataset
 
 tokenizer = AutoTokenizer.from_pretrained("dbmdz/bert-base-turkish-cased")
 dataset = WikiANNDataset()
-train_dataset = dataset.load_dataset('train')
-val_dataset = dataset.load_dataset('validation')
-test_dataset = dataset.load_dataset('test')
-
-processed_dataset = train_dataset.map(dataset.preprocess_data, batched=True, fn_kwargs={"skip_output_processing": True, "tokenizer": tokenizer})
-processed_dataset_val = val_dataset.map(dataset.preprocess_data, batched=True, fn_kwargs={"skip_output_processing": True, "tokenizer": tokenizer})
-processed_dataset_test = test_dataset.map(dataset.preprocess_data, batched=True, fn_kwargs={"skip_output_processing": True, "tokenizer": tokenizer})
+wikiann = dataset.load_dataset()
+processed_dataset = wikiann.map(dataset.preprocess_data, batched=True, fn_kwargs={"skip_output_processing": True, "tokenizer": tokenizer})
 
 model = AutoModelForTokenClassification.from_pretrained(
     "dbmdz/bert-base-turkish-cased", num_labels=7
