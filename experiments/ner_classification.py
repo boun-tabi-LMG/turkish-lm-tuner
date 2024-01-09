@@ -2,12 +2,13 @@ import numpy as np
 from transformers import DataCollatorForTokenClassification
 from transformers import AutoModelForTokenClassification, TrainingArguments, Trainer
 from transformers import AutoTokenizer, EarlyStoppingCallback
-from turkish_lm_tuner.tr_datasets import WikiANNDataset
+from turkish_lm_tuner.tr_datasets import WikiANNDataset, MilliyetNERDataset
 from turkish_lm_tuner.metrics import load_task_metrics
 from turkish_lm_tuner.metrics import Evaluator
 
 tokenizer = AutoTokenizer.from_pretrained("dbmdz/bert-base-turkish-cased")
 dataset = WikiANNDataset()
+dataset = MilliyetNERDataset("/stratch/bounllm/supervised/ner-milliyet-v2")
 wikiann = dataset.load_dataset()
 processed_dataset = wikiann.map(dataset.preprocess_data, batched=True, fn_kwargs={"skip_output_processing": True, "tokenizer": tokenizer})
 
