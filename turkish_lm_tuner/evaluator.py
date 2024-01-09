@@ -84,16 +84,15 @@ class EvaluatorForClassification(BaseEvaluator):
         preds = np.argmax(preds, axis=-1)
 
         logger.info('Filtering subword predictions for token classification')
-        if -100 in labels:
-            true_predictions = [
-                [str(p) for (p, l) in zip(prediction, label) if l != -100]
-                for prediction, label in zip(preds, labels)
-            ]
-            true_labels = [
-                [str(l) for (p, l) in zip(prediction, label) if l != -100]
-                for prediction, label in zip(preds, labels)
-            ]
-            preds, labels = true_predictions, true_labels
+        true_predictions = [
+            [str(p) for (p, l) in zip(prediction, label) if l != -100]
+            for prediction, label in zip(preds, labels)
+        ]
+        true_labels = [
+            [str(l) for (p, l) in zip(prediction, label) if l != -100]
+            for prediction, label in zip(preds, labels)
+        ]
+        preds, labels = true_predictions, true_labels
      
         logger.info("Computing metrics")
 
