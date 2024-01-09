@@ -1,6 +1,4 @@
 import numpy as np
-import evaluate
-from datasets import load_dataset
 from transformers import DataCollatorForTokenClassification
 from transformers import AutoModelForTokenClassification, TrainingArguments, Trainer
 from transformers import AutoTokenizer, EarlyStoppingCallback
@@ -9,7 +7,6 @@ from turkish_lm_tuner.metrics import load_task_metrics
 from turkish_lm_tuner.metrics import Evaluator
 
 tokenizer = AutoTokenizer.from_pretrained("dbmdz/bert-base-turkish-cased")
-metric = load_task_metrics("ner")[0]
 dataset = WikiANNDataset()
 wikiann = dataset.load_dataset()
 processed_dataset = wikiann.map(dataset.preprocess_data, batched=True, fn_kwargs={"skip_output_processing": True, "tokenizer": tokenizer})
@@ -42,8 +39,8 @@ metric = load_task_metrics("ner")[0]
 trainer = Trainer(
     model=model,
     args=training_args,
-    train_dataset=processed_dataset,
-    eval_dataset=processed_dataset_val,
+    train_dataset=processed_dataset["train"],
+    eval_dataset=processed_dataset["validation"],
     tokenizer=tokenizer,
     data_collator=data_collator,
     compute_metrics=lambda x: metric.compute(*x),
@@ -53,4 +50,4 @@ trainer = Trainer(
 )
 
 trainer.train()
-trainer.evaluate(processed_dataset_test)
+print(trainer.evaluate(processed_dataset["test"]))
