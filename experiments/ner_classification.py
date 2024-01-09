@@ -4,34 +4,11 @@ from datasets import load_dataset
 from transformers import DataCollatorForTokenClassification
 from transformers import AutoModelForTokenClassification, TrainingArguments, Trainer
 from transformers import AutoTokenizer, EarlyStoppingCallback
-
-seqeval = evaluate.load("seqeval")
-
-def compute_metrics(p):
-    predictions, labels = p
-    predictions = np.argmax(predictions, axis=2)
-
-    true_predictions = [
-        [str(p) for (p, l) in zip(prediction, label) if l != -100]
-        for prediction, label in zip(predictions, labels)
-    ]
-    true_labels = [
-        [str(l) for (_, l) in zip(prediction, label) if l != -100]
-        for prediction, label in zip(predictions, labels)
-    ]
-
-    results = seqeval.compute(predictions=true_predictions, references=true_labels)
-    return {
-        "precision": results["overall_precision"],
-        "recall": results["overall_recall"],
-        "f1": results["overall_f1"],
-        "accuracy": results["overall_accuracy"],
-    }
-
-
 from turkish_lm_tuner.tr_datasets import WikiANNDataset
+from turkish_lm_tuner.metrics import load_task_metrics
 
 tokenizer = AutoTokenizer.from_pretrained("dbmdz/bert-base-turkish-cased")
+metric = load_task_metrics("ner")[0]
 dataset = WikiANNDataset()
 wikiann = dataset.load_dataset()
 processed_dataset = wikiann.map(dataset.preprocess_data, batched=True, fn_kwargs={"skip_output_processing": True, "tokenizer": tokenizer})
@@ -63,7 +40,7 @@ trainer = Trainer(
     eval_dataset=processed_dataset_val,
     tokenizer=tokenizer,
     data_collator=data_collator,
-    compute_metrics=compute_metrics,
+    compute_metrics=lambda x: metric.compute(x[0], x[1]),
     callbacks = [EarlyStoppingCallback(early_stopping_patience=3)]
 
 )
