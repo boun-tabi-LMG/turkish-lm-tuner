@@ -30,7 +30,7 @@ class BaseDataset:
         return {"input_text": examples["text"], "label": examples["label"]}
             
     def postprocess_data(self, examples):
-        return [ex.strip() for ex in examples]
+        return [ex.strip() if isinstance(ex, str) else ex for ex in examples]
 
     def deduplicate_data(self, dataset, input_column):
         df = dataset.to_pandas()
@@ -325,7 +325,19 @@ class NERDataset(BaseDataset):
         tokenized_inputs["labels"] = labels
         return tokenized_inputs
     
-    def postprocess_data(self, examples, inputs):
+    def postprocess_labels(self, examples):
+        preds, labels = examples
+        true_predictions = [
+            [str(p) for (p, l) in zip(prediction, label) if l != -100]
+            for prediction, label in zip(preds, labels)
+        ]
+        true_labels = [
+            [str(l) for (p, l) in zip(prediction, label) if l != -100]
+            for prediction, label in zip(preds, labels)
+        ]
+        return true_predictions, true_labels
+    
+    def postprocess_text(self, examples, inputs):
         labels = []
         for example, input_t in zip(examples, inputs):
             example = example.strip()
@@ -364,6 +376,12 @@ class NERDataset(BaseDataset):
                 labels.append(label_l)
         return labels
 
+    def postprocess_data(self, examples, inputs=None):
+        if inputs is None:
+           return self.postprocess_labels(examples)
+        else: 
+            return self.postprocess_text(examples, inputs)
+        
 class WikiANNDataset(NERDataset):
     DATASET_NAME = "wikiann"
     DATASET_INFO = ("wikiann", "tr")
