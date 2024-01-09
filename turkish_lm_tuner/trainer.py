@@ -7,8 +7,8 @@ from transformers import (
     EarlyStoppingCallback,
     AutoConfig
 )
-from transformers.optimization import Adafactor, AdafactorSchedule, AdamW
-from transformers import get_scheduler
+from transformers.optimization import Adafactor, AdafactorSchedule
+from transformers import DataCollatorForTokenClassification
 from .evaluator import (
     EvaluatorForClassification,
     EvaluatorForConditionalGeneration
@@ -155,6 +155,11 @@ class TrainerForClassification(BaseModelTrainer):
     
     def train_and_evaluate(self, train_dataset, eval_dataset, test_dataset):
         logger.info("Training in classification mode")
+        if self.task == 'ner':
+            data_collator = DataCollatorForTokenClassification(tokenizer=self.tokenizer)
+            tokenizer = self.tokenizer
+        else:
+            data_collator, tokenizer = None, None
 
         training_args = TrainingArguments(
             metric_for_best_model='eval_loss',
@@ -178,6 +183,8 @@ class TrainerForClassification(BaseModelTrainer):
             eval_dataset=eval_dataset,
             compute_metrics=self.evaluator.compute_metrics,
             optimizers=(optimizer, lr_scheduler),
+            tokenizer=tokenizer,
+            data_collator=data_collator,
             callbacks = [EarlyStoppingCallback(early_stopping_patience=3)]
         )
         trainer.train()
