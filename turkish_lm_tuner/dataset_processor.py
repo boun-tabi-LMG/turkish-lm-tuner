@@ -9,7 +9,7 @@ formatter = logging.Formatter('%(levelname)s - %(asctime)s - %(name)s: %(message
 stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
 
-from .tr_datasets import initialize_dataset
+from tr_datasets import initialize_dataset
 
 class DatasetProcessor:
     def __init__(self, dataset_name, task, task_format, task_mode, tokenizer_name, max_input_length, max_target_length, dataset_loc=""):
@@ -92,6 +92,11 @@ class DatasetProcessor:
         return [append_eos_text(ex) for ex in examples]
 
     def tokenize_function(self, examples):
+        if "input_ids" in examples:
+            examples["input_ids"] = [inputs + [self.tokenizer.pad_token_id] * (self.max_input_length - len(inputs)) if len(inputs) < self.max_input_length else inputs[:self.max_input_length] for inputs in examples["input_ids"]]
+            examples["label_ids"] = [label + [-100] * (self.max_input_length - len(label)) if len(label) < self.max_input_length else label[:self.max_input_length] for label in examples["label_ids"]]
+            return examples
+        
         if self.task_format == 'conditional_generation':
             inputs_tokenized = self.tokenizer(
                         self.prepend_prefix(examples["input_text"]),
@@ -110,11 +115,11 @@ class DatasetProcessor:
             return {'labels': targets_tokenized['input_ids'], **inputs_tokenized}
         elif self.task_format == 'classification':
             return self.tokenizer(
-            examples["input_text"],
-            padding="max_length",
-            truncation=True,
-            max_length=self.max_input_length,
-            return_token_type_ids=False,
+                examples["input_text"],
+                padding="max_length",
+                truncation=True,
+                max_length=self.max_input_length,
+                return_token_type_ids=False,
             )
         return self.tokenizer(
             self.append_eos(self.prepend_prefix(examples["input_text"])),
