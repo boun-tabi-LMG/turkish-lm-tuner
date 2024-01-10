@@ -275,13 +275,14 @@ class MKQADataset(QADataset):
 class NERDataset(BaseDataset):
     NER_label_translation_d = {"Kişi": "PER", "Yer": "LOC", "Kuruluş": "ORG"}
     NER_label_int_dict = {"PER": 1, "LOC": 3, "ORG": 5}
+    NER_int_label_dict = {1: "PER", 3: "LOC", 5: "ORG"}
 
     def postprocess_data(self, examples, inputs):
         labels = []
         for example, input_t in zip(examples, inputs):
             example = example.strip()
             input_tokens = input_t.split(' ')
-            label_l = ['0' for _ in range(len(input_tokens))]
+            label_l = ['O' for _ in range(len(input_tokens))]
             if example == 'Bulunamadı.':
                 labels.append(label_l)
             else:
@@ -305,13 +306,13 @@ class NERDataset(BaseDataset):
                             continue
                         if len(el_split) == 1:
                             start = input_tokens.index(el_split[0])
-                            label_l[start] = str(NERDataset.NER_label_int_dict[NERDataset.NER_label_translation_d[tag_type]])
+                            label_l[start] = 'B-' + NERDataset.NER_label_translation_d[tag_type]
                         else:
                             start = input_tokens.index(el_split[0])
-                            label_l[start] = str(NERDataset.NER_label_int_dict[NERDataset.NER_label_translation_d[tag_type]])
+                            label_l[start] = 'B-' + NERDataset.NER_label_translation_d[tag_type]
                             end = input_tokens.index(el_split[-1])
                             for i in range(start+1, end+1):
-                                label_l[i] = str(NERDataset.NER_label_int_dict[NERDataset.NER_label_translation_d[tag_type]] + 1)
+                                label_l[i] = 'I-' + NERDataset.NER_label_translation_d[tag_type]
                 labels.append(label_l)
         return labels
 
@@ -517,7 +518,6 @@ class POSDataset(LocalDataset):
     
     def postprocess_data(self, examples, inputs):
         labels = []
-        references = []
         for input_t, example in zip(inputs, examples):
             example = example.strip()
             input_tokens = input_t.split(' ')
@@ -529,7 +529,7 @@ class POSDataset(LocalDataset):
                 token_split = token.split('/')
                 label = token_split[-1].strip()
                 if label != '':
-                    label_l[i] = label
+                    label_l[i] = 'B-' + label
             labels.append(label_l)
         return labels    
     
