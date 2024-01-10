@@ -580,7 +580,6 @@ class POSDataset(LocalDataset):
     
     def postprocess_data(self, examples, inputs):
         labels = []
-        references = []
         for input_t, example in zip(inputs, examples):
             example = example.strip()
             input_tokens = input_t.split(' ')
