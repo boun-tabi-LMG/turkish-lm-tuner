@@ -46,7 +46,7 @@ class TRNewsDataset(BaseDataset):
     DATASET_INFO = "batubayk/TR-News"
     
     def preprocess_data(self, examples):
-        return {"input_text": examples["content"], "target_text": examples["title"]}
+        return {"input_text": examples["content"], "target_text": examples["abstract"]}
 
 class MLSumDataset(BaseDataset):
     DATASET_NAME = "mlsum"
@@ -54,6 +54,20 @@ class MLSumDataset(BaseDataset):
     
     def preprocess_data(self, examples):
         return {"input_text": examples["text"], "target_text": examples["summary"]}
+
+class TRNewsTitleDataset(BaseDataset): 
+    DATASET_NAME = "tr_news"
+    DATASET_INFO = "batubayk/TR-News"
+    
+    def preprocess_data(self, examples):
+        return {"input_text": examples["content"], "target_text": examples["title"]}
+
+class MLSumTitleDataset(BaseDataset):
+    DATASET_NAME = "mlsum"
+    DATASET_INFO = ("mlsum", "tu")
+    
+    def preprocess_data(self, examples):
+        return {"input_text": examples["text"], "target_text": examples["title"]}
     
 class CombinedNewsDataset(TRNewsDataset):
     DATASET_NAME = "combined_news"
@@ -64,6 +78,25 @@ class CombinedNewsDataset(TRNewsDataset):
         mlsum = MLSumDataset().load_dataset(split)
         mlsum = mlsum.rename_column("text", "content")
         mlsum = mlsum.rename_column("summary", "abstract")
+        if split is not None:
+            return datasets.concatenate_datasets([trnews, mlsum]) 
+        else:
+            combined_data = {}
+            for key in trnews.keys():
+                combined_data[key] = datasets.concatenate_datasets([trnews[key], mlsum[key]]) 
+            # Returns DatasetDict object which is compatible with other datasets but takes a lot of time
+            # return datasets.Dataset.from_dict(combined_data)
+            # Returns a dictionary of DatasetDicts which is not compatible with other datasets but is faster
+            return combined_data 
+
+class CombinedNewsTitleDataset(TRNewsDataset):
+    DATASET_NAME = "combined_news"
+    DATASET_INFO = ["tr_news", "mlsum"]
+    
+    def load_dataset(self, split=None):
+        trnews = TRNewsDataset().load_dataset(split)
+        mlsum = MLSumDataset().load_dataset(split)
+        mlsum = mlsum.rename_column("text", "content")
         if split is not None:
             return datasets.concatenate_datasets([trnews, mlsum]) 
         else:
@@ -595,8 +628,11 @@ class SentimentTweetDataset(ClassificationDataset):
 
 DATASET_MAPPING_NAMES = [
         ("tr_news", "TRNewsDataset"),
+        ("tr_news_title", "TRNewsTitleDataset"),
         ("mlsum", "MLSumDataset"),
+        ("mlsum_title", "MLSumTitleDataset"),
         ("combined_news", "CombinedNewsDataset"),
+        ("combined_news_title", "CombinedNewsTitleDataset"),
         ("opensubtitles", "OpenSubtitlesDataset"),
         ("tatoeba", "TatoebaDataset"),
         ("ted", "TEDDataset"),
