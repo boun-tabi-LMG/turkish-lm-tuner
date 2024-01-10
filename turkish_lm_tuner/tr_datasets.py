@@ -303,7 +303,7 @@ class MKQADataset(QADataset):
 class NERDataset(BaseDataset):
     NER_label_translation_d = {"Kişi": "PER", "Yer": "LOC", "Kuruluş": "ORG"}
     NER_label_int_dict = {"PER": 1, "LOC": 3, "ORG": 5}
-    NER_BIO_mapping = {
+    BIO_mapping = {
         "O": 0,
         "B-PERSON": 1,
         "I-PERSON": 2,
@@ -311,6 +311,15 @@ class NERDataset(BaseDataset):
         "I-LOCATION": 4,
         "B-ORGANIZATION": 5,
         "I-ORGANIZATION": 6,
+    }
+    label_mapping = {
+        0: "0",
+        1: "B-PERSON",
+        2: "I-PERSON",
+        3: "B-LOCATION",
+        4: "I-LOCATION",
+        5: "B-ORGANIZATION",
+        6: "I-ORGANIZATION",
     }
     def preprocess_data(self, examples, tokenizer):
         tokenized_inputs = tokenizer(examples["tokens"], truncation=True, is_split_into_words=True)
@@ -324,7 +333,7 @@ class NERDataset(BaseDataset):
                 if word_idx is None:
                     label_ids.append(-100)
                 elif word_idx != previous_word_idx:  # Only label the first token of a given word.
-                    label_ids.append(NERDataset.NER_BIO_mapping[label[word_idx]] if isinstance(label[word_idx], str) else label[word_idx])
+                    label_ids.append(NERDataset.BIO_mapping[label[word_idx]] if isinstance(label[word_idx], str) else label[word_idx])
                 else:
                     label_ids.append(-100)
                 previous_word_idx = word_idx
@@ -336,11 +345,11 @@ class NERDataset(BaseDataset):
     def postprocess_labels(self, examples):
         preds, labels = examples
         true_predictions = [
-            [str(p) for (p, l) in zip(prediction, label) if l != -100]
+            [NERDataset.label_mapping[p] for (p, l) in zip(prediction, label) if l != -100]
             for prediction, label in zip(preds, labels)
         ]
         true_labels = [
-            [str(l) for (p, l) in zip(prediction, label) if l != -100]
+            [NERDataset.label_mapping[l] for (p, l) in zip(prediction, label) if l != -100]
             for prediction, label in zip(preds, labels)
         ]
         return true_predictions, true_labels
