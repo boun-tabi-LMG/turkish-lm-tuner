@@ -13,11 +13,11 @@ def compute_metrics(p):
     predictions = np.argmax(predictions, axis=2)
 
     true_predictions = [
-        [str(p) for (p, l) in zip(prediction, label) if l != -100]
+        [label_list[p] for (p, l) in zip(prediction, label) if l != -100]
         for prediction, label in zip(predictions, labels)
     ]
     true_labels = [
-        [str(l) for (p, l) in zip(prediction, label) if l != -100]
+        [label_list[l] for (p, l) in zip(prediction, label) if l != -100]
         for prediction, label in zip(predictions, labels)
     ]
 
@@ -52,6 +52,7 @@ def tokenize_and_align_labels(examples):
     return tokenized_inputs
 
 dataset = load_dataset("wikiann", "tr")
+label_list = dataset["train"].features[f"ner_tags"].feature.names
 tokenizer = AutoTokenizer.from_pretrained("dbmdz/bert-base-turkish-cased")
 tokenized_dataset = dataset.map(tokenize_and_align_labels, batched=True)
 model = AutoModelForTokenClassification.from_pretrained(
