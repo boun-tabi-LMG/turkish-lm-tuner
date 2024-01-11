@@ -144,7 +144,7 @@ class TrainerForClassification(BaseModelTrainer):
     def initialize_model(self):
         config = AutoConfig.from_pretrained(self.model_name)
         if config.model_type == "t5":
-            if self.task == "classification":
+            if self.task in ["classification", "nli"]:
                 return T5ForSequenceClassification(self.model_name, config, self.num_labels, "single_label_classification")
             elif self.task == "ner":
                 return T5ForSequenceClassification(self.model_name, config, self.num_labels, "multi_label_classification")
