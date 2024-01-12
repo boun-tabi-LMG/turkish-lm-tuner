@@ -2,7 +2,8 @@ from transformers import (
     AutoTokenizer, AutoModelForSeq2SeqLM, AutoModelForSequenceClassification,
     Seq2SeqTrainer, Seq2SeqTrainingArguments,
     Trainer, TrainingArguments,
-    GenerationConfig
+    GenerationConfig,
+    EvalPrediction
 )
 
 from .metrics import load_task_metrics
@@ -138,6 +139,9 @@ class EvaluatorForConditionalGeneration(BaseEvaluator):
     def compute_metrics(self, eval_preds):
         if isinstance(eval_preds, tuple) and len(eval_preds) == 2:
             preds, labels = eval_preds
+            inputs = None
+        elif isinstance(eval_preds, EvalPrediction):
+            preds, labels = eval_preds.predictions, eval_preds.label_ids
             inputs = None
         else:
             preds, labels, inputs = eval_preds
