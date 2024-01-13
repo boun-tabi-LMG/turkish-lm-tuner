@@ -140,9 +140,8 @@ class EvaluatorForConditionalGeneration(BaseEvaluator):
         if isinstance(eval_preds, tuple) and len(eval_preds) == 2:
             preds, labels = eval_preds
             inputs = None
-        elif isinstance(eval_preds, EvalPrediction):
-            preds, labels = eval_preds.predictions, eval_preds.label_ids
-            inputs = None
+        elif isinstance(eval_preds, EvalPrediction): # qa uses
+            preds, labels, inputs = eval_preds.predictions, eval_preds.label_ids, eval_preds.inputs
         else:
             preds, labels, inputs = eval_preds
         if isinstance(preds, tuple):
