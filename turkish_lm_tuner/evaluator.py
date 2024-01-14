@@ -137,9 +137,11 @@ class EvaluatorForConditionalGeneration(BaseEvaluator):
         return trainer
 
     def compute_metrics(self, eval_preds):
-        if (isinstance(eval_preds, tuple) and len(eval_preds) == 2) or isinstance(eval_preds, EvalPrediction):
+        if isinstance(eval_preds, tuple) and len(eval_preds) == 2:
             preds, labels = eval_preds
             inputs = None
+        elif isinstance(eval_preds, EvalPrediction):
+            preds, labels, inputs = eval_preds.predictions, eval_preds.label_ids, eval_preds.inputs
         else:
             preds, labels, inputs = eval_preds
         if isinstance(preds, tuple):
