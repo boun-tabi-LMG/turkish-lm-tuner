@@ -2,8 +2,7 @@ from transformers import (
     AutoTokenizer, AutoModelForSeq2SeqLM, AutoModelForSequenceClassification,
     Seq2SeqTrainer, Seq2SeqTrainingArguments,
     Trainer, TrainingArguments,
-    EvalPrediction,
-    GenerationConfig
+    EvalPrediction
 )
 
 from .metrics import load_task_metrics
