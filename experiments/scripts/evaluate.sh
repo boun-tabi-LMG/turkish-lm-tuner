@@ -30,7 +30,7 @@ run_evaluation() {
     local dataset_name=$2
     local tokenizer_path=${tokenizer_mapping[$model_name]}
 
-    if [ $TASK_NAME == "ner" ] || [ $TASK_NAME == "pos" ]; then
+    if [ $TASK_NAME == "ner" ] || [ $TASK_NAME == "pos" ] || [ $TASK_NAME == "qa" ]; then
         CONFIG_NAME=$TASK_NAME"_"$dataset_name
     fi
 
@@ -50,7 +50,7 @@ elif [ $TASK_NAME == "ner" ]; then
     datasets=("wikiann" "milliyet")
 elif [ $TASK_NAME == "pos" ]; then
     datasets=("boun" "imst")
-elif [ $TASK_NAME == "question_answering" || $TASK_NAME == "question_generation" ]; then
+elif [ $TASK_NAME == "qa" ]; then
     datasets=("exams" "mkqa" "tquad")
 fi
 
