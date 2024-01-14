@@ -501,16 +501,16 @@ class POSDataset(LocalDataset):
             tag_l = []
             split_token = 0
             for id_t, form, pos in zip(ids, tokens, tags):
-                    if '-' in id_t:
-                        split_token = 2
-                    if pos == '_':
-                        continue
-                    if split_token == 1:
-                        tag_l.append('-{}/{}'.format(form, POSDataset.POS_TR_DICT[pos]))
-                    else:
-                        tag_l.append('{}/{}'.format(form, POSDataset.POS_TR_DICT[pos]))
-                    if split_token != 0:
-                        split_token -= 1
+                if '-' in id_t:
+                    split_token = 2
+                if pos == '_':
+                    continue
+                if split_token == 1:
+                    tag_l.append('-{}/{}'.format(form, POSDataset.POS_TR_DICT[pos]))
+                else:
+                    tag_l.append('{}/{}'.format(form, POSDataset.POS_TR_DICT[pos]))
+                if split_token != 0:
+                    split_token -= 1
             output = ' '.join(tag_l)
             input_texts.append(' '.join(tokens))
             target_texts.append(output)

@@ -120,10 +120,10 @@ class SQUAD(BaseMetric):
     def compute(self, preds, labels, **kwargs):
         for i in range(len(labels)):
             label_t = labels[i]
-            labels[i] = {"answers": {"answer_start": [0], "text": [label_t]}, "id": "0"}
+            labels[i] = {"answers": {"answer_start": [0], "text": [label_t]}, "id": str(i)}
         for i in range(len(preds)):
             pred_t = preds[i]
-            preds[i] = {'prediction_text': pred_t.strip(), 'id': '0'}
+            preds[i] = {'prediction_text': pred_t.strip(), 'id': str(i)}
         return self.metric.compute(predictions=preds, references=labels, **kwargs)
 
 class SeqEval(BaseMetric):
