@@ -30,7 +30,34 @@ def main(cfg: DictConfig):
 
     logger.info("Loading test dataset")
     dataset_processor = DatasetProcessor(dataset_name, task, task_format, task_mode, tokenizer_path, max_input_length, max_target_length, dataset_location)
-    test_dataset = dataset_processor.load_and_preprocess_data(split="test")  # Use split="test[:10]" to test for small sample
+    
+    try:
+        test_dataset = dataset_processor.load_and_preprocess_data(split="test")  # Use split="test[:10]" to test for small sample
+        test_exists = True
+        val_exists = True
+    except:
+        test_exists = False
+        logger.info("No existing test split!")
+        try: 
+            eval_dataset = dataset_processor.load_and_preprocess_data(split='validation')
+            val_exists = True
+        except ValueError:
+            logger.info("No existing validation split!")
+            val_exists = False
+    
+    if not val_exists and not test_exists:
+        train_set = dataset_processor.load_and_preprocess_data(split='train')
+        logger.info("Creating random train, validation and test splits")
+        train_set = train_set.train_test_split(test_size=0.2, seed=25)
+        _, eval_test_dataset = train_set["train"], train_set["test"] 
+        eval_test_dataset = eval_test_dataset.train_test_split(test_size=0.5, seed=25)
+        _, test_dataset = eval_test_dataset["train"], eval_test_dataset["test"] 
+    elif not test_exists:
+        train_set = dataset_processor.load_and_preprocess_data(split='train')
+        logger.info("Creating random train, test splits")
+        train_set = train_set.train_test_split(test_size=0.1, seed=25)
+        _, test_dataset = train_set["train"], train_set["test"] 
+
     postprocess_fn = dataset_processor.dataset.postprocess_data
 
     logger.info("test_dataset[0]: %s", test_dataset[0])
