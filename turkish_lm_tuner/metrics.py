@@ -121,6 +121,10 @@ class SeqEval(BaseMetric):
     def __init__(self):
         super().__init__("seqeval")
 
+class SeqEval(BaseMetric):
+    def __init__(self):
+        super().__init__("seqeval")
+
 METRIC_MAPPING_NAMES = [
         ("accuracy", "Accuracy"),
         ("precision", "Precision"),
@@ -185,7 +189,7 @@ def load_task_metrics(task):
     elif task in ["summarization", "paraphrasing", "title_generation"]:
         return load_metrics(["rouge", "bleu", "meteor", "ter"])
     elif task == "nli":
-        return load_metrics(["accuracy"])
+        return load_metrics(["accuracy", "precision_weighted", "recall_weighted", "f1_weighted"])
     elif task == "semantic_similarity":
         return load_metrics(["pearsonr"])
     elif task == "ner":

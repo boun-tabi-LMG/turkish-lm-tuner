@@ -36,7 +36,10 @@ class DatasetProcessor:
         column_names = [col for col in column_names if col not in ['input_text', 'target_text', 'label']]
         
         if self.task_format == "classification":
-            processed_dataset = data.map(preprocess_function, remove_columns=column_names, batched=True, fn_kwargs={"skip_output_processing": True})
+            if self.task == 'ner': 
+                processed_dataset = data.map(preprocess_function, remove_columns=column_names, batched=True, fn_kwargs={"skip_output_processing": True, "tokenizer": self.tokenizer})
+            else:
+                processed_dataset = data.map(preprocess_function, remove_columns=column_names, batched=True, fn_kwargs={"skip_output_processing": True})
         else:
             processed_dataset = data.map(preprocess_function, remove_columns=column_names, batched=True)
         
@@ -105,10 +108,22 @@ class DatasetProcessor:
                         return_token_type_ids=False,
                    )
             return {'labels': targets_tokenized['input_ids'], **inputs_tokenized}
-        return self.tokenizer(
-            self.append_eos(self.prepend_prefix(examples["input_text"])),
-            padding="max_length",
-            truncation=True,
-            max_length=self.max_input_length,
-            return_token_type_ids=False,
-        )
+        elif self.task_format == 'classification':
+            if self.tokenizer.eos_token == None:
+                print("No EOS token, don't append EOS token")
+                return self.tokenizer(
+                examples["input_text"],
+                padding="max_length",
+                truncation=True,
+                max_length=self.max_input_length,
+                return_token_type_ids=False,
+                )
+            else:
+                print("EOS token present, append EOS token")
+                return self.tokenizer(
+                    self.append_eos(self.prepend_prefix(examples["input_text"])),
+                    padding="max_length",
+                    truncation=True,
+                    max_length=self.max_input_length,
+                    return_token_type_ids=False,
+                )

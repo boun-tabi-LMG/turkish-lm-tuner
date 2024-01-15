@@ -10,6 +10,8 @@ training_params:
   adam_beta2: 0.999
   adam_epsilon: 1e-8
   lr_scheduler_type: linear
-  lr_scheduler_kwargs: {}
   warmup_ratio: 0.0
   warmup_steps: 0
+optimizer_params:
+  optimizer_type: adam
+  scheduler: linear 
