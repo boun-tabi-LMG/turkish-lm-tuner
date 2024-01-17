@@ -400,7 +400,7 @@ class NERDataset(BaseDataset):
         5: "B-ORGANIZATION",
         6: "I-ORGANIZATION",
     }
-    def preprocess_data(self, examples, tokenizer):
+    def preprocess_labels(self, examples, tokenizer):
         tokenized_inputs = tokenizer(examples["tokens"], truncation=True, is_split_into_words=True)
         inputs = []
         labels = []
@@ -482,9 +482,12 @@ class WikiANNDataset(NERDataset):
     DATASET_NAME = "wikiann"
     DATASET_INFO = ("wikiann", "tr")
 
-    def preprocess_data(self, examples, skip_output_processing=False, tokenizer=None):
-        if skip_output_processing:
-            return super().preprocess_data(examples, tokenizer)
+    def preprocess_data(self, examples, label_processing=False, tokenizer=None):
+        if label_processing:
+            return super().preprocess_labels(examples, tokenizer)
+        else:
+            return self.preprocess_text(examples)
+    def postprocess_text(self, examples):
         input_texts = []
         target_texts = []
         for tokens, spans in zip(examples['tokens'], examples['spans']):
@@ -554,9 +557,12 @@ class MilliyetNERDataset(LocalDataset,NERDataset):
                         f.write(json.dumps(el) + '\n')
         return super().load_dataset(split)
  
-    def preprocess_data(self, examples, skip_output_processing=False, tokenizer=None):
-        if skip_output_processing:
-            return super().preprocess_data(examples, tokenizer)
+    def preprocess_data(self, examples, label_processing=False, tokenizer=None):
+        if label_processing:
+            return super().preprocess_labels(examples, tokenizer)
+        return self.preprocess_text(examples)
+    
+    def preprocess_text(self, examples):
         input_texts, target_texts = [], []
         for tokens, tags in zip(examples['tokens'], examples['ner_tags']):
             token_str, tag_type = '', ''
