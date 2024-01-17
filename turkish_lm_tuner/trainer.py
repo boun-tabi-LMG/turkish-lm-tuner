@@ -2,6 +2,7 @@ from transformers import (
     AutoTokenizer,
     AutoModelForSequenceClassification,
     AutoModelForTokenClassification,
+    AutoModelForQuestionAnswering,
     AutoModelForSeq2SeqLM,
     Trainer, Seq2SeqTrainer, 
     TrainingArguments, Seq2SeqTrainingArguments,
@@ -9,12 +10,12 @@ from transformers import (
     AutoConfig
 )
 from transformers.optimization import Adafactor, AdafactorSchedule
-from transformers import DataCollatorForTokenClassification
+from transformers import DataCollatorForTokenClassification, DefaultDataCollator
 from .evaluator import (
     EvaluatorForClassification,
     EvaluatorForConditionalGeneration
 )
-from .t5_classifier import T5ForClassification
+from .t5_classifier import T5ForClassification, T5EncoderForTokenClassification, T5EncoderForQuestionAnswering
 import json 
 import os
 
@@ -148,7 +149,9 @@ class TrainerForClassification(BaseModelTrainer):
             if self.task == "classification":
                 return T5ForClassification(self.model_name, config, self.num_labels, "single_label_classification")
             elif self.task in ["ner", "pos"]:
-                return T5ForClassification(self.model_name, config, self.num_labels, "token_classification")
+                return T5EncoderForTokenClassification(self.model_name, config, self.num_labels, "token_classification")
+            elif self.task == "qa":
+                return T5EncoderForQuestionAnswering(self.model_name, config, self.num_labels, "question_answering")
             else:
                 return T5ForClassification(self.model_name, config, 1, "regression")
         else:
@@ -156,12 +159,17 @@ class TrainerForClassification(BaseModelTrainer):
                 return AutoModelForSequenceClassification.from_pretrained(self.model_name, num_labels=self.num_labels)
             elif self.task in ["ner", "pos"]:
                 return AutoModelForTokenClassification.from_pretrained(self.model_name, num_labels=self.num_labels)
+            elif self.task == "qa":
+                return AutoModelForQuestionAnswering.from_pretrained(self.model_name, num_labels=self.num_labels)
     
     def train_and_evaluate(self, train_dataset, eval_dataset, test_dataset):
         logger.info("Training in classification mode")
 
         if self.task == 'ner':
             data_collator = DataCollatorForTokenClassification(tokenizer=self.tokenizer)
+            tokenizer = self.tokenizer
+        elif self.task == 'qa':
+            data_collator = DefaultDataCollator()
             tokenizer = self.tokenizer
         else:
             data_collator, tokenizer = None, None
