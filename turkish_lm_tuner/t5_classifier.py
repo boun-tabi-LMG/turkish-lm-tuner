@@ -33,15 +33,13 @@ class T5ForClassification(T5PreTrainedModel):   # nn.Module
 
     def forward(self, input_ids, attention_mask=None, labels=None):
         encoder_output = self.encoder(input_ids, attention_mask=attention_mask)
-        if self.config.problem_type == "token_classification":
-            sequence_output = encoder_output.last_hidden_state
+       
+        # Compute mean representation
+        if attention_mask is None:
+            sequence_output = encoder_output.last_hidden_state.mean(dim=1)
         else:
-            # Compute mean representation
-            if attention_mask is None:
-                sequence_output = encoder_output.last_hidden_state.mean(dim=1)
-            else:
-                sum_repr = (encoder_output.last_hidden_state * attention_mask.unsqueeze(-1)).sum(dim=1)
-                sequence_output = sum_repr / attention_mask.sum(dim=1, keepdim=True)
+            sum_repr = (encoder_output.last_hidden_state * attention_mask.unsqueeze(-1)).sum(dim=1)
+            sequence_output = sum_repr / attention_mask.sum(dim=1, keepdim=True)
 
         sequence_output = self.dropout(sequence_output)
         logits = self.classifier(sequence_output)
@@ -49,7 +47,7 @@ class T5ForClassification(T5PreTrainedModel):   # nn.Module
         loss = None
 
         if labels is not None:
-            if self.config.problem_type in ["single_label_classification", "token_classification"]:
+            if self.config.problem_type in ["single_label_classification"]:
                 loss_fct = CrossEntropyLoss()
                 loss = loss_fct(logits.view(-1, self.config.num_labels), labels.view(-1))
             elif self.config.problem_type == "multi_label_classification":
@@ -71,4 +69,52 @@ class T5ForClassification(T5PreTrainedModel):   # nn.Module
             "logits": logits,
               # hidden_states=encoder_output.hidden_states,
               # attentions=encoder_output.attentions
+        }
+
+class T5EncoderForTokenClassification(T5ForClassification):
+    def forward(self, input_ids, attention_mask=None, labels=None):
+        encoder_output = self.encoder(input_ids, attention_mask=attention_mask)
+        sequence_output = encoder_output.last_hidden_state
+        sequence_output = self.dropout(sequence_output)
+        logits = self.classifier(sequence_output)
+
+        loss = None
+        if labels is not None:
+            loss_fct = CrossEntropyLoss()
+            loss = loss_fct(logits.view(-1, self.config.num_labels), labels.view(-1))
+
+        return {
+            "loss": loss,
+            "logits": logits,
+        }
+    
+class T5EncoderForQuestionAnswering(T5ForClassification):
+    def forward(self, input_ids, attention_mask=None, start_positions=None, end_positions=None):
+        encoder_output = self.encoder(input_ids, attention_mask=attention_mask)
+        sequence_output = encoder_output.last_hidden_state
+        logits = self.classifier(sequence_output)
+        start_logits, end_logits = logits.split(1, dim=-1)
+        start_logits = start_logits.squeeze(-1).contiguous()
+        end_logits = end_logits.squeeze(-1).contiguous()
+
+        total_loss = None
+        if start_positions is not None and end_positions is not None:
+            # If we are on multi-GPU, split add a dimension
+            if len(start_positions.size()) > 1:
+                start_positions = start_positions.squeeze(-1)
+            if len(end_positions.size()) > 1:
+                end_positions = end_positions.squeeze(-1)
+            # sometimes the start/end positions are outside our model inputs, we ignore these terms
+            ignored_index = start_logits.size(1)
+            start_positions = start_positions.clamp(0, ignored_index)
+            end_positions = end_positions.clamp(0, ignored_index)
+
+            loss_fct = CrossEntropyLoss(ignore_index=ignored_index)
+            start_loss = loss_fct(start_logits, start_positions)
+            end_loss = loss_fct(end_logits, end_positions)
+            total_loss = (start_loss + end_loss) / 2
+
+        return {
+            "loss": total_loss,
+            "logits":  (start_logits, end_logits),
         }
