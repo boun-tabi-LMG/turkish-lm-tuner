@@ -115,17 +115,21 @@ class DatasetProcessor:
                    )
             return {'labels': targets_tokenized['input_ids'], **inputs_tokenized}
         elif self.task_format == 'classification':
-            return self.tokenizer(
+            if self.tokenizer.eos_token == None:
+                print("No EOS token, don't append EOS token")
+                return self.tokenizer(
                 examples["input_text"],
                 padding="max_length",
                 truncation=True,
                 max_length=self.max_input_length,
                 return_token_type_ids=False,
-            )
-        return self.tokenizer(
-            self.append_eos(self.prepend_prefix(examples["input_text"])),
-            padding="max_length",
-            truncation=True,
-            max_length=self.max_input_length,
-            return_token_type_ids=False,
-        )
+                )
+            else:
+                print("EOS token present, append EOS token")
+                return self.tokenizer(
+                    self.append_eos(self.prepend_prefix(examples["input_text"])),
+                    padding="max_length",
+                    truncation=True,
+                    max_length=self.max_input_length,
+                    return_token_type_ids=False,
+                )

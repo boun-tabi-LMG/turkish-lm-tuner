@@ -82,7 +82,10 @@ class EvaluatorForClassification(BaseEvaluator):
     def compute_metrics(self, eval_preds):
         preds, labels = eval_preds
         #preds = np.argmax(preds[0], axis=-1)
-        preds = np.argmax(preds, axis=-1)
+        if self.task == "semantic_similarity":
+            preds = preds.flatten()
+        else:
+            preds = np.argmax(preds, axis=-1)
 
         logger.info('Postprocessing..')
         preds, labels = self.postprocess_fn((preds, labels))
@@ -140,9 +143,11 @@ class EvaluatorForConditionalGeneration(BaseEvaluator):
         return trainer
 
     def compute_metrics(self, eval_preds):
-        if (isinstance(eval_preds, tuple) and len(eval_preds) == 2) or isinstance(eval_preds, EvalPrediction):
+        if isinstance(eval_preds, tuple) and len(eval_preds) == 2:
             preds, labels = eval_preds
             inputs = None
+        elif isinstance(eval_preds, EvalPrediction):
+            preds, labels, inputs = eval_preds.predictions, eval_preds.label_ids, eval_preds.inputs
         else:
             preds, labels, inputs = eval_preds
         if isinstance(preds, tuple):
