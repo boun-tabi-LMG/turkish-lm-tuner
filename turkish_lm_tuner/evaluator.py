@@ -87,18 +87,8 @@ class EvaluatorForClassification(BaseEvaluator):
         else:
             preds = np.argmax(preds, axis=-1)
 
-        logger.info('Filtering subword predictions for token classification')
-        if -100 in labels:
-            true_predictions = [
-                [str(p) for (p, l) in zip(prediction, label) if l != -100]
-                for prediction, label in zip(preds, labels)
-            ]
-            true_labels = [
-                [str(l) for (p, l) in zip(prediction, label) if l != -100]
-                for prediction, label in zip(preds, labels)
-            ]
-            preds, labels = true_predictions, true_labels
-     
+        logger.info('Postprocessing..')
+        preds, labels = self.postprocess_fn((preds, labels))
         logger.info("Computing metrics")
 
         result = super().compute_metrics(preds, labels)

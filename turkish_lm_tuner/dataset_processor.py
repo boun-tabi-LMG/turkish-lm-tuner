@@ -33,11 +33,12 @@ class DatasetProcessor:
         preprocess_function = self.dataset.preprocess_data
 
         column_names = data.column_names
-        column_names = [col for col in column_names if col not in ['input_text', 'target_text', 'label']]
+        column_names = [col for col in column_names if col not in ['input_text', 'target_text', 'label', 'input_ids', 'label_ids']]
         
         if self.task_format == "classification":
-            if self.task == 'ner': 
+            if self.task in ["ner", "pos"]: 
                 processed_dataset = data.map(preprocess_function, remove_columns=column_names, batched=True, fn_kwargs={"skip_output_processing": True, "tokenizer": self.tokenizer})
+                return processed_dataset
             else:
                 processed_dataset = data.map(preprocess_function, remove_columns=column_names, batched=True, fn_kwargs={"skip_output_processing": True})
         else:
@@ -92,6 +93,11 @@ class DatasetProcessor:
         return [append_eos_text(ex) for ex in examples]
 
     def tokenize_function(self, examples):
+        if "input_ids" in examples:
+            #examples["input_ids"] = [inputs + [self.tokenizer.pad_token_id] * (self.max_input_length - len(inputs)) if len(inputs) < self.max_input_length else inputs[:self.max_input_length] for inputs in examples["input_ids"]]
+            #examples["label_ids"] = [label + [-100] * (self.max_input_length - len(label)) if len(label) < self.max_input_length else label[:self.max_input_length] for label in examples["label_ids"]]
+            return examples
+        
         if self.task_format == 'conditional_generation':
             inputs_tokenized = self.tokenizer(
                         self.prepend_prefix(examples["input_text"]),

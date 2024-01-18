@@ -13,7 +13,7 @@ from transformers.modeling_outputs import (
     SequenceClassifierOutput
 )
 
-class T5ForSequenceClassification(T5PreTrainedModel):   # nn.Module
+class T5ForClassification(T5PreTrainedModel):   # nn.Module
     def __init__(self, pretrained_model_name, config, num_labels, problem_type, dropout_prob=0.1):
         #super(T5ForSequenceClassification, self).__init__()
         super().__init__(config)
@@ -32,22 +32,24 @@ class T5ForSequenceClassification(T5PreTrainedModel):   # nn.Module
         self.model_parallel = False
 
     def forward(self, input_ids, attention_mask=None, labels=None):
-        # print(labels)
         encoder_output = self.encoder(input_ids, attention_mask=attention_mask)
-
-        # Compute mean representation
-        if attention_mask is None:
-            mean_repr = encoder_output.last_hidden_state.mean(dim=1)
+        if self.config.problem_type == "token_classification":
+            sequence_output = encoder_output.last_hidden_state
         else:
-            sum_repr = (encoder_output.last_hidden_state * attention_mask.unsqueeze(-1)).sum(dim=1)
-            mean_repr = sum_repr / attention_mask.sum(dim=1, keepdim=True)
+            # Compute mean representation
+            if attention_mask is None:
+                sequence_output = encoder_output.last_hidden_state.mean(dim=1)
+            else:
+                sum_repr = (encoder_output.last_hidden_state * attention_mask.unsqueeze(-1)).sum(dim=1)
+                sequence_output = sum_repr / attention_mask.sum(dim=1, keepdim=True)
 
-        mean_repr = self.dropout(mean_repr)
-        logits = self.classifier(mean_repr)
+        sequence_output = self.dropout(sequence_output)
+        logits = self.classifier(sequence_output)
+
         loss = None
 
         if labels is not None:
-            if self.config.problem_type == "single_label_classification":
+            if self.config.problem_type in ["single_label_classification", "token_classification"]:
                 loss_fct = CrossEntropyLoss()
                 loss = loss_fct(logits.view(-1, self.config.num_labels), labels.view(-1))
             elif self.config.problem_type == "multi_label_classification":
