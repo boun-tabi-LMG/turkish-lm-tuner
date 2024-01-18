@@ -290,10 +290,12 @@ class TQUADDataset(LocalDataset, QADataset):
                 for qa in qas:
                     examples_list.append({'question': qa['question'].strip(), 'context': context, 'answers': qa['answers']})
                  
-        questions = [q.strip() for q in examples_list["question"]]
+        questions = [q['question'] for q in examples_list]
+        contexts = [q['context'] for q in examples_list]
+        answers = [q['answers'] for q in examples_list]
         inputs = tokenizer(
             questions,
-            examples_list["context"],
+            contexts,
             max_length=max_length,
             truncation="only_second",
             return_offsets_mapping=True,
@@ -301,14 +303,14 @@ class TQUADDataset(LocalDataset, QADataset):
         )
 
         offset_mapping = inputs.pop("offset_mapping")
-        answers = examples_list["answers"]
         start_positions = []
         end_positions = []
-
         for i, offset in enumerate(offset_mapping):
             answer = answers[i]
-            start_char = answer["answer_start"][0]
-            end_char = answer["answer_start"][0] + len(answer["text"][0])
+            print(answer)
+            start_char = int(answer[0]["answer_start"])
+            end_char = int(answer[0]["answer_start"]) + len(answer[0]["text"])
+            print(start_char, end_char)
             sequence_ids = inputs.sequence_ids(i)
 
             # Find the start and end of the context
