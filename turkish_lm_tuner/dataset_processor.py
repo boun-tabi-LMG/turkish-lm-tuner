@@ -38,6 +38,7 @@ class DatasetProcessor:
         if self.task_format == "classification":
             if self.task in ["ner", "pos"]: 
                 processed_dataset = data.map(preprocess_function, remove_columns=column_names, batched=True, fn_kwargs={"skip_output_processing": True, "tokenizer": self.tokenizer})
+                processed_dataset = processed_dataset.remove_columns("token_type_ids")
                 return processed_dataset
             else:
                 processed_dataset = data.map(preprocess_function, remove_columns=column_names, batched=True, fn_kwargs={"skip_output_processing": True})
