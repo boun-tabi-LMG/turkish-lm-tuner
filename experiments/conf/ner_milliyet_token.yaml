@@ -1,0 +1,13 @@
+defaults:
+  - default_classification
+
+dataset_loc: "/stratch/bounllm/supervised/ner-milliyet2"
+dataset_name: milliyet
+task: ner
+max_input_length: 380
+max_target_length: 60
+num_labels: 7
+training_params:
+  # per_device_train_batch_size: 64 # worked in ultramarine
+  # per_device_eval_batch_size: 64 # worked in ultramarine
+  output_dir: /stratch/bounllm/finetuned-models/turna-encoder/ner/milliyet
