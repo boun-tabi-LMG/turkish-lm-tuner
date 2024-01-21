@@ -521,7 +521,6 @@ class POSDataset(LocalDataset):
                 with open(data_file, 'r', encoding='utf-8') as f:
                     content = f.read()
                 sents = content.split('\n\n')
-                data_l = []
                 for sent in sents:
                     lines = sent.split('\n')
                     sent_id = ''
@@ -571,7 +570,7 @@ class POSDataset(LocalDataset):
                 if word_idx is None:
                     label_ids.append(-100)
                 elif word_idx != previous_word_idx:  # Only label the first token of a given word.
-                    label_ids.append(POSDataset.POS_INT_DICT[label[word_idx]] if isinstance(label[word_idx], str) else label[word_idx])
+                    label_ids.append(POSDataset.POS_INT_DICT[POSDataset.POS_TR_DICT[label[word_idx]]] if isinstance(label[word_idx], str) else label[word_idx])
                 else:
                     label_ids.append(-100)
                 previous_word_idx = word_idx
@@ -582,7 +581,7 @@ class POSDataset(LocalDataset):
 
     def preprocess_data(self, examples, skip_output_processing=False, tokenizer=None):
         if skip_output_processing:
-            return POSDataset.preprocess_classification(examples, tokenizer)
+            return self.preprocess_classification(examples, tokenizer)
         input_texts, target_texts = [], []
         for ids, tokens, tags in zip(examples['ids'], examples['tokens'], examples['tags']):
             tag_l = []
