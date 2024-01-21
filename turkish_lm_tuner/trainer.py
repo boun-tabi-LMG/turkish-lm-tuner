@@ -147,20 +147,20 @@ class TrainerForClassification(BaseModelTrainer):
         if config.model_type in ["t5", "mt5"]:
             if self.task == "classification":
                 return T5ForClassification(self.model_name, config, self.num_labels, "single_label_classification")
-            elif self.task in ["ner", "pos"]:
+            elif self.task in ["ner", "pos_tagging"]:
                 return T5ForClassification(self.model_name, config, self.num_labels, "token_classification")
             else:
                 return T5ForClassification(self.model_name, config, 1, "regression")
         else:
             if self.task == "classification":
                 return AutoModelForSequenceClassification.from_pretrained(self.model_name, num_labels=self.num_labels)
-            elif self.task in ["ner", "pos"]:
+            elif self.task in ["ner", "pos_tagging"]:
                 return AutoModelForTokenClassification.from_pretrained(self.model_name, num_labels=self.num_labels)
     
     def train_and_evaluate(self, train_dataset, eval_dataset, test_dataset):
         logger.info("Training in classification mode")
 
-        if self.task == 'ner':
+        if self.task in ['ner', 'pos_tagging']:
             data_collator = DataCollatorForTokenClassification(tokenizer=self.tokenizer)
             tokenizer = self.tokenizer
         else:
