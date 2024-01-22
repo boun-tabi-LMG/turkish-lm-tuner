@@ -28,9 +28,9 @@ pip install turkish-lm-tuner
 
 Any Encoder or ConditionalGeneration model that is compatible with HuggingFace Transformers library can be used with Turkish LM Tuner. The following models are tested and supported.
 - [UL2TR](link to paper)
-- [mT5](link to paper)
-- [mBART](link to paper)
-- [BERTurk](link to paper)
+- [mT5](https://aclanthology.org/2021.naacl-main.41/)
+- [mBART](https://arxiv.org/abs/2001.08210)
+- [BERTurk](https://github.com/stefan-it/turkish-bert)
 
 ## Task and Dataset Support
 
@@ -39,9 +39,9 @@ Any Encoder or ConditionalGeneration model that is compatible with HuggingFace T
 | Text Classification            | -                                                                                                        |
 | Natural Language Inference     | [NLI_TR](reference), [SNLI_TR](reference), [MultiNLI_TR](reference)                                      |
 | Semantic Textual Similarity    | [STSb_TR](reference)                                                                                     |
-| Named Entity Recognition       | [WikiANN](reference), [Milliyet NER](reference)                                                          |
-| Part-of-Speech Tagging         | [BOUN](reference), [IMST](reference)                                                                     |
-| Question Answering             | [EXAMS](reference), [TQuAD](reference), [MKQA](reference)                                                |
+| Named Entity Recognition       | [WikiANN](https://huggingface.co/datasets/wikiann), [Milliyet NER](https://data.tdd.ai/#/effafb5f-ebfc-4e5c-9a63-4f709ec1a135)                                                          |
+| Part-of-Speech Tagging         | [BOUN](https://universaldependencies.org/treebanks/tr_boun/index.html), [IMST](https://universaldependencies.org/treebanks/tr_imst/index.html)                                                                     |
+| Question Answering             | [EXAMS](https://huggingface.co/datasets/exams), [TQuAD](https://github.com/TQuad/turkish-nlp-qa-dataset), [MKQA](https://huggingface.co/datasets/mkqa)                                                |
 | Text Summarization             | [TR News](reference), [MLSUM](reference), [Combined TR News and MLSUM](reference)                        |
 | Title Generation               | [TR News](reference), [MLSUM](reference), [Combined TR News and MLSUM](reference)                        |
 | Paraphrase Generation          | [OpenSubtitles](reference), [Tatoeba](reference), [TED Talks](reference)                                 |
