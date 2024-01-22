@@ -1,5 +1,5 @@
 import os
-from transformers import AutoModel, AutoTokenizer
+from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 from pathlib import Path
 from huggingface_hub import create_repo
 
@@ -22,9 +22,10 @@ organization = "boun-tabi-LMG"
 # Function to push models and tokenizers to Hugging Face Hub
 def push_model_to_hub(repo_name, model_path, tokenizer_path):
     try:
+        # delete_repo(repo_name, token=HF_AUTH_TOKEN)
         repo_url = create_repo(repo_name, private=True, token=HF_AUTH_TOKEN)
         print(f'{repo_url} has been successfully created.')
-        model = AutoModel.from_pretrained(model_path)
+        model = AutoModelForSeq2SeqLM.from_pretrained(model_path)
         model.push_to_hub(repo_name, private=True, token=HF_AUTH_TOKEN)
         tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
         tokenizer.push_to_hub(repo_name, private=True, token=HF_AUTH_TOKEN)
