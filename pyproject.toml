@@ -53,13 +53,11 @@ dependencies = [
 #                                                                                                                                                                                                                  [project.urls.docs]
 
 [project.urls]
-"Source Code" = "https://github.com/boun-tabi-lmt/turkish-lm-tuner"
-"Bug Tracker" = "https://github.com/boun-tabi-lmt/turkish-lm-tuner/issues"
-Documentation = "https://turkish-lm-tuner-docs.boun-tabi-lmt.github.io/"
+"Source Code" = "https://github.com/boun-tabi-LMG/turkish-lm-tuner"
+"Bug Tracker" = "https://github.com/boun-tabi-LMG/turkish-lm-tuner/issues"
+Documentation = "https://turkish-lm-tuner-docs.boun-tabi-LMG.github.io/"
 
 
-[project.scripts]
-# safe-train = "safe.trainer.cli:main"
 
 [tool.setuptools]
 include-package-data = true

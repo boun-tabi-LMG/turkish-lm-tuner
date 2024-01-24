@@ -1,9 +1,9 @@
 site_name: "Turkish LM Tuner"
 site_description: "Turkish LM Tuner: a new library for tuning Turkish Language Models"
-site_url: "https://github.com/boun-tabi-lmt/turkish-lm-tuner"
-repo_url: "https://github.com/boun-tabi-lmt/turkish-lm-tuner"
-repo_name: "boun-tabi-lmt/turkish-lm-tuner"
-copyright: Copyright 2023 BOUN TABILAB LMT
+site_url: "https://github.com/boun-tabi-LMG/turkish-lm-tuner"
+repo_url: "https://github.com/boun-tabi-LMG/turkish-lm-tuner"
+repo_name: "boun-tabi-LMG/turkish-lm-tuner"
+copyright: Copyright 2023 BOUN TABILAB LMG
 
 remote_branch: "gh-pages"
 docs_dir: "docs"
@@ -92,6 +92,6 @@ extra:
 
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/boun-tabi-lmt
+      link: https://github.com/boun-tabi-LMG
     - icon: fontawesome/brands/python
-      link: https://pypi.org/project/turkishlmtuner/
+      link: https://pypi.org/project/turkish-lm-tuner/
