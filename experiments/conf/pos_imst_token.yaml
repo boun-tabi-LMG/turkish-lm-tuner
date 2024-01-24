@@ -1,0 +1,11 @@
+defaults:
+  - default_classification
+
+dataset_loc: "/stratch/bounllm/supervised/tr_imst-ud"
+dataset_name: imst
+task: pos_tagging
+max_input_length: 60
+max_target_length: 210
+num_labels: 17
+training_params:
+  output_dir: /stratch/bounllm/finetuned-models/turna-encoder/pos/imst

@@ -2,8 +2,7 @@ from transformers import (
     AutoTokenizer, AutoModelForSeq2SeqLM, AutoModelForSequenceClassification,
     Seq2SeqTrainer, Seq2SeqTrainingArguments,
     Trainer, TrainingArguments,
-    EvalPrediction,
-    GenerationConfig
+    EvalPrediction
 )
 
 from .metrics import load_task_metrics
@@ -87,18 +86,8 @@ class EvaluatorForClassification(BaseEvaluator):
         else:
             preds = np.argmax(preds, axis=-1)
 
-        logger.info('Filtering subword predictions for token classification')
-        if -100 in labels:
-            true_predictions = [
-                [str(p) for (p, l) in zip(prediction, label) if l != -100]
-                for prediction, label in zip(preds, labels)
-            ]
-            true_labels = [
-                [str(l) for (p, l) in zip(prediction, label) if l != -100]
-                for prediction, label in zip(preds, labels)
-            ]
-            preds, labels = true_predictions, true_labels
-     
+        logger.info('Postprocessing..')
+        preds, labels = self.postprocess_fn((preds, labels))
         logger.info("Computing metrics")
 
         result = super().compute_metrics(preds, labels)
@@ -156,7 +145,7 @@ class EvaluatorForConditionalGeneration(BaseEvaluator):
         if isinstance(eval_preds, tuple) and len(eval_preds) == 2:
             preds, labels = eval_preds
             inputs = None
-        elif isinstance(eval_preds, EvalPrediction):
+        elif isinstance(eval_preds, EvalPrediction): # qa uses
             preds, labels, inputs = eval_preds.predictions, eval_preds.label_ids, eval_preds.inputs
         else:
             preds, labels, inputs = eval_preds

@@ -117,13 +117,32 @@ class SQUAD(BaseMetric):
     def __init__(self):
         super().__init__("squad")
 
-class SeqEval(BaseMetric):
-    def __init__(self):
-        super().__init__("seqeval")
+    def compute(self, preds, labels, **kwargs):
+        for i in range(len(labels)):
+            label_t = labels[i]
+            labels[i] = {"answers": {"answer_start": [0], "text": [label_t]}, "id": str(i)}
+        for i in range(len(preds)):
+            pred_t = preds[i]
+            preds[i] = {'prediction_text': pred_t.strip(), 'id': str(i)}
+        return self.metric.compute(predictions=preds, references=labels, **kwargs)
 
 class SeqEval(BaseMetric):
     def __init__(self):
         super().__init__("seqeval")
+
+    def compute(self, preds, labels, **kwargs):
+        # if labels.shape != preds.shape:
+        #     preds = np.argmax(preds, axis=-1)
+
+        true_predictions = [
+            [str(f'B-{p}') if len(str(p)) == 1 else p for (p, l) in zip(prediction, label) if l != -100]
+            for prediction, label in zip(preds, labels)
+        ]
+        true_labels = [
+            [str(f'B-{l}') if len(str(l)) == 1 else l for (_, l) in zip(prediction, label) if l != -100]
+            for prediction, label in zip(preds, labels)
+        ]
+        return self.metric.compute(predictions=true_predictions, references=true_labels)
 
 METRIC_MAPPING_NAMES = [
         ("accuracy", "Accuracy"),

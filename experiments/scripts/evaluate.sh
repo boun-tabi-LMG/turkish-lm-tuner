@@ -30,15 +30,17 @@ run_evaluation() {
     local dataset_name=$2
     local tokenizer_path=${tokenizer_mapping[$model_name]}
 
-    if [ $TASK_NAME == "ner" ] || [ $TASK_NAME == "pos" ]; then
+    if [ $TASK_NAME == "ner" ] || [ $TASK_NAME == "pos" ] || [ $TASK_NAME == "qa" ]; then
         CONFIG_NAME=$TASK_NAME"_"$dataset_name
     fi
 
+    echo 'running' $CONFIG_NAME
     python experiments/eval.py --config-name $CONFIG_NAME \
         dataset_name=$dataset_name \
         model_path=$BASE_PATH/$model_name/$TASK_NAME/$dataset_name \
         test_params.output_dir=$BASE_PATH/$model_name/$TASK_NAME/$dataset_name \
         tokenizer_path=$tokenizer_path
+    echo $CONFIG_NAME 'done'
 }
 
 models=("ul2tr" "mt5-large" "mbart")
@@ -48,7 +50,7 @@ elif [ $TASK_NAME == "ner" ]; then
     datasets=("wikiann" "milliyet")
 elif [ $TASK_NAME == "pos" ]; then
     datasets=("boun" "imst")
-elif [ $TASK_NAME == "question_answering" || $TASK_NAME == "question_generation" ]; then
+elif [ $TASK_NAME == "qa" ]; then
     datasets=("exams" "mkqa" "tquad")
 fi
 
