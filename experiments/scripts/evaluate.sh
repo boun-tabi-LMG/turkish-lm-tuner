@@ -12,11 +12,11 @@
 
 source /opt/python3/venv/base/bin/activate
 
-cd ~/turkish-lm-tuner
-pip install -e . 
+
+pip install turkish-lm-tuner
 
 declare -A tokenizer_mapping=(
-    ['ul2tr']='/stratch/bounllm/pretrained_checkpoints/ckpt-1.74M'
+    ['turna']='boun-tabi-LMG/TURNA'
     ['mbart']='facebook/mbart-large-cc25'
     ['mt5-large']='google/mt5-large'
 )
