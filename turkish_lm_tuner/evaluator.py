@@ -2,8 +2,7 @@ from transformers import (
     AutoTokenizer, AutoModelForSeq2SeqLM, AutoModelForSequenceClassification,
     Seq2SeqTrainer, Seq2SeqTrainingArguments,
     Trainer, TrainingArguments,
-    EvalPrediction,
-    GenerationConfig
+    EvalPrediction
 )
 
 from .metrics import load_task_metrics
@@ -146,7 +145,7 @@ class EvaluatorForConditionalGeneration(BaseEvaluator):
         if isinstance(eval_preds, tuple) and len(eval_preds) == 2:
             preds, labels = eval_preds
             inputs = None
-        elif isinstance(eval_preds, EvalPrediction):
+        elif isinstance(eval_preds, EvalPrediction): # qa uses
             preds, labels, inputs = eval_preds.predictions, eval_preds.label_ids, eval_preds.inputs
         else:
             preds, labels, inputs = eval_preds
