@@ -15,8 +15,6 @@ echo $2
 
 source /opt/python3/venv/base/bin/activate
 
-pip install torch --index-url https://download.pytorch.org/whl/cu118
-cd ~/turkish-lm-tuner
-pip install -e . 
+pip install turkish-lm-tuner
 
 python experiments/compute_lengths.py --dataset_name $1 --task $2
