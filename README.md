@@ -57,7 +57,7 @@ from turkish_lm_tuner import DatasetProcessor, TrainerForConditionalGeneration
 dataset_name = "tr_news" 
 task = "summarization"
 task_format="conditional_generation"
-model_name = "boun-tabi-lmt/TURNA"
+model_name = "boun-tabi-LMG/TURNA"
 max_input_length = 764
 max_target_length = 128
 dataset_processor = DatasetProcessor(
@@ -107,12 +107,12 @@ from turkish_lm_tuner import DatasetProcessor, EvaluatorForConditionalGeneration
 dataset_name = "tr_news" 
 task = "summarization"
 task_format="conditional_generation"
-model_name = "boun-tabi-lmt/ul2tr"
+model_name = "boun-tabi-LMG/TURNA"
 task_mode = ''
 max_input_length = 764
 max_target_length = 128
 dataset_processor = DatasetProcessor(
-    dataset_name, task, task_format, task_mode=task_mode,
+    dataset_name, task, task_format, task_mode,
     model_name, max_input_length, max_target_length
 )
 
