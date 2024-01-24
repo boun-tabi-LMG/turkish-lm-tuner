@@ -15,7 +15,6 @@ nav:
   - Tutorials:
       - Getting Started: tutorials/getting-started.ipynb
       - Finetuning: tutorials/finetuning.ipynb
-      - Inference: tutorials/inference.ipynb
       - Evaluation: tutorials/evaluation.ipynb
 
   - License: license.md
