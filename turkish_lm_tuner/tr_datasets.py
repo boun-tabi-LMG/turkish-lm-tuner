@@ -558,7 +558,7 @@ class POSDataset(LocalDataset):
                             break
         return super().load_dataset(split)
 
-    def preprocess_classification(self, examples, tokenizer):
+    def preprocess_labels(self, examples, tokenizer):
         tokenized_inputs = tokenizer(examples["tokens"], truncation=True, is_split_into_words=True)
         inputs = []
         labels = []
@@ -581,7 +581,7 @@ class POSDataset(LocalDataset):
 
     def preprocess_data(self, examples, skip_output_processing=False, tokenizer=None):
         if skip_output_processing:
-            return self.preprocess_classification(examples, tokenizer)
+            return self.preprocess_labels(examples, tokenizer)
         input_texts, target_texts = [], []
         for ids, tokens, tags in zip(examples['ids'], examples['tokens'], examples['tags']):
             tag_l = []
