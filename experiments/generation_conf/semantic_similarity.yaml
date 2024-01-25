@@ -1,16 +1,16 @@
 defaults:
-  - default_cond_gen
+  #- default_classification  # switch to this line for Encoder-only Regression
+  - default_cond_gen # switch to this line for Conditional Generation
 
 dataset_name: stsb_tr
 task: semantic_similarity
 dataset_loc: "/stratch/bounllm/supervised/STSb-TR-corrected/"
 max_input_length: 140
 max_target_length: 10
-model_path: /stratch/bounllm/finetuned-models/ul2tr/summarization/tr_news/
-model_path: /users/zeynep.yirmibesoglu/t5-tuner/outputs/2023-12-05/23-26-53/t5_nli_tr/checkpoint-320/
+model_path: /stratch/bounllm/finetuned-models/ul2tr/semantic_similarity/stsb_tr/
 tokenizer_path: /stratch/bounllm/pretrained_checkpoints/ckpt-1.74M
 test_params:
   per_device_eval_batch_size: 32 # for ultramarine
-  output_dir: ./t5_tr_semantic_similarity
+  output_dir: /stratch/bounllm/finetuned-models/ul2tr/semantic_similarity/stsb_tr/
 
 
