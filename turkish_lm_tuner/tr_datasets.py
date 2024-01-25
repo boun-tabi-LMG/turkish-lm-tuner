@@ -288,7 +288,7 @@ class NERDataset(BaseDataset):
         "I-ORGANIZATION": 6,
     }
     label_mapping = {
-        0: "0",
+        0: "O",
         1: "B-PERSON",
         2: "I-PERSON",
         3: "B-LOCATION",
