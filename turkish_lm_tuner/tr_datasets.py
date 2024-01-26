@@ -288,7 +288,7 @@ class NERDataset(BaseDataset):
         "I-ORGANIZATION": 6,
     }
     label_mapping = {
-        0: "0",
+        0: "O",
         1: "B-PERSON",
         2: "I-PERSON",
         3: "B-LOCATION",
@@ -620,7 +620,7 @@ class POSDataset(LocalDataset):
             example = example.strip()
             input_tokens = input_t.split(' ')
             tokens = example.split(' ')
-            label_l = ['0' for i in range(len(input_tokens))]
+            label_l = ['O' for i in range(len(input_tokens))]
             for i, token in enumerate(tokens):
                 if i >= len(label_l):
                     break

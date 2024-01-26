@@ -1,62 +1,37 @@
-# Turkish-LM-Tuner
+# Experiments
 
-This repository provides scripts for fine-tuning T5 models on various Turkish NLP tasks. Additionally, it hosts fine-tuned models ready for inference. The goal is to facilitate the usage and adaptation of T5 models for the Turkish language.
+This directory contains the scripts for fine-tuning and evaluating models on various Turkish NLP tasks. The experiments are run through `finetune.py` and `eval.py` scripts. The experiments are configured through YAML files in the `conf/` and `generation_conf` directories. These files contain the hyperparameters and other configuration parameters for the experiments. Each task and optionally dataset has a separate configuration file. The configuration files are named as `<task>.yaml` and `<task>_<dataset>.yaml` respectively.
+
 
 ## Installation
 
-Clone the repository and install the required dependencies:
+The experiments require installing `turkish-lm-tuner` library. The library can be installed from PyPI.
 
 ```bash
-conda create -n t5-tuner python=3.9
-conda activate t5-tuner
-pip install torch==1.10.0+cu102 -f https://download.pytorch.org/whl/torch_stable.html # for TETAM
-pip install torch --index-url https://download.pytorch.org/whl/cu118 # for UltraMarine 
-git clone https://github.com/boun-llm/turkish-lm-tuner.git
-cd turkish-lm-tuner
-pip install -e .
+pip install turkish-lm-tuner
 ```
-## Usage
-### Fine-tuning
-To fine-tune a model on a specific task, ... 
-```
+
+## Fine-tuning
+
+To fine-tune a model on a specific task, run the following command by replacing `<task>` with the name of the task, `<task>_<dataset>` if dataset has specific parameters.
+
+```bash
 python experiments/finetune.py --config-name <task>
 ```
 
-To finetune baseline mT5-large model, 
-```
+By default, the script will use the parameters in the configuration file, where the default model is `TURNA`. You can override the parameters by passing them as command line arguments. For example, to override the `model_name` parameter, run the following command.
+
+```bash
 python experiments/finetune.py --config-name <task> model_name=google/mt5-large training_params.output_dir=<output_dir>
 ```
 
-### Inference
-To run inference with a fine-tuned model, ...
-```
+## Evaluation
+
+To evaluate a fine-tuned model on a specific task, run the following command by replacing `<task>` with the name of the task, `<task>_<dataset>` if dataset has specific parameters.
+
+```bash
 python experiments/eval.py --config-name <task>
 ```
 
-## Available Models
-List of fine-tuned models available for inference:
 
-
-## Installation on ultramarine (to be deleted later)
-
-Start container with GPUs. 
-
-`srun --container-image=ghcr.io\#bouncmpe/cuda-python3 --container-mounts=/stratch/bounllm/:/stratch/bounllm/ --cpus-per-task=10 --gpus=1 --time=365-0 --pty bash`
-
-
-Install torch compatible with GPU 
-
-`pip install torch --index-url https://download.pytorch.org/whl/cu118`
-
-Go to turkish-lm-tuner directory 
-
-`cd ~/turkish-lm-tuner`
-
-Install other requirements
-
-`pip install .`
-
-Run experiments
-
-`python experiments/finetune.py --config-name summarization`
 

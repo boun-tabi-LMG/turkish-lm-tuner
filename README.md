@@ -7,25 +7,27 @@
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/turkish-lm-tuner)](https://pypi.org/project/turkish-lm-tuner/)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/turkish-lm-tuner)](https://pypi.org/project/turkish-lm-tuner/)
 [![Code license](https://img.shields.io/badge/Code%20License-MIT-green.svg)](https://github.com/boun-tabi-LMG/blob/main/LICENSE)
-[![GitHub Repo stars](https://img.shields.io/github/stars/boun-tabi-lmt/safe)](https://github.com/boun-tabi-LMG/turkish-lm-tuner/stargazers)
-[![arXiv](https://img.shields.io/badge/arxiv-custom-ID.svg)](https://arxiv.org/pdf/<arxiv-ID>.pdf)
+[![GitHub Repo stars](https://img.shields.io/github/stars/boun-tabi-LMG/turkish-lm-tuner)](https://github.com/boun-tabi-LMG/turkish-lm-tuner/stargazers)
+[![arXiv](https://img.shields.io/badge/arxiv-2401.14373-b31b1b.svg)](https://arxiv.org/abs/2401.14373)
 
-## Overview 
+## Overview
 
-Turkish LM Tuner is a library for fine-tuning Turkish language models on various NLP tasks. It is built on top of [HuggingFace Transformers](https://github.com/huggingface/transformers) library. It supports finetuning with conditional generation and sequence classification tasks. The library is designed to be modular and extensible. It is easy to add new tasks and models. The library also provides data loaders for various Turkish NLP datasets. 
+Turkish LM Tuner is a library for fine-tuning Turkish language models on various NLP tasks. It is built on top of [HuggingFace Transformers](https://github.com/huggingface/transformers) library. It supports finetuning with conditional generation and sequence classification tasks. The library is designed to be modular and extensible. It is easy to add new tasks and models. The library also provides data loaders for various Turkish NLP datasets.
 
 ## Installation
 
-You can install the library from PyPI.
+You can use the following command to install the library:
 
 ```bash
-pip install turkish-lm-tuner
+
+pip install git+https://github.com/boun-tabi-LMG/turkish-lm-tuner.git
 ```
 
 ## Model Support
 
 Any Encoder or ConditionalGeneration model that is compatible with HuggingFace Transformers library can be used with Turkish LM Tuner. The following models are tested and supported.
-- [TURNA]()
+
+- [TURNA](https://arxiv.org/abs/2401.14373)
 - [mT5](https://aclanthology.org/2021.naacl-main.41/)
 - [mBART](https://aclanthology.org/2020.tacl-1.47/)
 - [BERTurk](https://github.com/stefan-it/turkish-bert)
@@ -49,12 +51,12 @@ The tutorials in the [documentation](docs/) can help you get started with `turki
 
 ## Examples
 
-### Fine-tune and evaluate a conditional generation model 
+### Fine-tune and evaluate a conditional generation model
 
 ```python
-from turkish_lm_tuner import DatasetProcessor, TrainerForConditionalGeneration 
+from turkish_lm_tuner import DatasetProcessor, TrainerForConditionalGeneration
 
-dataset_name = "tr_news" 
+dataset_name = "tr_news"
 task = "summarization"
 task_format="conditional_generation"
 model_name = "boun-tabi-lmt/TURNA"
@@ -104,22 +106,22 @@ dataset_processor.tokenizer.save_pretrained(model_save_path)
 ```python
 from turkish_lm_tuner import DatasetProcessor, EvaluatorForConditionalGeneration
 
-dataset_name = "tr_news" 
+dataset_name = "tr_news"
 task = "summarization"
 task_format="conditional_generation"
-model_name = "boun-tabi-lmt/ul2tr"
+model_name = "boun-tabi-LMG/TURNA"
 task_mode = ''
 max_input_length = 764
 max_target_length = 128
 dataset_processor = DatasetProcessor(
-    dataset_name, task, task_format, task_mode=task_mode,
+    dataset_name, task, task_format, task_mode,
     model_name, max_input_length, max_target_length
 )
 
 test_dataset = dataset_processor.load_and_preprocess_data(split="test")
 
 test_params = {
-    'per_device_eval_batch_size': 4 
+    'per_device_eval_batch_size': 4
 }
 
 model_path = "turna_tr_news_summarization"
@@ -132,7 +134,7 @@ generation_params = {
     'min_length': 30,
 }
 evaluator = EvaluatorForConditionalGeneration(
-    model_path, model_name, task, max_input_length, max_target_length, test_params, 
+    model_path, model_name, task, max_input_length, max_target_length, test_params,
     generation_params, dataset_processor.dataset.postprocess_data
 )
 results = evaluator.evaluate_model(test_dataset)
@@ -141,16 +143,18 @@ print(results)
 
 ## Reference
 
-If you use this repository, please cite the following related [paper]():
+If you use this repository, please cite the following related [paper](https://arxiv.org/abs/2401.14373):
+
 ```bibtex
-@article{,
-  title={TURNA: A Turkish Encoder-Decoder Language Model for Enhanced Understanding and Generation},
-  author={Uludo{\u{g}}an, G{\"o}k{\c{c}}e and Yirmibe{\c{s}}o{\u{g}}lu Balal, Zeynep and Akkurt, Furkan and T{\"u}rker, Melik{\c{s}}ah and G{\"u}ng{\"o}r, Onur and {\"U}sk{\"u}darl{\i} Suzan},
-  journal={arXiv preprint arXiv:},
-  year={2024},
+@misc{uludoğan2024turna,
+      title={TURNA: A Turkish Encoder-Decoder Language Model for Enhanced Understanding and Generation}, 
+      author={Gökçe Uludoğan and Zeynep Yirmibeşoğlu Balal and Furkan Akkurt and Melikşah Türker and Onur Güngör and Susan Üsküdarlı},
+      year={2024},
+      eprint={2401.14373},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL}
 }
 ```
-
 
 ## License
 
