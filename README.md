@@ -3,12 +3,12 @@
 
 </br>
 
-[![PyPI](https://img.shields.io/pypi/v/turkish-lm-tuner)](https://pypi.org/project/turkish-lm-tuner/)
+<!--[![PyPI](https://img.shields.io/pypi/v/turkish-lm-tuner)](https://pypi.org/project/turkish-lm-tuner/)
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/turkish-lm-tuner)](https://pypi.org/project/turkish-lm-tuner/)
-[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/turkish-lm-tuner)](https://pypi.org/project/turkish-lm-tuner/)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/turkish-lm-tuner)](https://pypi.org/project/turkish-lm-tuner/)-->
 [![Code license](https://img.shields.io/badge/Code%20License-MIT-green.svg)](https://github.com/boun-tabi-LMG/blob/main/LICENSE)
-[![GitHub Repo stars](https://img.shields.io/github/stars/boun-tabi-lmt/safe)](https://github.com/boun-tabi-LMG/turkish-lm-tuner/stargazers)
-[![arXiv](https://img.shields.io/badge/arxiv-custom-ID.svg)](https://arxiv.org/pdf/<arxiv-ID>.pdf)
+[![GitHub Repo stars](https://img.shields.io/github/stars/boun-tabi-LMG/turkish-lm-tuner)](https://github.com/boun-tabi-LMG/turkish-lm-tuner/stargazers)
+[![arXiv](https://img.shields.io/badge/arxiv-2401.14373-b31b1b.svg)](https://arxiv.org/abs/2401.14373)
 
 ## Overview
 
