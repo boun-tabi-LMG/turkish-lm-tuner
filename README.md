@@ -16,10 +16,11 @@ Turkish LM Tuner is a library for fine-tuning Turkish language models on various
 
 ## Installation
 
-You can install the library from PyPI.
+You can use the following command to install the library:
 
 ```bash
-pip install turkish-lm-tuner
+
+pip install git+https://github.com/boun-tabi-LMG/turkish-lm-tuner.git
 ```
 
 ## Model Support
