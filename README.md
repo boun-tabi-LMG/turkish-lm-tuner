@@ -142,16 +142,18 @@ print(results)
 
 ## Reference
 
-If you use this repository, please cite the following related [paper]():
+If you use this repository, please cite the following related [paper](https://arxiv.org/abs/2401.14373):
+
 ```bibtex
-@article{,
-  title={TURNA: A Turkish Encoder-Decoder Language Model for Enhanced Understanding and Generation},
-  author={Uludo{\u{g}}an, G{\"o}k{\c{c}}e and Yirmibe{\c{s}}o{\u{g}}lu Balal, Zeynep and Akkurt, Furkan and T{\"u}rker, Melik{\c{s}}ah and G{\"u}ng{\"o}r, Onur and {\"U}sk{\"u}darl{\i} Suzan},
-  journal={arXiv preprint arXiv:},
-  year={2024},
+@misc{uludoğan2024turna,
+      title={TURNA: A Turkish Encoder-Decoder Language Model for Enhanced Understanding and Generation}, 
+      author={Gökçe Uludoğan and Zeynep Yirmibeşoğlu Balal and Furkan Akkurt and Melikşah Türker and Onur Güngör and Susan Üsküdarlı},
+      year={2024},
+      eprint={2401.14373},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL}
 }
 ```
-
 
 ## License
 
