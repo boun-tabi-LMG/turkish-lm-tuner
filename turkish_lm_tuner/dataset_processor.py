@@ -94,7 +94,7 @@ class DatasetProcessor:
 
         return [append_eos_text(ex) for ex in examples]
 
-    def tokenize_function(self, examples):
+    def tokenize_function(self, examples, return_tensors=None):
         if "input_ids" in examples:
             #examples["input_ids"] = [inputs + [self.tokenizer.pad_token_id] * (self.max_input_length - len(inputs)) if len(inputs) < self.max_input_length else inputs[:self.max_input_length] for inputs in examples["input_ids"]]
             #examples["label_ids"] = [label + [-100] * (self.max_input_length - len(label)) if len(label) < self.max_input_length else label[:self.max_input_length] for label in examples["label_ids"]]
@@ -107,31 +107,39 @@ class DatasetProcessor:
                         truncation=True,
                         max_length=self.max_input_length,
                         return_token_type_ids=False,
+                        return_tensors=return_tensors,
                    )
+            
+            if "target_text" not in examples:
+                return inputs_tokenized
+            
             targets_tokenized = self.tokenizer(
                         self.append_eos(examples["target_text"]),
                         padding="max_length",
                         truncation=True,
                         max_length=self.max_target_length,
                         return_token_type_ids=False,
+                        return_tensors=return_tensors,
                    )
             return {'labels': targets_tokenized['input_ids'], **inputs_tokenized}
         elif self.task_format == 'classification':
             if self.tokenizer.eos_token == None:
-                print("No EOS token, don't append EOS token")
+                logger.info("No EOS token, don't append EOS token")
                 return self.tokenizer(
-                examples["input_text"],
-                padding="max_length",
-                truncation=True,
-                max_length=self.max_input_length,
-                return_token_type_ids=False,
+                    examples["input_text"],
+                    padding="max_length",
+                    truncation=True,
+                    max_length=self.max_input_length,
+                    return_token_type_ids=False,
+                    return_tensors=return_tensors,
                 )
             else:
-                print("EOS token present, append EOS token")
+                logger.info("EOS token present, append EOS token")
                 return self.tokenizer(
                     self.append_eos(self.prepend_prefix(examples["input_text"])),
                     padding="max_length",
                     truncation=True,
                     max_length=self.max_input_length,
                     return_token_type_ids=False,
+                    return_tensors=return_tensors,
                 )
