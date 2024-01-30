@@ -1,21 +1,21 @@
 from torch import nn
-from transformers import T5EncoderModel, T5Tokenizer
-import torch
-from typing import List, Optional, Tuple, Union
-import os
-import torch
-import torch.utils.checkpoint
+from transformers import T5EncoderModel
 from torch import nn
 from torch.nn import BCEWithLogitsLoss, CrossEntropyLoss, MSELoss
-from transformers.models.t5.modeling_t5 import T5PreTrainedModel, T5ClassificationHead
-from transformers import T5Config
-from transformers.modeling_outputs import (
-    SequenceClassifierOutput
-)
+from transformers.models.t5.modeling_t5 import T5PreTrainedModel
+
 
 class T5ForClassification(T5PreTrainedModel):   # nn.Module
+    """
+    T5 encoder adapted for classification
+    Args:
+        pretrained_model_name: Pretrained model name or path
+        config: T5Config
+        num_labels: Number of labels
+        problem_type: Problem type. It can be either 'single_label_classification', 'multi_label_classification', 'token_classification' or 'regression'
+        dropout_prob: Dropout probability
+    """
     def __init__(self, pretrained_model_name, config, num_labels, problem_type, dropout_prob=0.1):
-        #super(T5ForSequenceClassification, self).__init__()
         super().__init__(config)
 
         self.encoder = T5EncoderModel.from_pretrained(pretrained_model_name)
@@ -57,18 +57,9 @@ class T5ForClassification(T5PreTrainedModel):   # nn.Module
                 loss = loss_fct(logits, labels)
             elif self.config.problem_type == "regression":
                 loss_fct = MSELoss()
-                #loss = loss_fct(logits.view(-1, self.config.num_labels), labels)
                 loss = loss_fct(logits.squeeze(), labels.squeeze())
-
-        # print(loss)
-
-        # if not return_dict:
-        #     output = (logits,) + encoder_output
-        #     return ((loss,) + output) if loss is not None else output
 
         return {
             "loss": loss,
             "logits": logits,
-              # hidden_states=encoder_output.hidden_states,
-              # attentions=encoder_output.attentions
         }
