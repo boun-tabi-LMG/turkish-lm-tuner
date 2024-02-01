@@ -47,3 +47,5 @@ jobs:
 
           echo "Build and deploy the doc on main"
           mike deploy --push patch-workflow
+        env:
+          github_token: ${{ secrets.PAT }}
