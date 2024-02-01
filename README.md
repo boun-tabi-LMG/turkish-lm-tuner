@@ -3,9 +3,9 @@
 
 </br>
 
-<!--[![PyPI](https://img.shields.io/pypi/v/turkish-lm-tuner)](https://pypi.org/project/turkish-lm-tuner/)
+[![PyPI](https://img.shields.io/pypi/v/turkish-lm-tuner)](https://pypi.org/project/turkish-lm-tuner/)
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/turkish-lm-tuner)](https://pypi.org/project/turkish-lm-tuner/)
-[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/turkish-lm-tuner)](https://pypi.org/project/turkish-lm-tuner/)-->
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/turkish-lm-tuner)](https://pypi.org/project/turkish-lm-tuner/)
 [![Code license](https://img.shields.io/badge/Code%20License-MIT-green.svg)](https://github.com/boun-tabi-LMG/blob/main/LICENSE)
 [![GitHub Repo stars](https://img.shields.io/github/stars/boun-tabi-LMG/turkish-lm-tuner)](https://github.com/boun-tabi-LMG/turkish-lm-tuner/stargazers)
 [![arXiv](https://img.shields.io/badge/arxiv-2401.14373-b31b1b.svg)](https://arxiv.org/abs/2401.14373)
@@ -75,10 +75,10 @@ training_params = {
     'num_train_epochs': 10
     'per_device_train_batch_size': 4,
     'per_device_eval_batch_size': 4,
-    'output_dir': './',
+    'output_dir': './', 
     'evaluation_strategy': 'epoch',
     'save_strategy': 'epoch',
-    'predict_with_generate': True
+    'predict_with_generate': True    
 }
 optimizer_params = {
     'optimizer_type': 'adafactor',
@@ -91,7 +91,7 @@ model_trainer = TrainerForConditionalGeneration(
     training_params=training_params,
     model_save_path="turna_summarization_tr_news",
     max_input_length=max_input_length,
-    max_target_length=max_target_length,
+    max_target_length=max_target_length, 
     postprocess_fn=dataset_processor.dataset.postprocess_data
 )
 
