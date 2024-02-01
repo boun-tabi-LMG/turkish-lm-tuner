@@ -10,12 +10,7 @@
 [![GitHub Repo stars](https://img.shields.io/github/stars/boun-tabi-LMG/turkish-lm-tuner)](https://github.com/boun-tabi-LMG/turkish-lm-tuner/stargazers)
 [![arXiv](https://img.shields.io/badge/arxiv-2401.14373-b31b1b.svg)](https://arxiv.org/abs/2401.14373)
 
-<<<<<<< Updated upstream
-
-## Overview 
-=======
 ## Overview
->>>>>>> Stashed changes
 
 Turkish LM Tuner is a library for fine-tuning Turkish language models on various NLP tasks. It is built on top of [Hugging Face Transformers](https://github.com/huggingface/transformers) library. It supports finetuning with conditional generation and sequence classification tasks. The library is designed to be modular and extensible. It is easy to add new tasks and models. The library also provides data loaders for various Turkish NLP datasets.
 
@@ -29,14 +24,9 @@ pip install git+https://github.com/boun-tabi-LMG/turkish-lm-tuner.git
 
 ## Model Support
 
-<<<<<<< Updated upstream
-Any Encoder or ConditionalGeneration model that is compatible with HuggingFace Transformers library can be used with Turkish LM Tuner. The following models are tested and supported.
-- [TURNA]()
-=======
 Any Encoder or ConditionalGeneration model that is compatible with Hugging Face Transformers library can be used with Turkish LM Tuner. The following models are tested and supported.
 
 - [TURNA](https://arxiv.org/abs/2401.14373)
->>>>>>> Stashed changes
 - [mT5](https://aclanthology.org/2021.naacl-main.41/)
 - [mBART](https://aclanthology.org/2020.tacl-1.47/)
 - [BERTurk](https://github.com/stefan-it/turkish-bert)
