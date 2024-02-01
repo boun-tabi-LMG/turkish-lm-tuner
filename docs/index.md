@@ -3,13 +3,12 @@
 
 </br>
 
-<!--[![PyPI](https://img.shields.io/pypi/v/turkish-lm-tuner)](https://pypi.org/project/turkish-lm-tuner/)
+[![PyPI](https://img.shields.io/pypi/v/turkish-lm-tuner)](https://pypi.org/project/turkish-lm-tuner/)
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/turkish-lm-tuner)](https://pypi.org/project/turkish-lm-tuner/)
-[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/turkish-lm-tuner)](https://pypi.org/project/turkish-lm-tuner/)-->
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/turkish-lm-tuner)](https://pypi.org/project/turkish-lm-tuner/)
 [![Code license](https://img.shields.io/badge/Code%20License-MIT-green.svg)](https://github.com/boun-tabi-LMG/blob/main/LICENSE)
 [![GitHub Repo stars](https://img.shields.io/github/stars/boun-tabi-LMG/turkish-lm-tuner)](https://github.com/boun-tabi-LMG/turkish-lm-tuner/stargazers)
 [![arXiv](https://img.shields.io/badge/arxiv-2401.14373-b31b1b.svg)](https://arxiv.org/abs/2401.14373)
-
 
 ## Overview 
 
@@ -26,7 +25,7 @@ pip install git+https://github.com/boun-tabi-LMG/turkish-lm-tuner.git
 ## Model Support
 
 Any Encoder or ConditionalGeneration model that is compatible with HuggingFace Transformers library can be used with Turkish LM Tuner. The following models are tested and supported.
-- [TURNA]()
+- [TURNA](https://arxiv.org/abs/2401.14373)
 - [mT5](https://aclanthology.org/2021.naacl-main.41/)
 - [mBART](https://aclanthology.org/2020.tacl-1.47/)
 - [BERTurk](https://github.com/stefan-it/turkish-bert)
