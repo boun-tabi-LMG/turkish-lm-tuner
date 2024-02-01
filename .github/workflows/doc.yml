@@ -43,7 +43,7 @@ jobs:
       - name: Deploy the doc
         run: |
           echo "Get the latest version of the doc"
-          git fetch origin patch-workflow:patch-workflow
+          git fetch origin gh-pages
 
           echo "Build and deploy the doc on main"
           mike deploy --push patch-workflow
