@@ -2,9 +2,11 @@ name: doc
 
 on:
   push:
-    branches: ["main"]
+    branches:
+      - main
+      - patch-workflow
 
-# Prevent doc action on `main` to conflict with each others.
+# Prevent doc action on `main` from conflicting with others.
 concurrency:
   group: doc-${{ github.ref }}
   cancel-in-progress: true
@@ -20,7 +22,7 @@ jobs:
 
     steps:
       - name: Checkout the code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup mamba
         uses: mamba-org/setup-micromamba@v1
@@ -40,8 +42,8 @@ jobs:
 
       - name: Deploy the doc
         run: |
-          echo "Get the gh-pages branch"
-          git fetch origin gh-pages
+          echo "Get the latest version of the doc"
+          git fetch origin patch-workflow:patch-workflow
 
           echo "Build and deploy the doc on main"
-          mike deploy --push main
+          mike deploy --push patch-workflow
