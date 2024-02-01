@@ -47,7 +47,7 @@ Any Encoder or ConditionalGeneration model that is compatible with Hugging Face 
 
 
 ## Usage
-The tutorials in the [documentation](docs/) can help you get started with `turkish-lm-tuner`.
+The tutorials in the [documentation](https://boun-tabi-lmg.github.io/turkish-lm-tuner/) can help you get started with `turkish-lm-tuner`.
 
 ## Examples
 
