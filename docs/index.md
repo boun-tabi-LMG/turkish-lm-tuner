@@ -10,10 +10,14 @@
 [![GitHub Repo stars](https://img.shields.io/github/stars/boun-tabi-LMG/turkish-lm-tuner)](https://github.com/boun-tabi-LMG/turkish-lm-tuner/stargazers)
 [![arXiv](https://img.shields.io/badge/arxiv-2401.14373-b31b1b.svg)](https://arxiv.org/abs/2401.14373)
 
+<<<<<<< Updated upstream
 
 ## Overview 
+=======
+## Overview
+>>>>>>> Stashed changes
 
-Turkish LM Tuner is a library for fine-tuning Turkish language models on various NLP tasks. It is built on top of [HuggingFace Transformers](https://github.com/huggingface/transformers) library. It supports finetuning with conditional generation and sequence classification tasks. The library is designed to be modular and extensible. It is easy to add new tasks and models. The library also provides data loaders for various Turkish NLP datasets. 
+Turkish LM Tuner is a library for fine-tuning Turkish language models on various NLP tasks. It is built on top of [Hugging Face Transformers](https://github.com/huggingface/transformers) library. It supports finetuning with conditional generation and sequence classification tasks. The library is designed to be modular and extensible. It is easy to add new tasks and models. The library also provides data loaders for various Turkish NLP datasets.
 
 ## Installation
 
@@ -25,8 +29,14 @@ pip install git+https://github.com/boun-tabi-LMG/turkish-lm-tuner.git
 
 ## Model Support
 
+<<<<<<< Updated upstream
 Any Encoder or ConditionalGeneration model that is compatible with HuggingFace Transformers library can be used with Turkish LM Tuner. The following models are tested and supported.
 - [TURNA]()
+=======
+Any Encoder or ConditionalGeneration model that is compatible with Hugging Face Transformers library can be used with Turkish LM Tuner. The following models are tested and supported.
+
+- [TURNA](https://arxiv.org/abs/2401.14373)
+>>>>>>> Stashed changes
 - [mT5](https://aclanthology.org/2021.naacl-main.41/)
 - [mBART](https://aclanthology.org/2020.tacl-1.47/)
 - [BERTurk](https://github.com/stefan-it/turkish-bert)
@@ -44,18 +54,18 @@ Any Encoder or ConditionalGeneration model that is compatible with HuggingFace T
 | Title Generation               | [TR News](https://doi.org/10.1007/s10579-021-09568-y), [MLSUM](https://aclanthology.org/2020.emnlp-main.647/), [Combined TR News and MLSUM](https://doi.org/10.1017/S1351324922000195)                        |
 | Paraphrase Generation          | [OpenSubtitles](https://aclanthology.org/2022.icnlsp-1.14/), [Tatoeba](https://aclanthology.org/2022.icnlsp-1.14/), [TED Talks](https://aclanthology.org/2022.icnlsp-1.14/)                                 |
 
-
 ## Usage
-The tutorials in the [documentation](docs/) can help you get started with `turkish-lm-tuner`.
+
+The tutorials in the [documentation](https://boun-tabi-lmg.github.io/turkish-lm-tuner/) can help you get started with `turkish-lm-tuner`.
 
 ## Examples
 
-### Fine-tune and evaluate a conditional generation model 
+### Fine-tune and evaluate a conditional generation model
 
 ```python
-from turkish_lm_tuner import DatasetProcessor, TrainerForConditionalGeneration 
+from turkish_lm_tuner import DatasetProcessor, TrainerForConditionalGeneration
 
-dataset_name = "tr_news" 
+dataset_name = "tr_news"
 task = "summarization"
 task_format="conditional_generation"
 model_name = "boun-tabi-LMG/TURNA"
@@ -74,10 +84,10 @@ training_params = {
     'num_train_epochs': 10
     'per_device_train_batch_size': 4,
     'per_device_eval_batch_size': 4,
-    'output_dir': './', 
+    'output_dir': './',
     'evaluation_strategy': 'epoch',
     'save_strategy': 'epoch',
-    'predict_with_generate': True    
+    'predict_with_generate': True
 }
 optimizer_params = {
     'optimizer_type': 'adafactor',
@@ -90,7 +100,7 @@ model_trainer = TrainerForConditionalGeneration(
     training_params=training_params,
     model_save_path="turna_summarization_tr_news",
     max_input_length=max_input_length,
-    max_target_length=max_target_length, 
+    max_target_length=max_target_length,
     postprocess_fn=dataset_processor.dataset.postprocess_data
 )
 
@@ -105,7 +115,7 @@ dataset_processor.tokenizer.save_pretrained(model_save_path)
 ```python
 from turkish_lm_tuner import DatasetProcessor, EvaluatorForConditionalGeneration
 
-dataset_name = "tr_news" 
+dataset_name = "tr_news"
 task = "summarization"
 task_format="conditional_generation"
 model_name = "boun-tabi-LMG/TURNA"
@@ -120,7 +130,7 @@ dataset_processor = DatasetProcessor(
 test_dataset = dataset_processor.load_and_preprocess_data(split="test")
 
 test_params = {
-    'per_device_eval_batch_size': 4 
+    'per_device_eval_batch_size': 4
 }
 
 model_path = "turna_tr_news_summarization"
@@ -133,7 +143,7 @@ generation_params = {
     'min_length': 30,
 }
 evaluator = EvaluatorForConditionalGeneration(
-    model_path, model_name, task, max_input_length, max_target_length, test_params, 
+    model_path, model_name, task, max_input_length, max_target_length, test_params,
     generation_params, dataset_processor.dataset.postprocess_data
 )
 results = evaluator.evaluate_model(test_dataset)
@@ -142,10 +152,11 @@ print(results)
 
 ## Reference
 
-If you use this repository, please cite the following related [paper]():
+If you use this repository, please cite the following related [paper](https://arxiv.org/abs/2401.14373):
+
 ```bibtex
 @misc{uludoğan2024turna,
-      title={TURNA: A Turkish Encoder-Decoder Language Model for Enhanced Understanding and Generation}, 
+      title={TURNA: A Turkish Encoder-Decoder Language Model for Enhanced Understanding and Generation},
       author={Gökçe Uludoğan and Zeynep Yirmibeşoğlu Balal and Furkan Akkurt and Melikşah Türker and Onur Güngör and Susan Üsküdarlı},
       year={2024},
       eprint={2401.14373},
@@ -153,7 +164,6 @@ If you use this repository, please cite the following related [paper]():
       primaryClass={cs.CL}
 }
 ```
-
 
 ## License
 
