@@ -1,51 +1,29 @@
-name: doc
-
+name: Deploy Docs to GitHub Pages
 on:
   push:
     branches:
       - main
       - patch-workflow
-
-# Prevent doc action on `main` from conflicting with others.
-concurrency:
-  group: doc-${{ github.ref }}
-  cancel-in-progress: true
-
+permissions:
+  contents: write
 jobs:
-  doc:
-    runs-on: "ubuntu-latest"
-    timeout-minutes: 30
-
-    defaults:
-      run:
-        shell: bash -l {0}
-
+  deploy:
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout the code
-        uses: actions/checkout@v4
-
-      - name: Setup mamba
-        uses: mamba-org/setup-micromamba@v1
+      - uses: actions/checkout@v4
+      - name: Configure Git Credentials
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+      - uses: actions/setup-python@v5
         with:
-          environment-file: env.yml
-          environment-name: my_env
-          cache-environment: true
-          cache-downloads: true
-
-      - name: Install library
-        run: python -m pip install --no-deps .
-
-      - name: Configure git
-        run: |
-          git config --global user.name "${GITHUB_ACTOR}"
-          git config --global user.email "${GITHUB_ACTOR}@users.noreply.github.com"
-
-      - name: Deploy the doc
-        run: |
-          echo "Get the latest version of the doc"
-          git fetch origin gh-pages
-
-          echo "Build and deploy the doc on main"
-          mike deploy --push patch-workflow
-        env:
-          github_token: ${{ secrets.PAT }}
+          python-version: 3.x
+      - run: echo "cache_id=$(date --utc '+%V')" >> $GITHUB_ENV
+      - uses: actions/cache@v4
+        with:
+          key: mkdocs-material-${{ env.cache_id }}
+          path: .cache
+          restore-keys: |
+            mkdocs-material-
+      - run: pip install mkdocs-material mkdocs-material-extensions mkdocstrings mkdocstrings-python mkdocs-jupyter markdown-include mike mdx_truly_sane_lists
+      - run: mkdocs gh-deploy --force
