@@ -153,7 +153,7 @@ print(results)
 If you use this repository, please cite the following related [paper](https://arxiv.org/abs/2401.14373):
 
 ```bibtex
-@misc{uludoğan2024turna,
+@misc{uludogan2024turna,
       title={TURNA: A Turkish Encoder-Decoder Language Model for Enhanced Understanding and Generation}, 
       author={Gökçe Uludoğan and Zeynep Yirmibeşoğlu Balal and Furkan Akkurt and Melikşah Türker and Onur Güngör and Susan Üsküdarlı},
       year={2024},
