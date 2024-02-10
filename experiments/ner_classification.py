@@ -8,7 +8,7 @@ from turkish_lm_tuner.metrics import Evaluator
 
 tokenizer = AutoTokenizer.from_pretrained("dbmdz/bert-base-turkish-cased")
 dataset = WikiANNDataset()
-dataset = MilliyetNERDataset("/stratch/bounllm/supervised/ner-milliyet-v2")
+dataset = MilliyetNERDataset("/supervised/ner-milliyet-v2")
 wikiann = dataset.load_dataset()
 processed_dataset = wikiann.map(dataset.preprocess_data, batched=True, fn_kwargs={"skip_output_processing": True, "tokenizer": tokenizer})
 
@@ -18,7 +18,7 @@ model = AutoModelForTokenClassification.from_pretrained(
 data_collator = DataCollatorForTokenClassification(tokenizer=tokenizer)
 
 training_args = TrainingArguments(
-    output_dir='/stratch/bounllm/finetuned-models/berturk/ner/wikiann/',
+    output_dir='/finetuned-models/berturk/ner/wikiann/',
     metric_for_best_model='eval_loss',
     greater_is_better=False,
     num_train_epochs=10,

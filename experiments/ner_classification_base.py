@@ -61,7 +61,7 @@ model = AutoModelForTokenClassification.from_pretrained(
 data_collator = DataCollatorForTokenClassification(tokenizer=tokenizer)
 
 training_args = TrainingArguments(
-    output_dir='/stratch/bounllm/berturk/ner/wikiann/',
+    output_dir='/berturk/ner/wikiann/',
     metric_for_best_model='eval_loss',
     load_best_model_at_end=True,
     greater_is_better=False,
