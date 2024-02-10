@@ -6,8 +6,8 @@ dataset_name: snli_tr
 task: nli
 max_input_length: 128
 max_target_length: 8
-tokenizer_path: /stratch/bounllm/pretrained_checkpoints/ckpt-1.74M
-model_path: /stratch/bounllm/finetuned-models/ul2tr/summarization/tr_news/
+tokenizer_path: /pretrained_checkpoints/ckpt-1.74M
+model_path: /finetuned-models/turna/summarization/tr_news/
 test_params:
   per_device_eval_batch_size: 32 # for ultramarine
   output_dir: ./t5_nli_tr
