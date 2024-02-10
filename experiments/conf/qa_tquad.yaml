@@ -1,7 +1,7 @@
 defaults:
   - default_cond_gen
 
-dataset_loc: "/stratch/bounllm/supervised/tquad"
+dataset_loc: "/supervised/tquad"
 dataset_name: tquad
 task: question_answering
 max_input_length: 1350
@@ -10,4 +10,4 @@ training_params:
   num_train_epochs: 10
   per_device_train_batch_size: 2 # worked in ultramarine
   per_device_eval_batch_size: 2 # worked in ultramarine
-  output_dir: /stratch/bounllm/finetuned-models/ul2tr/qa/tquad
+  output_dir: /finetuned-models/turna/qa/tquad

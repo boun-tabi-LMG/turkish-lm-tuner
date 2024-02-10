@@ -8,4 +8,4 @@ max_target_length: 20
 training_params:
   per_device_train_batch_size: 128
   per_device_eval_batch_size: 128
-  output_dir: /stratch/bounllm/finetuned-models/paraphrasing/tatoeba
+  output_dir: /finetuned-models/paraphrasing/tatoeba

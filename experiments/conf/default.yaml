@@ -1,4 +1,4 @@
-model_name: /stratch/bounllm/pretrained_checkpoints/ckpt-1.74M
+model_name: /pretrained_checkpoints/ckpt-1.74M
 task_mode: '' # '[S2S]: ', '[NLU]: ', '[NLG]: '
 training_params:
   num_train_epochs: 10

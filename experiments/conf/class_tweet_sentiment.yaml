@@ -4,7 +4,7 @@ defaults:
 
 dataset_name: 17bintweet_sentiment 
 task: classification
-dataset_loc: "/stratch/bounllm/supervised/17bintweet_sentiment/"
+dataset_loc: "/supervised/17bintweet_sentiment/"
 max_input_length: 160
 max_target_length: 4
 num_labels: 3
@@ -13,5 +13,5 @@ training_params:
   per_device_eval_batch_size: 32 # for ultramarine
   # Conditional generation mode: classification/cg/17bintweet_sentiment
   # Classification mode: classification/tc/17bintweet_sentiment
-  output_dir: /stratch/bounllm/finetuned-models/ul2tr/classification/cg/17bintweet_sentiment
+  output_dir: /finetuned-models/turna/classification/cg/17bintweet_sentiment
 

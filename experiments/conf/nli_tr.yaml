@@ -10,4 +10,4 @@ num_labels: 3
 training_params:
   per_device_train_batch_size: 32 # for ultramarine
   per_device_eval_batch_size: 32 # for ultramarine
-  output_dir: /stratch/bounllm/finetuned-models/ul2tr/nli/nli_tr
+  output_dir: /finetuned-models/turna/nli/nli_tr
