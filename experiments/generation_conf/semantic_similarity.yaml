@@ -1,15 +1,14 @@
 defaults:
-  - default_cond_gen
+  #- default_classification  # switch to this line for Encoder-only Regression
+  - default_cond_gen # switch to this line for Conditional Generation
 
 dataset_name: stsb_tr
 task: semantic_similarity
 dataset_loc: "/supervised/STSb-TR-corrected/"
 max_input_length: 140
 max_target_length: 10
-model_path: /finetuned-models/turna/summarization/tr_news/
+model_path: /finetuned-models/turna/semantic_similarity/stsb_tr/
 tokenizer_path: /pretrained_checkpoints/ckpt-1.74M
 test_params:
   per_device_eval_batch_size: 32 # for ultramarine
-  output_dir: ./t5_tr_semantic_similarity
-
-
+  output_dir: /finetuned-models/turna/semantic_similarity/stsb_tr/

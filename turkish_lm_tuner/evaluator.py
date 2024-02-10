@@ -80,14 +80,19 @@ class EvaluatorForClassification(BaseEvaluator):
 
     def compute_metrics(self, eval_preds):
         preds, labels = eval_preds
-        #preds = np.argmax(preds[0], axis=-1)
         if self.task == "semantic_similarity":
             preds = preds.flatten()
         else:
             preds = np.argmax(preds, axis=-1)
 
         logger.info('Postprocessing..')
-        preds, labels = self.postprocess_fn((preds, labels))
+
+        if self.task in ["ner", "pos_tagging"]:
+            preds, labels = self.postprocess_fn((preds, labels))
+        else:
+            preds = self.postprocess_fn(preds)
+            labels = self.postprocess_fn(labels)
+
         logger.info("Computing metrics")
 
         result = super().compute_metrics(preds, labels)
