@@ -1,14 +1,14 @@
 defaults:
   - default_cond_gen
 
-dataset_loc: "/stratch/bounllm/supervised/tr_boun-ud"
+dataset_loc: "/supervised/tr_boun-ud"
 dataset_name: boun
 task: pos_tagging
 max_input_length: 90
 max_target_length: 300
-tokenizer_path: /stratch/bounllm/pretrained_checkpoints/ckpt-1.74M
-model_path: /stratch/bounllm/finetuned-models/ul2tr/pos/boun
+tokenizer_path: /pretrained_checkpoints/ckpt-1.74M
+model_path: /finetuned-models/turna/pos/boun
 test_params:
   per_device_eval_batch_size: 4
-  output_dir: /stratch/bounllm/finetuned-models/ul2tr/pos/boun
+  output_dir: /finetuned-models/turna/pos/boun
   include_inputs_for_metrics: true

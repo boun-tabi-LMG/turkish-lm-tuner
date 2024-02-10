@@ -1,4 +1,4 @@
-model_name: /stratch/bounllm/ckpt-500K
+model_name: /pretrained_checkpoints/ckpt-1.74M
 task_format: classification
 task_mode: '' # '[S2S]: ', '[NLU]: ', '[NLG]: '
 adafactor_scheduler: True

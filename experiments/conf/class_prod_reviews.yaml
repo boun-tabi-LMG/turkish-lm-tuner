@@ -12,5 +12,5 @@ training_params:
   per_device_eval_batch_size: 32 # for ultramarine
   # Conditional generation mode: classification/cg/tr_product_reviews
   # Classification mode: classification/tc/tr_product_reviews
-  output_dir: /stratch/bounllm/finetuned-models/ul2tr/classification/cg/tr_product_reviews
+  output_dir: /finetuned-models/turna/classification/cg/tr_product_reviews
 

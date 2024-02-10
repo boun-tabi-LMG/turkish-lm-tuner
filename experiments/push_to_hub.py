@@ -8,7 +8,7 @@ HF_AUTH_TOKEN = os.getenv('HF_AUTH_TOKEN')
 
 # Tokenizer mapping and model paths
 tokenizer_mapping = {
-    'ul2tr': '/stratch/bounllm/pretrained_checkpoints/ckpt-1.74M/',
+    'ul2tr': '/pretrained_checkpoints/ckpt-1.74M/',
     'mbart': 'facebook/mbart-large-cc25', 
     'mt5-large': 'google/mt5-large'
 }
@@ -35,12 +35,12 @@ def push_model_to_hub(repo_name, model_path, tokenizer_path):
 # Push pretrained models
 pretrained_models = ['1.74M', '1M', '500K']
 for model_version in pretrained_models:
-    model_path = f'/stratch/bounllm/pretrained_checkpoints/ckpt-{model_version}'
+    model_path = f'/pretrained_checkpoints/ckpt-{model_version}'
     repo_name = f'{organization}/turna-{model_version}'
     push_model_to_hub(repo_name, model_path, tokenizer_mapping['ul2tr'])
 
 # Push finetuned models
-path = Path('/stratch/bounllm/finetuned-models/')
+path = Path('/finetuned-models/')
 for model_dir in path.iterdir():
     if model_dir.name not in tokenizer_mapping:
         continue

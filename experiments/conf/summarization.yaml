@@ -8,7 +8,7 @@ max_target_length: 128
 training_params:
   per_device_train_batch_size: 4 # 4 for ultramarine
   per_device_eval_batch_size: 4 # 4 for ultramarine
-  output_dir: /stratch/bounllm/finetuned-models/ul2tr/summarization/tr_news
+  output_dir: /finetuned-models/turna/summarization/tr_news
   bf16: true
 
 
