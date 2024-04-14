@@ -79,7 +79,7 @@ eval_dataset = dataset_processor.load_and_preprocess_data(split='validation')
 test_dataset = dataset_processor.load_and_preprocess_data(split="test")
 
 training_params = {
-    'num_train_epochs': 10
+    'num_train_epochs': 10,
     'per_device_train_batch_size': 4,
     'per_device_eval_batch_size': 4,
     'output_dir': './', 
