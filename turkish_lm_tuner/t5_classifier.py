@@ -1,11 +1,14 @@
 from torch import nn
-from transformers import T5EncoderModel
+from transformers import T5EncoderModel, PretrainedConfig
 from torch import nn
 from torch.nn import BCEWithLogitsLoss, CrossEntropyLoss, MSELoss
 from transformers.models.t5.modeling_t5 import T5PreTrainedModel
 
+class T5ForClassificationConfig(PretrainedConfig):
+    model_type="t5_turna_enc"
 
 class T5ForClassification(T5PreTrainedModel):   # nn.Module
+    config_class = T5ForClassificationConfig
     """
     T5 encoder adapted for classification
     Args:
@@ -18,7 +21,12 @@ class T5ForClassification(T5PreTrainedModel):   # nn.Module
     def __init__(self, pretrained_model_name, config, num_labels, problem_type, dropout_prob=0.1):
         super().__init__(config)
 
-        self.encoder = T5EncoderModel.from_pretrained(pretrained_model_name)
+        try:
+            self.encoder = T5EncoderModel.from_pretrained(pretrained_model_name)
+        except Exception as e:
+            pretrained_model_name = config._name_or_path
+            self.encoder = T5EncoderModel.from_pretrained(pretrained_model_name)
+
         self.dropout = nn.Dropout(dropout_prob)
         self.classifier = nn.Linear(self.encoder.config.d_model, num_labels)
         self.config = self.encoder.config
