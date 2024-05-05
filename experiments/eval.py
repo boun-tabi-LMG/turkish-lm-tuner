@@ -27,6 +27,9 @@ def main(cfg: DictConfig):
     test_params = cfg.test_params
     generation_params = cfg.generation_params
     dataset_location = cfg.dataset_loc
+    
+    if "num_labels" in cfg.keys():
+        num_labels = cfg.num_labels
 
     logger.info("Loading test dataset")
     dataset_processor = DatasetProcessor(dataset_name, task, task_format, task_mode, tokenizer_path, max_input_length, max_target_length, dataset_location)
@@ -69,7 +72,7 @@ def main(cfg: DictConfig):
         evaluator = EvaluatorForConditionalGeneration(model_path, tokenizer_path, task, max_input_length, max_target_length, test_params, generation_params, postprocess_fn)
     elif task_format == 'classification':
         logger.info("Evaluating in classification mode")
-        evaluator = EvaluatorForClassification(model_path, tokenizer_path, task, test_params)
+        evaluator = EvaluatorForClassification(model_path, tokenizer_path, task, max_input_length, test_params, num_labels, postprocess_fn)
 
   
     logger.info("Evaluating model")

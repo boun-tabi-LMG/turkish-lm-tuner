@@ -128,7 +128,9 @@ dataset_processor = DatasetProcessor(
 test_dataset = dataset_processor.load_and_preprocess_data(split="test")
 
 test_params = {
-    'per_device_eval_batch_size': 4
+    'per_device_eval_batch_size': 4,
+    'output_dir': './',
+    'predict_with_generate': True
 }
 
 model_path = "turna_tr_news_summarization"

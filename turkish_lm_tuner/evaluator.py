@@ -2,8 +2,13 @@ from transformers import (
     AutoTokenizer, AutoModelForSeq2SeqLM, AutoModelForSequenceClassification,
     Seq2SeqTrainer, Seq2SeqTrainingArguments,
     Trainer, TrainingArguments,
-    EvalPrediction
+    EvalPrediction,
+    AutoConfig, AutoModel,
+    AutoModelForTokenClassification,
 )
+
+from .t5_classifier import T5ForClassification, T5ForClassificationConfig
+
 
 from .metrics import load_task_metrics
 import pandas as pd
@@ -63,11 +68,31 @@ class BaseEvaluator:
 
 class EvaluatorForClassification(BaseEvaluator):
 
+    def __init__(self, model_path, tokenizer_path, task, max_input_length, test_params, num_labels, postprocess_fn=None):
+        super().__init__(model_path, tokenizer_path, task, test_params, postprocess_fn)
+        self.max_input_length = max_input_length
+        self.num_labels = num_labels
+    
     def initialize_model(self):
-        # If used without fine-tuning, model should be loaded from the model save path
-        return AutoModelForSequenceClassification.from_pretrained(self.model_path)
+        AutoConfig.register("t5_turna_enc", T5ForClassificationConfig)
+        AutoModel.register(T5ForClassificationConfig, T5ForClassification)
+        config = AutoConfig.from_pretrained(self.model_path)
+
+        if config.model_type in ["t5", "mt5", "t5_turna_enc"]:
+            if self.task == "classification":
+                return T5ForClassification.from_pretrained(self.model_path, config, self.num_labels, "single_label_classification")
+            elif self.task in ["ner", "pos_tagging"]:
+                return T5ForClassification.from_pretrained(self.model_path, config, self.num_labels, "token_classification")
+            else:
+                return T5ForClassification.from_pretrained(self.model_path, config, 1, "regression")
+        else:
+            if self.task == "classification":
+                return AutoModelForSequenceClassification.from_pretrained(self.model_path, num_labels=self.num_labels)
+            elif self.task in ["ner", "pos_tagging"]:
+                return AutoModelForTokenClassification.from_pretrained(self.model_path, num_labels=self.num_labels)
 
     def initialize_trainer(self, model):
+
         test_args = TrainingArguments(
             **self.test_params)
 

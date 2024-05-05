@@ -156,7 +156,11 @@ class STSb_TRDataset(LocalDataset):
             try:
                 return(float(label.strip()))
             except:
-                return 0
+                try:
+                    return(float(label))
+                except:
+                    return 0
+
         return [convert_sts_label(ex) for ex in examples]
 
 class NLI_TRDataset(BaseDataset):
@@ -660,7 +664,12 @@ class ClassificationDataset(BaseDataset):
         self.OUT_LABEL_DICT = {v: k for k, v in self.IN_LABEL_DICT.items()}
 
     def postprocess_data(self, examples):
-        return [self.OUT_LABEL_DICT.get(ex.strip(), -1) for ex in examples]
+        def convert_class_label(label):
+            if type(label) == type(""):
+                return self.OUT_LABEL_DICT.get(label.strip(), -1)
+            else:
+                return label
+        return [convert_class_label(ex) for ex in examples]
 
     def load_dataset(self, split=None):
         return super().load_dataset(split)
@@ -720,9 +729,6 @@ class SentimentTweetDataset(ClassificationDataset):
             return {"input_text": examples["text"], "label": examples["label"]}
         output = [self.IN_LABEL_DICT[ex] for ex in examples["label"]]
         return {"input_text": examples["text"], "target_text": output}
-
-    def postprocess_data(self, examples):
-        return [self.OUT_LABEL_DICT.get(ex.strip(), -1) for ex in examples]
 
     def load_dataset(self, split=None):
         dataset = LocalDataset.load_dataset(self, split)
