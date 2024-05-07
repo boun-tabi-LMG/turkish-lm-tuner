@@ -72,7 +72,7 @@ def main(cfg: DictConfig):
         evaluator = EvaluatorForConditionalGeneration(model_path, tokenizer_path, task, max_input_length, max_target_length, test_params, generation_params, postprocess_fn)
     elif task_format == 'classification':
         logger.info("Evaluating in classification mode")
-        evaluator = EvaluatorForClassification(model_path, tokenizer_path, task, max_input_length, test_params, num_labels, postprocess_fn)
+        evaluator = EvaluatorForClassification(model_path, tokenizer_path, task, test_params, num_labels, postprocess_fn)
 
   
     logger.info("Evaluating model")

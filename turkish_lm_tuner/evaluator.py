@@ -68,9 +68,8 @@ class BaseEvaluator:
 
 class EvaluatorForClassification(BaseEvaluator):
 
-    def __init__(self, model_path, tokenizer_path, task, max_input_length, test_params, num_labels, postprocess_fn=None):
+    def __init__(self, model_path, tokenizer_path, task, test_params, num_labels, postprocess_fn=None):
         super().__init__(model_path, tokenizer_path, task, test_params, postprocess_fn)
-        self.max_input_length = max_input_length
         self.num_labels = num_labels
     
     def initialize_model(self):
