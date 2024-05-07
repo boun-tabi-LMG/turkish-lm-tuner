@@ -153,9 +153,11 @@ class STSb_TRDataset(LocalDataset):
 
     def postprocess_data(self, examples):
         def convert_sts_label(label):
-            try:
+            if isinstance(label, str):
                 return(float(label.strip()))
-            except:
+            elif isinstance(label, float):
+                return(float(label))
+            else:
                 try:
                     return(float(label))
                 except:
