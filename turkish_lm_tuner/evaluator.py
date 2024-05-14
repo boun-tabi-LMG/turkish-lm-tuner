@@ -59,10 +59,10 @@ class BaseEvaluator:
         results = trainer.predict(test_dataset)
         return results
 
-    def compute_metrics(self, preds, labels):
+    def compute_metrics(self, preds, labels, sample_weight=None):
         scores = {}
         for metric in self.metrics:
-            metric_scores = metric.compute(preds, labels)
+            metric_scores = metric.compute(preds, labels, sample_weight=sample_weight)
             scores.update(metric_scores)
         return scores
 
@@ -181,15 +181,20 @@ class EvaluatorForConditionalGeneration(BaseEvaluator):
             preds, labels, inputs = eval_preds
         if isinstance(preds, tuple):
             preds = preds[0]
+
         # Replace -100s used for padding as we can't decode them
         preds = np.where(preds != -100, preds, self.tokenizer.pad_token_id)
-        decoded_preds = self.tokenizer.batch_decode(preds, skip_special_tokens=True)
         labels = np.where(labels != -100, labels, self.tokenizer.pad_token_id)
+        decoded_preds = self.tokenizer.batch_decode(preds, skip_special_tokens=True)
         decoded_labels = self.tokenizer.batch_decode(labels, skip_special_tokens=True)
+
         logger.info("Postprocessing predictions and labels")
 
         # Get post-processing function for specific dataset and task
-        if inputs is not None:
+        if self.task == "multi_task":
+            processed_preds = decoded_preds
+            processed_labels = decoded_labels
+        elif inputs is not None:
             decoded_inputs = self.tokenizer.batch_decode(inputs, skip_special_tokens=True)
             processed_preds = self.postprocess_fn(decoded_preds, decoded_inputs)
             processed_labels = self.postprocess_fn(decoded_labels, decoded_inputs)
@@ -209,7 +214,17 @@ class EvaluatorForConditionalGeneration(BaseEvaluator):
         logger.info("Decoded predictions: %s", processed_preds[:5])
         logger.info("Decoded labels: %s", processed_labels[:5])
 
-        result = super().compute_metrics(processed_preds, processed_labels)
+        if self.task == "multi_task":
+            # Mask PAD tokens for evaluating metrics for only the generated tokens
+            processed_preds = preds.flatten()
+            processed_labels = labels.flatten()
+            mask = np.where(processed_preds != self.tokenizer.pad_token_id, 1, 0)
+            weights = 1 / mask.sum()
+            sample_weight = np.where(mask != 0, weights, 0)
+        else:
+            sample_weight = None
+
+        result = super().compute_metrics(processed_preds, processed_labels, sample_weight)
 
         logger.info("Result: %s", result)
 

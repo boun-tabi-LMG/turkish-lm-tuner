@@ -1,10 +1,10 @@
 import evaluate
-import sys 
+import sys
 
 class BaseMetric:
     """
     A base class for different evaluation metrics.
-    
+
     Attributes:
         metric_name (str): The name of the metric.
         metric (evaluate.Metric): An instance of the evaluate metric.
@@ -27,7 +27,7 @@ class BaseMetric:
             evaluate.Metric: An instance of the evaluation metric.
         """
         return evaluate.load(self.metric_name)
-    
+
     def compute(self, preds, labels, **kwargs):
         """
         Computes the metric score.
@@ -54,9 +54,9 @@ class PrecisionWeighted(BaseMetric):
     def __init__(self):
         super().__init__("precision")
 
-    def compute(self, preds, labels):
-        return self.metric.compute(predictions=preds, references=labels, average="weighted")
-    
+    def compute(self, preds, labels, **kwargs):
+        return self.metric.compute(predictions=preds, references=labels, average="weighted", **kwargs)
+
 class Recall(BaseMetric):
     def __init__(self):
         super().__init__("recall")
@@ -65,8 +65,8 @@ class RecallWeighted(BaseMetric):
     def __init__(self):
         super().__init__("recall")
 
-    def compute(self, preds, labels):
-        return self.metric.compute(predictions=preds, references=labels, average="weighted")
+    def compute(self, preds, labels, **kwargs):
+        return self.metric.compute(predictions=preds, references=labels, average="weighted", **kwargs)
 
 class F1(BaseMetric):
     def __init__(self):
@@ -76,23 +76,23 @@ class F1Macro(BaseMetric):
     def __init__(self):
         super().__init__("f1")
 
-    def compute(self, preds, labels):
-        return self.metric.compute(predictions=preds, references=labels, average="macro")
-    
+    def compute(self, preds, labels, **kwargs):
+        return self.metric.compute(predictions=preds, references=labels, average="macro", **kwargs)
+
 class F1Micro(BaseMetric):
     def __init__(self):
         super().__init__("f1")
 
-    def compute(self, preds, labels):
-        return self.metric.compute(predictions=preds, references=labels, average="micro")
-    
+    def compute(self, preds, labels, **kwargs):
+        return self.metric.compute(predictions=preds, references=labels, average="micro", **kwargs)
+
 class F1Weighted(BaseMetric):
     def __init__(self):
         super().__init__("f1")
 
-    def compute(self, preds, labels):
-        return self.metric.compute(predictions=preds, references=labels, average="weighted")
-    
+    def compute(self, preds, labels, **kwargs):
+        return self.metric.compute(predictions=preds, references=labels, average="weighted", **kwargs)
+
 class Pearsonr(BaseMetric):
     def __init__(self):
         super().__init__("pearsonr")
@@ -203,7 +203,7 @@ def load_task_metrics(task):
     Returns:
         list: A list of metric class instances relevant to the task.
     """
-    if task == "classification":
+    if task == "classification" or task == "multi_task":
         return load_metrics(["accuracy", "precision_weighted", "recall_weighted", "f1_weighted"])
     elif task in ["summarization", "paraphrasing", "title_generation"]:
         return load_metrics(["rouge", "bleu", "meteor", "ter"])
@@ -221,7 +221,7 @@ def load_task_metrics(task):
         return load_metrics(["rouge", "bleu", "meteor", "ter"])
     else:
         raise NotImplementedError(f"Task {task} not implemented.")
-    
+
 
 import numpy as np
 
@@ -243,14 +243,14 @@ class Evaluator:
         Raises:
             ValueError: If neither task nor metrics are specified.
         """
-        if task is not None: 
+        if task is not None:
             self.metrics = load_task_metrics(task)
         else:
             if metrics is None:
                 raise ValueError("Either task or metrics must be specified.")
             self.metrics = load_metrics(metrics)
-    
-    def compute_metrics(self, preds, labels):
+
+    def compute_metrics(self, preds, labels, **kwargs):
         """
         Computes the metrics for the given predictions and labels.
 
@@ -263,11 +263,11 @@ class Evaluator:
         """
         scores = {}
         for metric in self.metrics:
-            metric_scores = metric.compute(preds, labels)
+            metric_scores = metric.compute(preds, labels, **kwargs)
             scores.update(metric_scores)
         return scores
-    
-    def compute_bootstrapped_metrics(self, preds, labels, num_samples=1000):
+
+    def compute_bootstrapped_metrics(self, preds, labels, num_samples=1000, **kwargs):
         """
         Computes bootstrapped metrics for uncertainty estimation.
 
@@ -288,7 +288,7 @@ class Evaluator:
 
             # Computing metrics for the sampled data
             for metric in self.metrics:
-                metric_scores = metric.compute(sampled_preds, sampled_labels)
+                metric_scores = metric.compute(sampled_preds, sampled_labels, **kwargs)
                 for key, value in metric_scores.items():
                     scores[key].append(value)
 

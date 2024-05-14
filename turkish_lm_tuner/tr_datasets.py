@@ -8,7 +8,9 @@ from pathlib import Path
 class BaseDataset:
     DATASET_NAME = None
     DATASET_INFO = None
-    def __init__(self, dataset_name=None, dataset_info=None):
+    TASK_INFO = ""
+
+    def __init__(self, dataset_name=None, dataset_info=None, task_info=None, use_textual_output=False):
         if dataset_name is not None:
             self.dataset_name = dataset_name
         else:
@@ -17,6 +19,12 @@ class BaseDataset:
             self.dataset_info = dataset_info
         else:
             self.dataset_info = self.DATASET_INFO
+        if task_info is not None:
+            self.task_info = task_info
+        else:
+            self.task_info = self.TASK_INFO
+
+        self.use_textual_output = use_textual_output
 
     def load_dataset(self, split=None):
         if type(self.dataset_info) == tuple:
@@ -44,34 +52,55 @@ class BaseDataset:
 class TRNewsDataset(BaseDataset):
     DATASET_NAME = "tr_news"
     DATASET_INFO = "batubayk/TR-News"
+    TASK_INFO = "özetle"
 
     def preprocess_data(self, examples):
-        return {"input_text": examples["content"], "target_text": examples["abstract"]}
+        if self.use_textual_output:
+            input_text = [f"{self.task_info}: {ex}" for ex in examples['content']]
+            return {"input_text": input_text, "target_text": examples["abstract"]}
+        else:
+            return {"input_text": examples["content"], "target_text": examples["abstract"]}
 
 class MLSumDataset(BaseDataset):
     DATASET_NAME = "mlsum"
     DATASET_INFO = ("mlsum", "tu")
+    TASK_INFO = "özetle"
 
     def preprocess_data(self, examples):
-        return {"input_text": examples["text"], "target_text": examples["summary"]}
+        if self.use_textual_output:
+            input_text = [f"{self.task_info}: {ex}" for ex in examples['text']]
+            return {"input_text": input_text, "target_text": examples["summary"]}
+        else:
+            return {"input_text": examples["text"], "target_text": examples["summary"]}
 
 class TRNewsTitleDataset(BaseDataset):
     DATASET_NAME = "tr_news"
     DATASET_INFO = "batubayk/TR-News"
+    TASK_INFO = "özetle"
 
     def preprocess_data(self, examples):
-        return {"input_text": examples["content"], "target_text": examples["title"]}
+        if self.use_textual_output:
+            input_text = [f"{self.task_info}: {ex}" for ex in examples['content']]
+            return {"input_text": input_text, "target_text": examples["title"]}
+        else:
+            return {"input_text": examples["content"], "target_text": examples["title"]}
 
 class MLSumTitleDataset(BaseDataset):
     DATASET_NAME = "mlsum"
     DATASET_INFO = ("mlsum", "tu")
+    TASK_INFO = "özetle"
 
     def preprocess_data(self, examples):
-        return {"input_text": examples["text"], "target_text": examples["title"]}
+        if self.use_textual_output:
+            input_text = [f"{self.task_info}: {ex}" for ex in examples['text']]
+            return {"input_text": input_text, "target_text": examples["title"]}
+        else:
+            return {"input_text": examples["text"], "target_text": examples["title"]}
 
 class CombinedNewsDataset(TRNewsDataset):
     DATASET_NAME = "combined_news"
     DATASET_INFO = ["tr_news", "mlsum"]
+    TASK_INFO = "özetle"
 
     def load_dataset(self, split=None):
         trnews = TRNewsDataset().load_dataset(split)
@@ -92,6 +121,7 @@ class CombinedNewsDataset(TRNewsDataset):
 class CombinedNewsTitleDataset(TRNewsDataset):
     DATASET_NAME = "combined_news"
     DATASET_INFO = ["tr_news", "mlsum"]
+    TASK_INFO = "özetle"
 
     def load_dataset(self, split=None):
         trnews = TRNewsDataset().load_dataset(split)
@@ -111,28 +141,43 @@ class CombinedNewsTitleDataset(TRNewsDataset):
 class OpenSubtitlesDataset(BaseDataset):
     DATASET_NAME = "opensubtitles"
     DATASET_INFO = "mrbesher/tr-paraphrase-opensubtitles2018"
+    TASK_INFO = "yeniyaz"
 
     def preprocess_data(self, examples):
-        return {"input_text": examples["src"], "target_text": examples["tgt"]}
+        if self.use_textual_output:
+            input_text = [f"{self.task_info}: {ex}" for ex in examples['src']]
+            return {"input_text": input_text, "target_text": examples["tgt"]}
+        else:
+            return {"input_text": examples["src"], "target_text": examples["tgt"]}
 
 class TatoebaDataset(BaseDataset):
     DATASET_NAME = "tatoeba"
     DATASET_INFO = "mrbesher/tr-paraphrase-tatoeba"
+    TASK_INFO = "yeniyaz"
 
     def preprocess_data(self, examples):
-        return {"input_text": examples["src"], "target_text": examples["tgt"]}
+        if self.use_textual_output:
+            input_text = [f"{self.task_info}: {ex}" for ex in examples['src']]
+            return {"input_text": input_text, "target_text": examples["tgt"]}
+        else:
+            return {"input_text": examples["src"], "target_text": examples["tgt"]}
 
 class TEDDataset(BaseDataset):
     DATASET_NAME = "ted"
     DATASET_INFO = "mrbesher/tr-paraphrase-ted2013"
+    TASK_INFO = "yeniyaz"
 
     def preprocess_data(self, examples):
-        return {"input_text": examples["src"], "target_text": examples["tgt"]}
+        if self.use_textual_output:
+            input_text = [f"{self.task_info}: {ex}" for ex in examples['src']]
+            return {"input_text": input_text, "target_text": examples["tgt"]}
+        else:
+            return {"input_text": examples["src"], "target_text": examples["tgt"]}
 
 class LocalDataset(BaseDataset):
 
-    def __init__(self, dataset_loc):
-        super().__init__()
+    def __init__(self, dataset_loc, **kwargs):
+        super().__init__(**kwargs)
         self.dataset_loc = dataset_loc
 
     def load_dataset(self, split=None, **kwargs):
@@ -142,9 +187,10 @@ class LocalDataset(BaseDataset):
 class STSb_TRDataset(LocalDataset):
     DATASET_NAME = "stsb_tr"
     DATASET_INFO = {'train': 'stsb_tr_train.tsv', 'test': 'stsb_tr_test.tsv', 'validation': 'stsb_tr_dev.tsv'}
+    TASK_INFO = "benzerölç"
 
     def preprocess_data(self, examples, skip_output_processing=False):
-        input = [f"ilk cümle: {examples['sentence1'][i]} ikinci cümle: {examples['sentence2'][i]}" for i in range(len(examples["sentence1"]))]
+        input = [f"{self.task_info} ilk cümle: {examples['sentence1'][i]} ikinci cümle: {examples['sentence2'][i]}" for i in range(len(examples["sentence1"]))]
         # If used with the classification mode, skip the output processing
         if skip_output_processing:
             return {"input_text": input, "label": examples["score"]}
@@ -165,11 +211,13 @@ class STSb_TRDataset(LocalDataset):
 
 class NLI_TRDataset(BaseDataset):
     DATASET_INFO = ("nli_tr", None)
+    TASK_INFO = "ilişkibelirle"
     IN_LABEL_DICT = {0: "gereklilik", 1: "nötr", 2:"çelişki"}
     OUT_LABEL_DICT = {v: k for k, v in IN_LABEL_DICT.items()}
-    def __init__(self, dataset_name=None):
+
+    def __init__(self, dataset_name=None, **kwargs):
         # dataset_name is either "nli_tr", "snli_tr" or "multinli_tr"
-        super().__init__(dataset_name)
+        super().__init__(dataset_name, **kwargs)
         self.dataset_info = (self.DATASET_INFO[0], dataset_name)
 
     def load_dataset(self, split=None):
@@ -192,7 +240,7 @@ class NLI_TRDataset(BaseDataset):
 
     def preprocess_data(self, examples, skip_output_processing=False):
 
-        input = [f"hipotez: {examples['hypothesis'][i]} önerme: {examples['premise'][i]}" for i in range(len(examples["premise"]))]
+        input = [f"{self.task_info} hipotez: {examples['hypothesis'][i]} önerme: {examples['premise'][i]}" for i in range(len(examples["premise"]))]
         # If used with the classification mode, skip the output processing
         if skip_output_processing:
             return {"input_text": input, "label": examples["label"]}
@@ -211,6 +259,7 @@ class QADataset(BaseDataset):
 class ExamsDataset(QADataset):
     DATASET_NAME = "exams"
     DATASET_INFO = ("exams", "crosslingual_tr")
+    TASK_INFO = "sorucevapla"
 
     def load_dataset(self, split=None):
         if split == 'test':
@@ -222,7 +271,7 @@ class ExamsDataset(QADataset):
     def preprocess_data(self, examples):
         input_texts, target_texts = [], []
         for question, answer_key in zip(examples["question"], examples["answerKey"]):
-            question_str = question["stem"]
+            question_str = f"{self.task_info}: {question['stem']}" if self.use_textual_output else question["stem"]
             choices = question["choices"]
             if answer_key not in choices['label']:
                 input_texts.append(question_str)
@@ -239,6 +288,7 @@ class ExamsDataset(QADataset):
 class TQUADDataset(LocalDataset, QADataset):
     DATASET_NAME = "tquad"
     DATASET_INFO = {'train': 'train-v0.1.json', 'test': 'dev-v0.1.json'}
+    TASK_INFO = "sorucevapla"
 
     def load_dataset(self, split=None):
         return super().load_dataset(split, field='data')
@@ -253,15 +303,22 @@ class TQUADDataset(LocalDataset, QADataset):
                     question = qa['question'].strip()
                     answers = qa['answers']
                     answer = answers[0]['text'].strip()
-                    input_text = f"Bağlam: {context} | Soru: {question}"
+
+                    if self.use_textual_output:
+                        input_text = f"{self.task_info} Bağlam: {context} | Soru: {question}"
+                    else:
+                        input_text = f"Bağlam: {context} | Soru: {question}"
+
                     target_text = answer
                     input_texts.append(input_text)
                     target_texts.append(target_text)
+
         return {"input_text": input_texts, "target_text": target_texts}
 
 class MKQADataset(QADataset):
     DATASET_NAME = "mkqa"
     DATASET_INFO = "mkqa"
+    TASK_INFO = "sorucevapla"
 
     def load_dataset(self, split='train'):
         return datasets.load_dataset('mkqa', split='train')
@@ -269,7 +326,7 @@ class MKQADataset(QADataset):
     def preprocess_data(self, examples):
         input_texts, target_texts = [], []
         for queries, answers in zip(examples['queries'], examples['answers']):
-            query = queries['tr']
+            query = f"{self.task_info}: {queries['tr']}" if self.use_textual_output else queries['tr']
             answer = answers['tr'][0]['text']
             if not answer:
                 input_texts.append(query)
@@ -300,9 +357,14 @@ class NERDataset(BaseDataset):
         5: "B-ORGANIZATION",
         6: "I-ORGANIZATION",
     }
+    TASK_INFO = "varlıkismitanı"
 
     def preprocess_data(self, examples, tokenizer):
-        tokenized_inputs = tokenizer(examples["tokens"], truncation=True, is_split_into_words=True)
+        if self.use_textual_output:
+            tokens = [f"{self.task_info}: {tokens}" for tokens in examples['tokens']]
+            tokenized_inputs = tokenizer(tokens, truncation=True, is_split_into_words=True)
+        else:
+            tokenized_inputs = tokenizer(examples["tokens"], truncation=True, is_split_into_words=True)
         inputs = []
         labels = []
         for i, label in enumerate(examples[f"ner_tags"]):
@@ -382,6 +444,7 @@ class NERDataset(BaseDataset):
 class WikiANNDataset(NERDataset):
     DATASET_NAME = "wikiann"
     DATASET_INFO = ("wikiann", "tr")
+    TASK_INFO = "varlıkismitanı"
 
     def preprocess_data(self, examples, skip_output_processing=False, tokenizer=None):
         if skip_output_processing:
@@ -418,6 +481,10 @@ class WikiANNDataset(NERDataset):
             input_text = input_text.strip()
             if not target_text:
                 target_text = 'Bulunamadı.'
+
+            if self.use_textual_output:
+                input_text = f"{self.task_info}: {input_text}"
+
             input_texts.append(input_text)
             target_texts.append(target_text)
         return {'input_text': input_texts, 'target_text': target_texts}
@@ -425,9 +492,10 @@ class WikiANNDataset(NERDataset):
 class MilliyetNERDataset(LocalDataset,NERDataset):
     DATASET_NAME = "milliyet_ner"
     DATASET_INFO = {'train': 'train.json', 'test': 'test.json', 'validation': 'dev.json'}
+    TASK_INFO = "varlıkismitanı"
 
-    def __init__(self, dataset_loc):
-        super().__init__(dataset_loc)
+    def __init__(self, dataset_loc, **kwargs):
+        super().__init__(dataset_loc, **kwargs)
 
     def load_dataset(self, split=None):
         for _, filename in self.dataset_info.items():
@@ -498,6 +566,10 @@ class MilliyetNERDataset(LocalDataset,NERDataset):
             target_text = target_text.replace('PERSON: ', 'Kişi: ').replace('LOCATION: ', 'Yer: ').replace('ORGANIZATION: ', 'Kuruluş: ').strip()
             if not target_text:
                 target_text = 'Bulunamadı.'
+
+            if self.use_textual_output:
+                input_text = f"{self.task_info}: {input_text}"
+
             input_texts.append(input_text)
             target_texts.append(target_text)
         return {'input_text': input_texts, 'target_text': target_texts}
@@ -505,12 +577,14 @@ class MilliyetNERDataset(LocalDataset,NERDataset):
 class POSDataset(LocalDataset):
     DATASET_NAME = "pos"
     DATASET_INFO = {'train': 'train.json', 'test': 'test.json', 'validation': 'dev.json'}
+    TASK_INFO = "sözcüktürütanı"
+
     POS_TR_DICT = { "ADP": "edat", "AUX": "yardımcı", "PRON": "zamir", "NOUN": "isim", "PROPN": "özel", "INTJ": "ünlem", "PART": "tanımcık", "CCONJ": "eşgüdümlü", "VERB": "fiil", "SYM": "sembol", "DET": "belirteç", "ADV": "zarf", "ADJ": "sıfat", "X": "diğer", "SCONJ": "yantümce", "NUM": "sayı", "PUNCT": "noktalama" }
     POS_INT_DICT = {"edat": 0, "yardımcı": 1, "zamir": 2, "isim": 3, "özel": 4, "ünlem": 5, "tanımcık": 6, "eşgüdümlü": 7, "fiil": 8, "sembol": 9, "belirteç": 10, "zarf": 11, "sıfat": 12, "diğer": 13, "yantümce": 14, "sayı": 15, "noktalama": 16}
     label_mapping = {v: k for k, v in POS_INT_DICT.items()}
 
-    def __init__(self, dataset_loc=None, dataset_raw_info=None):
-        super().__init__(dataset_loc)
+    def __init__(self, dataset_loc=None, dataset_raw_info=None, **kwargs):
+        super().__init__(dataset_loc, **kwargs)
         self.DATASET_RAW_INFO = dataset_raw_info
 
     def load_dataset(self, split=None):
@@ -563,7 +637,12 @@ class POSDataset(LocalDataset):
         return super().load_dataset(split)
 
     def preprocess_labels(self, examples, tokenizer):
-        tokenized_inputs = tokenizer(examples["tokens"], truncation=True, is_split_into_words=True)
+        if self.use_textual_output:
+            tokens = [f"{self.task_info}: {tokens}" for tokens in examples['tokens']]
+            tokenized_inputs = tokenizer(tokens, truncation=True, is_split_into_words=True)
+        else:
+            tokenized_inputs = tokenizer(examples["tokens"], truncation=True, is_split_into_words=True)
+
         inputs = []
         labels = []
         for i, label in enumerate(examples[f"tags"]):
@@ -602,7 +681,14 @@ class POSDataset(LocalDataset):
                 if split_token != 0:
                     split_token -= 1
             output = ' '.join(tag_l)
-            input_texts.append(' '.join(tokens))
+
+            if self.use_textual_output:
+                tokens = ' '.join(tokens)
+                tokens = f"{self.task_info}: {tokens}"
+            else:
+                tokens = ' '.join(tokens)
+
+            input_texts.append(tokens)
             target_texts.append(output)
         return {"input_text": input_texts, "target_text": target_texts}
 
@@ -644,23 +730,26 @@ class POSDataset(LocalDataset):
 class UDBOUNDataset(POSDataset):
     DATASET_NAME = "boun"
     DATASET_RAW_INFO =  {'train': 'tr_boun-ud-train.conllu', 'test': 'tr_boun-ud-test.conllu', 'validation': 'tr_boun-ud-dev.conllu'}
+    TASK_INFO = "sözcüktürütanı"
 
-    def __init__(self, dataset_loc=None):
-        super().__init__(dataset_loc, self.DATASET_RAW_INFO)
+    def __init__(self, dataset_loc=None, **kwargs):
+        super().__init__(dataset_loc, self.DATASET_RAW_INFO, **kwargs)
 
 class UDIMSTDataset(POSDataset):
     DATASET_NAME = "imst"
     DATASET_RAW_INFO =  {'train': 'tr_imst-ud-train.conllu', 'test': 'tr_imst-ud-test.conllu', 'validation': 'tr_imst-ud-dev.conllu'}
+    TASK_INFO = "sözcüktürütanı"
 
-    def __init__(self, dataset_loc=None):
-        super().__init__(dataset_loc, self.DATASET_RAW_INFO)
+    def __init__(self, dataset_loc=None, **kwargs):
+        super().__init__(dataset_loc, self.DATASET_RAW_INFO, **kwargs)
 
 class ClassificationDataset(BaseDataset):
     IN_LABEL_DICT = None
     OUT_LABEL_DICT = None
+    TASK_INFO = "sınıflandır"
 
-    def __init__(self, dataset_name=None):
-        super().__init__(dataset_name)
+    def __init__(self, dataset_name=None, **kwargs):
+        super().__init__(dataset_name, **kwargs)
         self.OUT_LABEL_DICT = {v: k for k, v in self.IN_LABEL_DICT.items()}
 
     def postprocess_data(self, examples):
@@ -678,16 +767,22 @@ class TTC4900Dataset(ClassificationDataset):
     DATASET_NAME = "ttc4900"
     DATASET_INFO = "ttc4900"
     IN_LABEL_DICT = {0: "siyaset", 1: "dünya", 2: "ekonomi", 3: "kültür", 4: "sağlık", 5: "spor", 6: "teknoloji"}
+    TASK_INFO = "konusınıflandır"
 
-    def __init__(self, dataset_name=None):
-        super().__init__(dataset_name)
+    def __init__(self, dataset_name=None, **kwargs):
+        super().__init__(dataset_name, **kwargs)
 
     def preprocess_data(self, examples, skip_output_processing=False):
         # If used with the classification mode, don't process the output
         if skip_output_processing:
             return {"input_text": examples["text"], "label": examples["category"]}
         output = [self.IN_LABEL_DICT[ex] for ex in examples["category"]]
-        return {"input_text": examples["text"], "target_text": output}
+
+        if self.use_textual_output:
+            input_text = [f"{self.task_info}: {ex}" for ex in examples["text"]]
+            return {"input_text": input_text, "target_text": output}
+        else:
+            return {"input_text": examples['text'], "target_text": output}
 
     def load_dataset(self, split=None):
         dataset = super().load_dataset(split)
@@ -698,16 +793,22 @@ class ProductDataset(ClassificationDataset):
     DATASET_NAME = "turkish_product_reviews"
     DATASET_INFO = "turkish_product_reviews"
     IN_LABEL_DICT = {0: "negatif", 1: "pozitif"}
+    TASK_INFO = "duygusınıflandır"
 
-    def __init__(self, dataset_name=None):
-        super().__init__(dataset_name)
+    def __init__(self, dataset_name=None, **kwargs):
+        super().__init__(dataset_name, **kwargs)
 
     def preprocess_data(self, examples, skip_output_processing=False):
         # If used with the classification mode, don't process the output
         if skip_output_processing:
             return {"input_text": examples["sentence"], "label": examples["sentiment"]}
         output = [self.IN_LABEL_DICT[ex] for ex in examples["sentiment"]]
-        return {"input_text": examples["sentence"], "target_text": output}
+
+        if self.use_textual_output:
+            input_text = [f"{self.task_info}: {ex}" for ex in examples["sentence"]]
+            return {"input_text": input_text, "target_text": output}
+        else:
+            return {"input_text": examples['sentence'], "target_text": output}
 
     def load_dataset(self, split=None):
         dataset = super().load_dataset(split)
@@ -718,9 +819,10 @@ class SentimentTweetDataset(ClassificationDataset):
     DATASET_NAME = "sentiment_tweet"
     DATASET_INFO = {'train': 'formatted_train.csv', 'test': 'formatted_test.csv'}
     IN_LABEL_DICT = {0: "olumsuz", 1: "nötr", 2: "olumlu"}
+    TASK_INFO = "duygusınıflandır"
 
-    def __init__(self, dataset_loc):
-        super().__init__(self)
+    def __init__(self, dataset_loc, **kwargs):
+        super().__init__(self, **kwargs)
         self.dataset_loc = dataset_loc
 
     def preprocess_data(self, examples, skip_output_processing=False):
@@ -728,7 +830,12 @@ class SentimentTweetDataset(ClassificationDataset):
         if skip_output_processing:
             return {"input_text": examples["text"], "label": examples["label"]}
         output = [self.IN_LABEL_DICT[ex] for ex in examples["label"]]
-        return {"input_text": examples["text"], "target_text": output}
+
+        if self.use_textual_output:
+            input_text = [f"{self.task_info}: {ex}" for ex in examples["text"]]
+            return {"input_text": input_text, "target_text": output}
+        else:
+            return {"input_text": examples['text'], "target_text": output}
 
     def load_dataset(self, split=None):
         dataset = LocalDataset.load_dataset(self, split)
@@ -765,13 +872,13 @@ DATASET_MAPPING_NAMES = [
 def str_to_class(classname):
     return getattr(sys.modules[__name__], classname)
 
-def initialize_dataset(dataset_name, dataset_loc=None):
+def initialize_dataset(dataset_name, dataset_loc=None, use_textual_output=False):
     for dataset_mapping_name in DATASET_MAPPING_NAMES:
         if dataset_name == dataset_mapping_name[0]:
             dataset_class = str_to_class(dataset_mapping_name[1])
             if dataset_loc != "" and dataset_loc is not None:
-                dataset = dataset_class(dataset_loc)
+                dataset = dataset_class(dataset_loc, use_textual_output=use_textual_output)
             else:
-                dataset = dataset_class(dataset_name)
+                dataset = dataset_class(dataset_name, use_textual_output=use_textual_output)
             return dataset
     raise NotImplementedError
