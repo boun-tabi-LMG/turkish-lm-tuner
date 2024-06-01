@@ -39,7 +39,7 @@ class T5ForClassification(T5PreTrainedModel):   # nn.Module
 
         self.model_parallel = False
 
-    def forward(self, input_ids, attention_mask=None, labels=None):
+    def forward(self, input_ids, attention_mask=None, labels=None, **kwargs):
         encoder_output = self.encoder(input_ids, attention_mask=attention_mask)
         if self.config.problem_type == "token_classification":
             sequence_output = encoder_output.last_hidden_state
