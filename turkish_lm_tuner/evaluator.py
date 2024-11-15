@@ -13,6 +13,7 @@ from .t5_classifier import T5ForClassification, T5ForClassificationConfig
 from .metrics import load_task_metrics
 import pandas as pd
 import numpy as np
+import torch
 import os
 import logging
 
@@ -107,6 +108,10 @@ class EvaluatorForClassification(BaseEvaluator):
         preds, labels = eval_preds
         if self.task == "semantic_similarity":
             preds = preds.flatten()
+        elif self.task == "multi_label_classification":
+            sigmoid_outputs = torch.sigmoid(torch.Tensor(preds))
+            # Apply 0.5 threshold to get binary predictions
+            preds = (sigmoid_outputs > 0.5).int()
         else:
             preds = np.argmax(preds, axis=-1)
 
@@ -119,11 +124,10 @@ class EvaluatorForClassification(BaseEvaluator):
             labels = self.postprocess_fn(labels)
 
         logger.info("Computing metrics")
-
-        result = super().compute_metrics(preds, labels)
-
         logger.info("Predictions: %s", preds[:5])
         logger.info("Labels: %s", labels[:5])
+
+        result = super().compute_metrics(preds, labels)
 
         predictions = pd.DataFrame(
             {'Prediction': preds,
