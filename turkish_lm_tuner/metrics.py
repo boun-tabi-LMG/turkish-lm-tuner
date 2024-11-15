@@ -69,29 +69,48 @@ class RecallWeighted(BaseMetric):
         return self.metric.compute(predictions=preds, references=labels, average="weighted")
 
 class F1(BaseMetric):
-    def __init__(self):
+    def __init__(self, average="binary"):
         super().__init__("f1")
-
-class F1Macro(BaseMetric):
-    def __init__(self):
-        super().__init__("f1")
+        self.average = average
 
     def compute(self, preds, labels):
-        return self.metric.compute(predictions=preds, references=labels, average="macro")
-    
-class F1Micro(BaseMetric):
-    def __init__(self):
-        super().__init__("f1")
+        return self.metric.compute(predictions=preds, references=labels, average=self.average)
 
-    def compute(self, preds, labels):
-        return self.metric.compute(predictions=preds, references=labels, average="micro")
-    
-class F1Weighted(BaseMetric):
+class F1Macro(F1):
     def __init__(self):
-        super().__init__("f1")
+        super().__init__("macro")
 
-    def compute(self, preds, labels):
-        return self.metric.compute(predictions=preds, references=labels, average="weighted")
+class F1Micro(F1):
+    def __init__(self):
+        super().__init__("micro")
+
+class F1Weighted(F1):
+    def __init__(self):
+        super().__init__("weighted")
+
+class F1MultiBase(F1):
+    def __init__(self, average):
+        """
+        Initializes the F1 multi-base class for multilabel metrics.
+
+        Args:
+            average (str): The averaging method to use (e.g., 'macro', 'micro', 'weighted').
+        """
+        super().__init__(average)
+        self.metric = evaluate.load("f1", "multilabel")
+        self.average = average
+
+class F1MultiMacro(F1MultiBase):
+    def __init__(self):
+        super().__init__("macro")
+
+class F1MultiMicro(F1MultiBase):
+    def __init__(self):
+        super().__init__("micro")
+
+class F1MultiWeighted(F1MultiBase):
+    def __init__(self):
+        super().__init__("weighted")
     
 class Pearsonr(BaseMetric):
     def __init__(self):
@@ -154,6 +173,9 @@ METRIC_MAPPING_NAMES = [
         ("f1_macro", "F1Macro"),
         ("f1_micro", "F1Micro"),
         ("f1_weighted", "F1Weighted"),
+        ("f1_multi_macro", "F1MultiMacro"),
+        ("f1_multi_micro", "F1MultiMicro"),
+        ("f1_multi_weighted", "F1MultiWeighted"),
         ("pearsonr", "Pearsonr"),
         ("bleu", "BLEU"),
         ("meteor", "METEOR"),
