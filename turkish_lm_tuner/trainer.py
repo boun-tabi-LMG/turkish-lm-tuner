@@ -136,11 +136,11 @@ class TrainerForConditionalGeneration(BaseModelTrainer):
 
 
 class TrainerForClassification(BaseModelTrainer):
-    def __init__(self, model_name, task, training_params, optimizer_params, model_save_path, num_labels, postprocess_fn=None):
+    def __init__(self, model_name, task, training_params, optimizer_params, model_save_path, max_input_length, num_labels, postprocess_fn=None):
         super().__init__(model_name, training_params, optimizer_params)
         self.num_labels = num_labels
         self.task = task
-        self.evaluator = EvaluatorForClassification(model_save_path, model_name, task, training_params, postprocess_fn=postprocess_fn)
+        self.evaluator = EvaluatorForClassification(model_save_path, model_name, task, max_input_length, training_params, num_labels, postprocess_fn=postprocess_fn)
 
     def initialize_model(self):
         config = AutoConfig.from_pretrained(self.model_name)
