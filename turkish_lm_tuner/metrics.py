@@ -227,6 +227,8 @@ def load_task_metrics(task):
     """
     if task == "classification":
         return load_metrics(["accuracy", "precision_weighted", "recall_weighted", "f1_weighted"])
+    elif task == "mult_label_classification":
+        return load_metrics(["f1_multi_weighted"])
     elif task in ["summarization", "paraphrasing", "title_generation"]:
         return load_metrics(["rouge", "bleu", "meteor", "ter"])
     elif task == "nli":
@@ -257,7 +259,7 @@ class Evaluator:
     def __init__(self, task=None, metrics=None):
         """
         Initializes the Evaluator class.
-
+˜
         Args:
             task (str, optional): The name of the task for which to load metrics. Defaults to None.
             metrics (list, optional): A list of metric names to load. Defaults to None.
