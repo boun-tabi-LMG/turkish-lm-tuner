@@ -92,8 +92,7 @@ def main(cfg: DictConfig):
         model_trainer = TrainerForConditionalGeneration(model_name, task, training_params, optimizer_params, model_save_path, max_input_length, max_target_length, postprocess_fn)
     elif task_format == 'classification':
         logger.info("******Classification Mode******")
-        model_trainer = TrainerForClassification(model_name, task, training_params, optimizer_params, model_save_path, num_labels, postprocess_fn)
-
+        model_trainer = TrainerForClassification(model_name, task, training_params, optimizer_params, model_save_path, max_input_length, num_labels, postprocess_fn)
     trainer, model = model_trainer.train_and_evaluate(train_dataset, eval_dataset, test_dataset)
 
     logger.info("Best model saved at %s", model_save_path)
