@@ -7,7 +7,7 @@ from transformers import (
     AutoModelForTokenClassification,
 )
 
-from .t5_classifier import T5ForClassification, T5ForClassificationConfig
+from .t5_classifier import T5ForClassification
 
 
 from .metrics import load_task_metrics
