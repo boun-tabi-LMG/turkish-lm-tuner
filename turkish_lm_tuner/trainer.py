@@ -154,7 +154,7 @@ class TrainerForClassification(BaseModelTrainer):
             }
             task_type = task_map.get(self.task, "regression")
             num_labels = self.num_labels if task_type != "regression" else 1
-            return T5ForClassification(self.model_name, config, num_labels, task_type)
+            return T5ForClassification.from_pretrained(self.model_name, num_labels=num_labels, problem_type=task_type)
 
         if self.task == "classification":
             return AutoModelForSequenceClassification.from_pretrained(self.model_name, num_labels=self.num_labels)

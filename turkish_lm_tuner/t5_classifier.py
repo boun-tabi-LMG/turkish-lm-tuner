@@ -1,14 +1,10 @@
 from torch import nn
-from transformers import T5EncoderModel, PretrainedConfig
+from transformers import T5EncoderModel, T5Config
 from torch import nn
 from torch.nn import BCEWithLogitsLoss, CrossEntropyLoss, MSELoss
 from transformers.models.t5.modeling_t5 import T5PreTrainedModel
 
-class T5ForClassificationConfig(PretrainedConfig):
-    model_type="t5_turna_enc"
-
 class T5ForClassification(T5PreTrainedModel):   # nn.Module
-    config_class = T5ForClassificationConfig
     """
     T5 encoder adapted for classification
     Args:
@@ -18,21 +14,13 @@ class T5ForClassification(T5PreTrainedModel):   # nn.Module
         problem_type: Problem type. It can be either 'single_label_classification', 'multi_label_classification', 'token_classification' or 'regression'
         dropout_prob: Dropout probability
     """
-    def __init__(self, pretrained_model_name, config, num_labels, problem_type, dropout_prob=0.1):
+    def __init__(self, config: T5Config):
         super().__init__(config)
 
-        try:
-            self.encoder = T5EncoderModel.from_pretrained(pretrained_model_name)
-        except Exception as e:
-            pretrained_model_name = config._name_or_path
-            self.encoder = T5EncoderModel.from_pretrained(pretrained_model_name)
+        self.transformer = T5EncoderModel(config)
 
-        self.dropout = nn.Dropout(dropout_prob)
-        self.classifier = nn.Linear(self.encoder.config.d_model, num_labels)
-        self.config = self.encoder.config
-        self.config.num_labels = num_labels
-        self.config.problem_type = problem_type
-        self.config.dropout_prob = dropout_prob
+        self.dropout = nn.Dropout(config.classifier_dropout)
+        self.classifier = nn.Linear(config.hidden_size, config.num_labels)
         
         # Initialize weights and apply final processing
         self.post_init()
@@ -40,7 +28,7 @@ class T5ForClassification(T5PreTrainedModel):   # nn.Module
         self.model_parallel = False
 
     def forward(self, input_ids, attention_mask=None, labels=None):
-        encoder_output = self.encoder(input_ids, attention_mask=attention_mask)
+        encoder_output = self.transformer(input_ids, attention_mask=attention_mask)
         if self.config.problem_type == "token_classification":
             sequence_output = encoder_output.last_hidden_state
         else:

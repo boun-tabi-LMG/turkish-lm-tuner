@@ -75,17 +75,10 @@ class EvaluatorForClassification(BaseEvaluator):
         self.num_labels = num_labels
     
     def initialize_model(self):
-        AutoConfig.register("t5_turna_enc", T5ForClassificationConfig)
-        AutoModel.register(T5ForClassificationConfig, T5ForClassification)
         config = AutoConfig.from_pretrained(self.model_path)
 
-        if config.model_type in ["t5", "mt5", "t5_turna_enc"]:
-            if self.task == "classification":
-                return T5ForClassification.from_pretrained(self.model_path, config, self.num_labels, "single_label_classification")
-            elif self.task in ["ner", "pos_tagging"]:
-                return T5ForClassification.from_pretrained(self.model_path, config, self.num_labels, "token_classification")
-            else:
-                return T5ForClassification.from_pretrained(self.model_path, config, 1, "regression")
+        if config.model_type in ["t5", "mt5"]:
+            return T5ForClassification.from_pretrained(self.model_path)
         else:
             if self.task == "classification":
                 return AutoModelForSequenceClassification.from_pretrained(self.model_path, num_labels=self.num_labels)
