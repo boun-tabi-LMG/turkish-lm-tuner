@@ -3,12 +3,12 @@
 
 </br>
 
+[![Paper](https://img.shields.io/badge/DOI-10.18653/v1/2024.findings--acl.600-blue)](https://aclanthology.org/2024.findings-acl.600/)
+[![Code license](https://img.shields.io/badge/Code%20License-MIT-green.svg)](https://github.com/boun-tabi-LMG/blob/main/LICENSE)
 [![PyPI](https://img.shields.io/pypi/v/turkish-lm-tuner)](https://pypi.org/project/turkish-lm-tuner/)
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/turkish-lm-tuner)](https://pypi.org/project/turkish-lm-tuner/)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/turkish-lm-tuner)](https://pypi.org/project/turkish-lm-tuner/)
-[![Code license](https://img.shields.io/badge/Code%20License-MIT-green.svg)](https://github.com/boun-tabi-LMG/blob/main/LICENSE)
 [![GitHub Repo stars](https://img.shields.io/github/stars/boun-tabi-LMG/turkish-lm-tuner)](https://github.com/boun-tabi-LMG/turkish-lm-tuner/stargazers)
-[![arXiv](https://img.shields.io/badge/arxiv-2401.14373-b31b1b.svg)](https://arxiv.org/abs/2401.14373)
 
 ## Overview
 
@@ -52,9 +52,9 @@ Any Encoder or ConditionalGeneration model that is compatible with Hugging Face 
 | Title Generation               | [TR News](https://doi.org/10.1007/s10579-021-09568-y), [MLSUM](https://aclanthology.org/2020.emnlp-main.647/), [Combined TR News and MLSUM](https://doi.org/10.1017/S1351324922000195)                        |
 | Paraphrase Generation          | [OpenSubtitles](https://aclanthology.org/2022.icnlsp-1.14/), [Tatoeba](https://aclanthology.org/2022.icnlsp-1.14/), [TED Talks](https://aclanthology.org/2022.icnlsp-1.14/)                                 |
 
-## Usage
 
-The tutorials in the [documentation](https://boun-tabi-lmg.github.io/turkish-lm-tuner/) can help you get started with `turkish-lm-tuner`.
+## Usage
+The tutorials in the [documentation](docs/) can help you get started with `turkish-lm-tuner`.
 
 ## Examples
 
@@ -79,13 +79,13 @@ eval_dataset = dataset_processor.load_and_preprocess_data(split='validation')
 test_dataset = dataset_processor.load_and_preprocess_data(split="test")
 
 training_params = {
-    'num_train_epochs': 10
+    'num_train_epochs': 10,
     'per_device_train_batch_size': 4,
     'per_device_eval_batch_size': 4,
-    'output_dir': './',
+    'output_dir': './', 
     'evaluation_strategy': 'epoch',
     'save_strategy': 'epoch',
-    'predict_with_generate': True
+    'predict_with_generate': True    
 }
 optimizer_params = {
     'optimizer_type': 'adafactor',
@@ -98,7 +98,7 @@ model_trainer = TrainerForConditionalGeneration(
     training_params=training_params,
     model_save_path="turna_summarization_tr_news",
     max_input_length=max_input_length,
-    max_target_length=max_target_length,
+    max_target_length=max_target_length, 
     postprocess_fn=dataset_processor.dataset.postprocess_data
 )
 
@@ -128,7 +128,9 @@ dataset_processor = DatasetProcessor(
 test_dataset = dataset_processor.load_and_preprocess_data(split="test")
 
 test_params = {
-    'per_device_eval_batch_size': 4
+    'per_device_eval_batch_size': 4,
+    'output_dir': './',
+    'predict_with_generate': True
 }
 
 model_path = "turna_tr_news_summarization"
@@ -150,16 +152,28 @@ print(results)
 
 ## Reference
 
-If you use this repository, please cite the following related [paper](https://arxiv.org/abs/2401.14373):
+If you use this repository, please cite the following related [paper](https://aclanthology.org/2024.findings-acl.600/):
 
 ```bibtex
-@misc{uludoğan2024turna,
-      title={TURNA: A Turkish Encoder-Decoder Language Model for Enhanced Understanding and Generation},
-      author={Gökçe Uludoğan and Zeynep Yirmibeşoğlu Balal and Furkan Akkurt and Melikşah Türker and Onur Güngör and Susan Üsküdarlı},
-      year={2024},
-      eprint={2401.14373},
-      archivePrefix={arXiv},
-      primaryClass={cs.CL}
+@inproceedings{uludogan-etal-2024-turna,
+    title = "{TURNA}: A {T}urkish Encoder-Decoder Language Model for Enhanced Understanding and Generation",
+    author = {Uludo{\u{g}}an, G{\"o}k{\c{c}}e  and
+      Balal, Zeynep  and
+      Akkurt, Furkan  and
+      Turker, Meliksah  and
+      Gungor, Onur  and
+      {\"U}sk{\"u}darl{\i}, Susan},
+    editor = "Ku, Lun-Wei  and
+      Martins, Andre  and
+      Srikumar, Vivek",
+    booktitle = "Findings of the Association for Computational Linguistics: ACL 2024",
+    month = aug,
+    year = "2024",
+    address = "Bangkok, Thailand",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2024.findings-acl.600",
+    doi = "10.18653/v1/2024.findings-acl.600",
+    pages = "10103--10117",
 }
 ```
 

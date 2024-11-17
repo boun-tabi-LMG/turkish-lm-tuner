@@ -29,6 +29,7 @@ class T5ForClassification(T5PreTrainedModel):   # nn.Module
 
     def forward(self, input_ids, attention_mask=None, labels=None):
         encoder_output = self.transformer(input_ids, attention_mask=attention_mask)
+
         if self.config.problem_type == "token_classification":
             sequence_output = encoder_output.last_hidden_state
         else:

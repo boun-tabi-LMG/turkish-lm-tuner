@@ -3,12 +3,12 @@
 
 </br>
 
+[![Paper](https://img.shields.io/badge/DOI-10.18653/v1/2024.findings--acl.600-blue)](https://aclanthology.org/2024.findings-acl.600/)
+[![Code license](https://img.shields.io/badge/Code%20License-MIT-green.svg)](https://github.com/boun-tabi-LMG/blob/main/LICENSE)
 [![PyPI](https://img.shields.io/pypi/v/turkish-lm-tuner)](https://pypi.org/project/turkish-lm-tuner/)
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/turkish-lm-tuner)](https://pypi.org/project/turkish-lm-tuner/)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/turkish-lm-tuner)](https://pypi.org/project/turkish-lm-tuner/)
-[![Code license](https://img.shields.io/badge/Code%20License-MIT-green.svg)](https://github.com/boun-tabi-LMG/blob/main/LICENSE)
 [![GitHub Repo stars](https://img.shields.io/github/stars/boun-tabi-LMG/turkish-lm-tuner)](https://github.com/boun-tabi-LMG/turkish-lm-tuner/stargazers)
-[![arXiv](https://img.shields.io/badge/arxiv-2401.14373-b31b1b.svg)](https://arxiv.org/abs/2401.14373)
 
 ## Overview
 
@@ -152,16 +152,28 @@ print(results)
 
 ## Reference
 
-If you use this repository, please cite the following related [paper](https://arxiv.org/abs/2401.14373):
+If you use this repository, please cite the following related [paper](https://aclanthology.org/2024.findings-acl.600/):
 
 ```bibtex
-@misc{uludogan2024turna,
-      title={TURNA: A Turkish Encoder-Decoder Language Model for Enhanced Understanding and Generation}, 
-      author={Gökçe Uludoğan and Zeynep Yirmibeşoğlu Balal and Furkan Akkurt and Melikşah Türker and Onur Güngör and Susan Üsküdarlı},
-      year={2024},
-      eprint={2401.14373},
-      archivePrefix={arXiv},
-      primaryClass={cs.CL}
+@inproceedings{uludogan-etal-2024-turna,
+    title = "{TURNA}: A {T}urkish Encoder-Decoder Language Model for Enhanced Understanding and Generation",
+    author = {Uludo{\u{g}}an, G{\"o}k{\c{c}}e  and
+      Balal, Zeynep  and
+      Akkurt, Furkan  and
+      Turker, Meliksah  and
+      Gungor, Onur  and
+      {\"U}sk{\"u}darl{\i}, Susan},
+    editor = "Ku, Lun-Wei  and
+      Martins, Andre  and
+      Srikumar, Vivek",
+    booktitle = "Findings of the Association for Computational Linguistics: ACL 2024",
+    month = aug,
+    year = "2024",
+    address = "Bangkok, Thailand",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2024.findings-acl.600",
+    doi = "10.18653/v1/2024.findings-acl.600",
+    pages = "10103--10117",
 }
 ```
 
