@@ -136,26 +136,32 @@ class TrainerForConditionalGeneration(BaseModelTrainer):
 
 
 class TrainerForClassification(BaseModelTrainer):
-    def __init__(self, model_name, task, training_params, optimizer_params, model_save_path, num_labels, postprocess_fn=None):
+    def __init__(self, model_name, task, training_params, optimizer_params, model_save_path, max_input_length, num_labels, postprocess_fn=None):
         super().__init__(model_name, training_params, optimizer_params)
         self.num_labels = num_labels
         self.task = task
-        self.evaluator = EvaluatorForClassification(model_save_path, model_name, task, training_params, postprocess_fn=postprocess_fn)
+        self.evaluator = EvaluatorForClassification(model_save_path, model_name, task, max_input_length, training_params, num_labels, postprocess_fn=postprocess_fn)
 
     def initialize_model(self):
         config = AutoConfig.from_pretrained(self.model_name)
+
         if config.model_type in ["t5", "mt5"]:
-            if self.task == "classification":
-                return T5ForClassification(self.model_name, config, self.num_labels, "single_label_classification")
-            elif self.task in ["ner", "pos_tagging"]:
-                return T5ForClassification(self.model_name, config, self.num_labels, "token_classification")
-            else:
-                return T5ForClassification(self.model_name, config, 1, "regression")
-        else:
-            if self.task == "classification":
-                return AutoModelForSequenceClassification.from_pretrained(self.model_name, num_labels=self.num_labels)
-            elif self.task in ["ner", "pos_tagging"]:
-                return AutoModelForTokenClassification.from_pretrained(self.model_name, num_labels=self.num_labels)
+            task_map = {
+                "classification": "single_label_classification",
+                "multi_label_classification": "multi_label_classification",
+                "ner": "token_classification",
+                "pos_tagging": "token_classification"
+            }
+            task_type = task_map.get(self.task, "regression")
+            num_labels = self.num_labels if task_type != "regression" else 1
+            return T5ForClassification.from_pretrained(self.model_name, num_labels=num_labels, problem_type=task_type)
+
+        if self.task == "classification":
+            return AutoModelForSequenceClassification.from_pretrained(self.model_name, num_labels=self.num_labels)
+        if self.task == "multi_label_classification":
+            return AutoModelForSequenceClassification.from_pretrained(self.model_name, num_labels=self.num_labels, problem_type=self.task)
+        if self.task in ["ner", "pos_tagging"]:
+            return AutoModelForTokenClassification.from_pretrained(self.model_name, num_labels=self.num_labels)
     
     def train_and_evaluate(self, train_dataset, eval_dataset, test_dataset):
         logger.info("Training in classification mode")

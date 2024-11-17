@@ -1,4 +1,4 @@
-model_name: /pretrained_checkpoints/ckpt-1.74M
+model_name: boun-tabi-LMG/TURNA 
 task_mode: '' # '[S2S]: ', '[NLU]: ', '[NLG]: '
 training_params:
   num_train_epochs: 10

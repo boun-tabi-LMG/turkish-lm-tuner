@@ -9,7 +9,7 @@ formatter = logging.Formatter('%(levelname)s - %(asctime)s - %(name)s: %(message
 stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
 
-from .tr_datasets import initialize_dataset
+from .tr_datasets import initialize_dataset, BaseDataset
 
 class DatasetProcessor:
     """
@@ -33,7 +33,8 @@ class DatasetProcessor:
                  tokenizer_name: str = None, 
                  max_input_length: int = None, 
                  max_target_length: int = None, 
-                 dataset_loc: str = ''):
+                 dataset_loc: str = '',
+                 dataset: BaseDataset = None):
         
         logger.info(f"Initializing dataset processor for {dataset_name} dataset with {tokenizer_name} tokenizer and {task} task in {task_format} format with {task_mode} mode")
         logger.info(f"Max input length: {max_input_length} Max target length: {max_target_length}")
@@ -46,6 +47,7 @@ class DatasetProcessor:
         self.max_input_length = max_input_length
         self.max_target_length = max_target_length
         self.dataset_loc = dataset_loc
+        self.dataset = dataset
 
     def load_and_preprocess_data(self, split='train'):
         """
@@ -54,7 +56,8 @@ class DatasetProcessor:
             split: Split of the dataset to be loaded. Either 'train', 'validation' or 'test'
         """
         logger.info(f"Loading {split} split of {self.dataset_name} dataset")
-        self.dataset = initialize_dataset(self.dataset_name, self.dataset_loc)
+        if self.dataset is None: 
+            self.dataset = initialize_dataset(self.dataset_name, self.dataset_loc)
         data = self.dataset.load_dataset(split)
         
         logger.info(f"Preprocessing {self.dataset_name} dataset")
